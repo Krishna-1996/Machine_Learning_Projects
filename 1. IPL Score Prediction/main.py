@@ -14,3 +14,7 @@ print(ipl.head())
 # 3. Data Pre-Processing
 # 3.1 Drop Unnecessary Columns
 df = ipl.drop(['date', 'runs', 'wickets', 'overs', 'runs_last_5', 'wickets_last_5','mid', 'striker', 'non-striker'], axis =1)
+# 3.2 Define the x(independent variable) and y(depended variable)
+x =  df.drop(['total'], axis =1)
+y = df['total']
+print(y)
