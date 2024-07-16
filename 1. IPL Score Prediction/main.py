@@ -17,4 +17,25 @@ df = ipl.drop(['date', 'runs', 'wickets', 'overs', 'runs_last_5', 'wickets_last_
 # 3.2 Define the x(independent variable) and y(depended variable)
 x =  df.drop(['total'], axis =1)
 y = df['total']
-print(y)
+'''print(y)'''
+# 3.3 Label Encoding
+from sklearn.preprocessing import LabelEncoder
+# Create a label encoder object for each categorical features.
+venue_encoder = LabelEncoder()	
+bat_team_encoder = LabelEncoder()	
+bowl_team_encoder = LabelEncoder()	
+batsman_encoder = LabelEncoder()	
+bowler_encoder = LabelEncoder()
+# Fit & Transform the categorical features with Label Encoding
+x['venue'] = venue_encoder.fit_transform(x['venue'])
+x['bat_team'] = bat_team_encoder.fit_transform(x['bat_team'])
+x['bowl_team'] = bowl_team_encoder.fit_transform(x['bowl_team'])
+x['batsman'] = batsman_encoder.fit_transform(x['batsman'])
+x['bowler'] = bowler_encoder.fit_transform(x['bowler'])
+
+
+
+
+
+
+
