@@ -65,7 +65,9 @@ huber_loss = tf.keras.losses.Huber(delta=1.0)
 
 # 5. MODEL TRAINING
 model.fit(x_train_scalar, y_train, epoch=50, batch_size = 64, validation_data = (x_test_scaler, y_test))
-
+# stored th training and validation loss values to our neural network
+model_losses = pd.DataFrame(model.history.history)
+model.losses.plot()
 
 
 
