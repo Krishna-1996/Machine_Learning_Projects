@@ -59,10 +59,9 @@ model = keras.Sequential([
     # layer 3 linear activation wih 1 neurons
     # the output will be real number 
     keras.layer.Dense(1, activation='linear')
-
-
 ])
-
+# compile the model with huber loss 
+huber_loss = tf.keras.losses.Huber(delta=1.0)
 
 
 
