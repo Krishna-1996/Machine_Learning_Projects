@@ -51,7 +51,9 @@ x_test_scaler = scaler.fit_transform(x_test)
 # 4. DEFINE THE NEURAL NETWORK
 model = keras.Sequential([
     keras.layers.Input(shape=(x_train_scalar.shape[1],)),
-    
+    keras.layer.Dense(512,activation='relu'),
+    keras.layer.Dense(216,activation='relu'),
+    keras.layer.Dense(1, activation='linear')
 
 
 ])
