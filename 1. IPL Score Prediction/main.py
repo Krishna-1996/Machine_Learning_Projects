@@ -65,3 +65,9 @@ plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.title('Training and Validation Loss')
 plt.show()
+
+# 6. MODEL EVALUATION
+predict = model.predict(x_test_scalar)
+# MSE and MAE
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+mae = mean_absolute_error("Mean Absolute Error: ", y_test, predict)
