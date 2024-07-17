@@ -53,12 +53,12 @@ model = keras.Sequential([
     # Input layer ie: x_train_scalar with shape [1] as 20 features. [0] = (7000) samples 
     keras.layers.Input(shape=(x_train_scalar.shape[1],)),
     # layer 1 relu activation wih 512 neurons
-    keras.layer.Dense(512,activation='relu'),
+    keras.layers.Dense(512,activation='relu'),
     # layer 2 relu activation wih 216 neurons
-    keras.layer.Dense(216,activation='relu'),
+    keras.layers.Dense(216,activation='relu'),
     # layer 3 linear activation wih 1 neurons
     # the output will be real number 
-    keras.layer.Dense(1, activation='linear')
+    keras.layers.Dense(1, activation='linear')
 ])
 # compile the model with huber loss 
 huber_loss = tf.keras.losses.Huber(delta=1.0)
