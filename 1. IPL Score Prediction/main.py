@@ -57,9 +57,9 @@ model.compile(optimizer=optimizer, loss='huber', metrics=['mae'])
 
 # 5. MODEL TRAINING
 history = model.fit(x_train_scalar, y_train, epochs=50, batch_size=64, validation_data=(x_test_scalar, y_test))
-
-# Plot training and validation loss
+# Store the training and validation
 model_losses = pd.DataFrame(history.history)
+# Plot training and validation loss
 model_losses.plot()
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
