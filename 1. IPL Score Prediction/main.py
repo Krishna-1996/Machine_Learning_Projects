@@ -71,3 +71,5 @@ predict = model.predict(x_test_scalar)
 # MSE and MAE
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 mae = mean_absolute_error("Mean Absolute Error: ", y_test, predict)
+mse = mean_squared_error("Mean Square Error: ", y_test, predict)
+
