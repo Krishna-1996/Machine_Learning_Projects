@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IPL Score Prediction</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>IPL Score Prediction</h1>
+        <form id="prediction-form">
+            <label for="venue">Select Venue:</label>
+            <select id="venue" name="venue">
+                {% for venue in venues %}
+                <option value="{{ venue }}">{{ venue }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="bat_team">Select Batting Team:</label>
+            <select id="bat_team" name="bat_team">
+                {% for team in bat_teams %}
+                <option value="{{ team }}">{{ team }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="bowl_team">Select Bowling Team:</label>
+            <select id="bowl_team" name="bowl_team">
+                {% for team in bowl_teams %}
+                <option value="{{ team }}">{{ team }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="batsman">Select Striker:</label>
+            <select id="batsman" name="batsman">
+                {% for player in batsmen %}
+                <option value="{{ player }}">{{ player }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="bowler">Select Bowler:</label>
+            <select id="bowler" name="bowler">
+                {% for player in bowlers %}
+                <option value="{{ player }}">{{ player }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Predict Score</button>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#prediction-form').on('submit', function(event) {
+                event.preventDefault();
+
+                var formData = {
+                    'venue': $('#venue').val(),
+                    'bat_team': $('#bat_team').val(),
+                    'bowl_team': $('#bowl_team').val(),
+                    'batsman': $('#batsman').val(),
+                    'bowler': $('#bowler').val()
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/predict',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    success: function(response) {
+                        $('#result').html('<h2>Predicted Score: ' + response.predicted_score + '</h2>');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
