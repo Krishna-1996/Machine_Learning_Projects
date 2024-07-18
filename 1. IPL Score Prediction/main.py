@@ -1,3 +1,4 @@
+'''
 import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
@@ -74,6 +75,9 @@ mae = mean_absolute_error(y_test, predict)
 mse = mean_squared_error(y_test, predict)
 print("Mean Absolute Error: ", mae)
 print("Mean Square Error: ", mse)
+'''
+print("hello World")
+
 
 '''# 7: LET'S CREATE AN INTERACTIVE WIDGET.
 import ipywidgets as widgets
