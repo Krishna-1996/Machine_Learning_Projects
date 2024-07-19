@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPL Score Prediction using Deep Learning</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+        h2 {
+            font-size: 1.5em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        h3 {
+            font-size: 1.2em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        ul {
+            list-style-type: disc;
+            margin-left: 20px;
+        }
+        ol {
+            list-style-type: decimal;
+            margin-left: 20px;
+        }
+        p {
+            margin-bottom: 15px;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>IPL Score Prediction using Deep Learning</h1>
+    <p>In the modern era of cricket analytics, where each run and decision can change the outcome, the application of Deep Learning for IPL score prediction stands at the forefront of innovation. This article explores the cutting-edge use of advanced algorithms to forecast IPL score in live matches with unprecedented accuracy. Exploring the analysis of historical data, player statistics, and real-time match conditions, discover how these predictive models are reshaping strategic insights and elevating the excitement of cricket analytics. Whether you’re a cricket aficionado or a data science enthusiast, uncover how this technology is revolutionizing the game’s predictive capabilities and strategic planning.</p>
+    
+    <h2>IPL Score prediction using Deep Learning</h2>
+    <p>In this comprehensive guide, we will learn how to conclude IPL score prediction so you can understand the calculation and workings of IPL scores in live matches.</p>
+    
+    <h3>Table of Content</h3>
+    <ul>
+        <li>Why use Deep Learning for IPL Score Prediction?</li>
+        <li>Prerequisites for IPL Score Prediction
+            <ul>
+                <li>Tools used:</li>
+                <li>Technology used:</li>
+                <li>Libraries Used</li>
+            </ul>
+        </li>
+        <li>Step-by-Step Guide to IPL Score Prediction using Deep Learning
+            <ul>
+                <li>Step 1: First, let’s import all the necessary libraries:</li>
+                <li>Step 2: Loading the dataset!</li>
+                <li>Step 3: Data Pre-processing</li>
+                <li>Step 4: Define the Neural Network</li>
+                <li>Step 5: Model Training</li>
+                <li>Step 6: Model Evaluation</li>
+                <li>Step 7: Let’s create an Interactive Widget</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>Why use Deep Learning for IPL Score Prediction?</h3>
+    <p>We humans can’t easily identify patterns from huge data, and thus here, machine learning and IPL score prediction using deep learning come into play. These advanced techniques learn from how players and teams have performed against each other in the past, training models to predict outcomes more accurately. While traditional machine learning algorithms provide moderate accuracy, IPL Score In live prediction benefits greatly from deep learning models that consider various attributes to deliver more precise results.</p>
+    
+    <h3>Prerequisites for IPL Score Prediction</h3>
+    <h4>Tools used:</h4>
+    <ul>
+        <li>Jupyter Notebook / Google colab</li>
+        <li>Visual Studio</li>
+    </ul>
+    <h4>Technology used:</h4>
+    <ul>
+        <li>Machine Learning</li>
+        <li>Deep Learning</li>
+        <li>TensorFlow</li>
+    </ul>
+    <h4>Libraries Used</h4>
+    <ul>
+        <li>NumPy</li>
+        <li>Pandas</li>
+        <li>Scikit-learn</li>
+        <li>Matplotlib</li>
+        <li>Keras</li>
+        <li>Seaborn</li>
+    </ul>
+    
+    <h3>Step-by-Step Guide to IPL Score Prediction using Deep Learning</h3>
+    <h4>Step 1: First, let’s import all the necessary libraries:</h4>
+    <p>We have imported the necessary libraries.</p>
+    
+    <h4>Step 2: Loading the dataset!</h4>
+    <p>When dealing with cricket data, it contains data from the year 2008 to 2017. The dataset can be downloaded from here. The dataset contains features like venue, date, batting and bowling team, names of batsman and bowler, wickets, and more. We imported both the datasets using <code>.read_csv()</code> method into a dataframe using pandas and displayed the first 5 rows of each dataset.</p>
+    
+    <h4>Step 3: Data Pre-processing</h4>
+    <h5>3.1 Dropping unimportant features</h5>
+    <ul>
+        <li>We have created a new dataframe by dropping several columns from the original DataFrame.</li>
+        <li>The new DataFrame contains the remaining columns that we are going to train the predictive model.</li>
+    </ul>
+    <h5>3.2 Further Pre-Processing</h5>
+    <ul>
+        <li>We have split the dataframe into independent variable (X) and dependent variables (y). Our dependent variables is the total score.</li>
+    </ul>
+    <h5>3.3 Label Encoding</h5>
+    <ul>
+        <li>We have applied label encoding to your categorical features in X.</li>
+        <li>We have created separate <code>LabelEncoder</code> objects for each categorical feature and encoded their values.</li>
+        <li>We have created mappings to convert the encoded labels back to their original values, which can be helpful for interpreting the results.</li>
+    </ul>
+    <h5>3.4 Train Test Split</h5>
+    <ul>
+        <li>We have split the data into training and testing sets. The training set contains 70 percent of the dataset and rest 30 percent is in test set.</li>
+        <li><code>X_train</code> contains the training data for your input features.</li>
+        <li><code>X_test</code> contains the testing data for your input features.</li>
+        <li><code>y_train</code> contains the training data for your target variable.</li>
+        <li><code>y_test</code> contains the testing data for your target variable.</li>
+    </ul>
+    <h5>3.5 Feature Scaling</h5>
+    <ul>
+        <li>We have performed Min-Max scaling on our input features to ensure all the features are on the same scale.</li>
+        <li>Scaling is performed to ensure consistent scale to improve model performance.</li>
+        <li>Scaling has transformed both training and testing data using the scaling parameters.</li>
+    </ul>
+    
+    <h4>Step 4: Define the Neural Network</h4>
+    <ul>
+        <li>We have defined a neural network using TensorFlow and Keras for regression.</li>
+        <li>After defining the model, we have compiled the model using the Huber Loss because of the robustness of the regression against outliers.</li>
+    </ul>
+    
+    <h4>Step 5: Model Training</h4>
+    <ul>
+        <li>We have trained the neural network model using the scaled training data.</li>
+        <li>After the training, we have stored the training and validation loss values to our neural network during the training process.</li>
+    </ul>
+    
+    <h4>Step 6: Model Evaluation</h4>
+    <ul>
+        <li>We have predicted using the trained neural network on the testing data.</li>
+        <li>The variable predictions contain the predicted total run scores for the test set based on the model’s learned patterns.</li>
+    </ul>
+    
+    <h4>Conclusion:</h4>
+    <p>In conclusion, the application of deep learning in IPL score prediction represents a transformative approach to cricket analytics. By harnessing the power of advanced algorithms and historical data, teams and analysts can forecast match outcomes with greater accuracy than ever before. This not only enhances strategic decision-making during live matches but also enriches the fan experience by providing real-time insights and predictions. As technology continues to evolve, the future of cricket analytics promises to be increasingly data-driven, offering new opportunities to unravel the complexities of the game and elevate its competitive edge.</p>
+</body>
+</html>
