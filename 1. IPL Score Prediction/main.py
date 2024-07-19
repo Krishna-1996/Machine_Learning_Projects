@@ -22,7 +22,7 @@ df = ipl.drop(['date', 'runs', 'wickets', 'overs', 'runs_last_5', 'wickets_last_
 x =  df.drop(['total'], axis=1)
 y = df['total']
 #  lsfb
-print()
+
 # 3.3 Label Encoding
 venue_encoder = LabelEncoder()	
 bat_team_encoder = LabelEncoder()	
