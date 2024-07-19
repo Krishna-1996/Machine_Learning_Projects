@@ -19,8 +19,7 @@ I'm here to explain the whole project step by step and also going to explain the
   - **Step** 3: Data Pre-processing
   - **Step** 4: Define the Neural Network
   - **Step** 5: Model Training
-  - **Step** 6: Model Evaluationa
-  - **Step** 7: Let’s create an Interactive Widget
+  - **Step** 6: Model Evaluation
 
 ### Why use Deep Learning for IPL Score Prediction?
 
