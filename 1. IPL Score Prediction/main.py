@@ -51,7 +51,7 @@ model = keras.Sequential([
     keras.layers.Dense(1, activation='linear')
 ])
 
-# Compile the mode
+# Compile the model
 optimizer = keras.optimizers.Adam(learning_rate=0.001)
 model.compile(optimizer=optimizer, loss='huber', metrics=['mae'])
 
