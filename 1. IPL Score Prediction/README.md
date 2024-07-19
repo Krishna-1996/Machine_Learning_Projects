@@ -4,7 +4,7 @@ In today's cricket world, where every run and decision can make a big difference
 
 ## Everything about this project with explanation and full algorithm 
 
-In this comprehensive guide, we will learn how to conclude IPL score prediction so you can understand the calculation and workings of IPL scores in live matches.
+I'm here to explain the whole project step by step and also going to explain the algorithm and background of the code and process. added
 
 ### Table of Content
 
