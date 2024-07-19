@@ -21,7 +21,8 @@ df = ipl.drop(['date', 'runs', 'wickets', 'overs', 'runs_last_5', 'wickets_last_
 # 3.2 Define the x (independent variable) and y (dependent variable)
 x =  df.drop(['total'], axis=1)
 y = df['total']
-
+#  lsfb
+print()
 # 3.3 Label Encoding
 venue_encoder = LabelEncoder()	
 bat_team_encoder = LabelEncoder()	
@@ -43,14 +44,13 @@ scaler = MinMaxScaler()
 x_train_scalar = scaler.fit_transform(x_train)
 x_test_scalar = scaler.transform(x_test)
 
-# 4. DEFINE THE NEURAL NETWORK
+# 4. DEFINE THE NEURAL NETWORK.
 model = keras.Sequential([
     keras.layers.Input(shape=(x_train_scalar.shape[1],)),
     keras.layers.Dense(512, activation='relu'),
     keras.layers.Dense(216, activation='relu'),
     keras.layers.Dense(1, activation='linear')
 ])
-
 # Compile the model
 optimizer = keras.optimizers.Adam(learning_rate=0.001)
 model.compile(optimizer=optimizer, loss='huber', metrics=['mae'])
