@@ -21,7 +21,7 @@ df = ipl.drop(['date', 'runs', 'wickets', 'overs', 'runs_last_5', 'wickets_last_
 # 3.2 Define the x (independent variable) and y (dependent variable)
 x =  df.drop(['total'], axis=1)
 y = df['total']
-#  aaaaadded
+#  added
 
 # 3.3 Label Encoding
 venue_encoder = LabelEncoder()	
