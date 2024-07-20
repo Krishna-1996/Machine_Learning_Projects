@@ -131,9 +131,12 @@ Now, I need to normalize the data so that all data will be at same scale.
   model.compile(optimizer=optimizer, loss='huber', metrics=['mae'])
   NOTE: Adam is used with 0.001 learning rate means 0.001 is a size of  step that optimizer take to adjust the weight.
 #### **Step** 5: Model Training
-history = model.fit(x_train_scalar, y_train, epochs=50, batch_size=64, validation_data=(x_test_scalar, y_test))
+
 - I have trained the neural network model using the scaled training data.
 - After the training, I have stored the training and validation loss values to our neural network during the training process.
+  @Algorithm:
+    history = model.fit(x_train_scalar, y_train, epochs=50, batch_size=64, validation_data=(x_test_scalar, y_test))
+    
 
 #### **Step** 6: Model Evaluation
 
