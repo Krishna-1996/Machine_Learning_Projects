@@ -59,7 +59,6 @@ When dealing with cricket data, it contains data from the year 2008 to 2017. The
 #### **Step** 3: Data Pre-processing
 
 ##### 3.1 Dropping unimportant features
-
 - I have created a new dataframe by dropping several columns from the original DataFrame.
     df = ipl.drop(['enlist','all the','unnecessary','columns here', 'and drop them.']).
 - The new DataFrame contains the remaining columns that I'm going to train the predictive model.
