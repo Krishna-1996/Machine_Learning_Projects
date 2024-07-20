@@ -53,7 +53,7 @@ I'm here to explain the whole project step by step and also going to explain the
 
 #### **Step** 2: Loading the dataset!
 
-When dealing with cricket data, it contains data from the year 2008 to 2017. The dataset can be downloaded from here. The dataset contains features like venue, date, batting and bowling team, names of batsman and bowler, wickets, and more. I imported both the datasets using `.read_csv()` method into a dataframe using pandas and displayed the first 5 rows of each dataset.
+When dealing with cricket data, it contains data from the year 2008 to 2017. The dataset can be downloaded from here. The dataset contains features like venue, date, batting and bowling team, names of batsman and bowler, wickets, and more. I imported both the datasets using `.read_csv()` method into a variable "ipl" aaddedataframe using pandas and displayed the first 5 rows of each dataset.
 
 #### **Step** 3: Data Pre-processing
 
