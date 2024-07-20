@@ -53,9 +53,9 @@ I'm here to explain the whole project step by step and also going to explain the
 
 #### **Step** 2: Loading the dataset!
 
-When dealing with cricket data, it contains data from the year 2008 to 2017. The dataset can be downloaded from here. The dataset contains features like venue, date, batting and bowling team, names of batsman and bowler, wickets, and more. I imported both the datasets using `.read_csv()` method into a variable "ipl" dataframe using pandas and displayed the first 5 rows of each dataset.
+When dealing with cricket data, it contains data from the year 2008 to 2017. The dataset can be downloaded from here. The dataset contains features like venue, date, batting and bowling team, names of batsman and bowler, wickets, and more. I imported both the datasets using `.read_csv()` method into a variable 'ipl' dataframe using pandas and displayed the first 5 rows of each dataset.
     @Algorithm:
-    ipl = pd.read_csv('file path/.csv')
+    _ipl = pd.read_csv('file path/.csv')_
 
 #### **Step** 3: Data Pre-processing
 
@@ -69,20 +69,21 @@ When dealing with cricket data, it contains data from the year 2008 to 2017. The
 
 - I have split the dataframe into independent variable (x) and dependent variables (y). Our dependent variables is the total score.
     @Algorithm:
-    x = df.drop(['target column'].axis=1) # Include all column except target.
-    y = df['target column'] # Include only target column.
+    _x = df.drop(['target column'].axis=1) # Include all column except target._
+    _y = df['target column'] # Include only target column._
 
 ##### 3.3 Label Encoding
 - Definition: It is a technique to convert the categorical data into numerical data, so that calculation can be done.
     1. Initialized the Encoder by:
         @Algorithm:
-        variable a = LabelEncoder() / This need to be done for all columns var a, b, c...
-        variable b = LabelEncoder() \ that has categorical data in it..
-    2. Then use fit_transform method to convert categorical data into numerical.
+        _variable a = LabelEncoder()_
+        _variable b = LabelEncoder()_
+       **NOTE: This need to be done for all columns var a, b, c... that has categorical data in it.**
+    3. Then use fit_transform method to convert categorical data into numerical.
         @Algorithm:
-        x['column_name'] = variable a.fit_transform(x['column_name'])
+        _x['column_name'] = variable a.fit_transform(x['column_name'])_
         in a same way I have transformed all the columns with their respective variables. 
-        NOTE: Here x is a variable that has stored df which has dropped targeted column and other un-necessary columns as well. 
+        **NOTE: Here x is a variable that has stored df which has dropped targeted column and other un-necessary columns as well.**
 
 ##### 3.4 Train Test Split
 
@@ -92,7 +93,7 @@ When dealing with cricket data, it contains data from the year 2008 to 2017. The
 - `y_train` contains the training data for your target variable.
 - `y_test` contains the testing data for your target variable.
     @Algorithm:
-    x_train, x_test, y_train, y_test = tts_method(x, y, test_size= , random_state=42)
+    _x_train, x_test, y_train, y_test = tts_method(x, y, test_size= 0.3, random_state=42)_
 
 ##### 3.5 Feature Scaling
 Now, I need to normalize the data so that all data will be at same scale.
@@ -102,42 +103,43 @@ Now, I need to normalize the data so that all data will be at same scale.
 - MinMax Scaling as a range from 0 to 1
   1. Import and initialize the scale:
       @Algorithm:
-      scaler = scaler_name()
+      _scaler = scaler_name()_
   2. Fit and Transform the training dataset
       @Algorithm:
-      x_train_scaler = scaler.fit_transform(x_train)
+      _x_train_scaler = scaler.fit_transform(x_train)_
   3. Transform the testing dataset
       @Algorithm:
-      x_test_Scaler = scaler.transform(x_test)
-  NOTE: Here two methods are used 'fit_transform' and transform. In training dataset the data has to transform first into
-        0-1 range and then fit that transformed data into model so that calculation can be done. Therefore, 'fit_transform' method is used. 
-        On, the other hand the 'transform' method is used on testing data set because this data don't need to fit anywhere, it will only use for comparing the result with the predicted output.
+      _x_test_Scaler = scaler.transform(x_test)_
+  **NOTE: Here two methods are used 'fit_transform' and transform. In training dataset the data has to transform first into
+    0-1 range and then fit that transformed data into model so that calculation can be done. Therefore, 'fit_transform' method is used.
+     On, the other hand the 'transform' method is used on testing data set because this data don't need to fit anywhere, it will only use for comparing the          result with the predicted output.**
 
 #### **Step** 4: Define the Neural Network
 
 - I have defined a neural network using TensorFlow and Keras for regression.
 - It has 4 sub-steps, initialize the model > load input layer > load hidden layer (as many required) > get output layer
   @Algorithm:
-  Define model => model = eras.sequential()
-  Load Input layer => keras.layer.Input(shape=(x_train_scalar.shape[1],))
-  Load hidden layer => keras.layer.Dense(512, activation ='___')
-  Load hidden layer => keras.layer.Dense(216, activation ='___') # I used relu activation
-  NOTE: Add as many hidden layer as required depending upon the dataset. 512, and 216 are the number of neurons used in the neural network
-  Get output layer => keras.layer.Dense(1, activation='linear') # As output is required to be linear only. 
+  _Define model => model = eras.sequential()_
+  _Load Input layer => keras.layer.Input(shape=(x_train_scalar.shape[1],))_
+  _Load hidden layer => keras.layer.Dense(512, activation ='___')_
+  _Load hidden layer => keras.layer.Dense(216, activation ='___')_ # I used relu activation
+  **NOTE: Add as many hidden layer as required depending upon the dataset. 512, and 216 are the number of neurons used in the neural network**
+  _Get output layer => keras.layer.Dense(1, activation='linear')_ # As output is required to be linear only. 
 
 - After defining the model, I have compiled the model using the Huber Loss because of the robustness of the regression against outliers. The metrics used here is Mean Absolute Error.
   @Algorithm:
-  optimizer = keras.optimizers.Adam(learning_rate=0.001)
-  model.compile(optimizer=optimizer, loss='huber', metrics=['mae'])
-  NOTE: Adam is used with 0.001 learning rate means 0.001 is a size of  step that optimizer take to adjust the weight.
+  _optimizer = keras.optimizers.Adam(learning_rate=0.001)_
+  _model.compile(optimizer=optimizer, loss='huber', metrics=['mae'])_
+  **NOTE: Adam is used with 0.001 learning rate means 0.001 is a size of  step that optimizer take to adjust the weight.**
+  
 #### **Step** 5: Model Training
 
 - I have trained the neural network model using the scaled training data.
 - After the training, I have stored the training and validation loss values to our neural network during the training process.
   @Algorithm:
-  history = model.fit(x_train_scalar, y_train, epochs=50, batch_size=64, validation_data=(x_test_scalar, y_test))
-  model_losses = pd.DataFrame(history.history)
-  NOTE: Here, I trained the model with x and y respectively and run 50 epochs with each has 64 batch size. 
+  _history = model.fit(x_train_scalar, y_train, epochs=50, batch_size=64, validation_data=(x_test_scalar, y_test))_
+  _model_losses = pd.DataFrame(history.history)_
+  **NOTE: Here, I trained the model with x and y respectively and run 50 epochs with each has 64 batch size.**
 
 #### **Step** 6: Model Evaluation
 
