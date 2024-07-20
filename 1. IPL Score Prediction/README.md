@@ -122,8 +122,8 @@ Now, I need to normalize the data so that all data will be at same scale.
   Load Input layer => keras.layer.Input(shape=(x_train_scalar.shape[1],))
   Load hidden layer => keras.layer.Dense(512, activation ='___')
   Load hidden layer => keras.layer.Dense(216, activation ='___') # I used relu activation
-  NOTE: Add as many hidden layer as required depending upon the dataset. 
-  Get output layer => keras
+  NOTE: Add as many hidden layer as required depending upon the dataset. 512, and 216 are the number of neurons used in the neural network
+  Get output layer => keras.layer.Dense(1, activation='linear') # As output is required to be linear only. 
 
 - After defining the model, I have compiled the model using the Huber Loss because of the robustness of the regression against outliers.
 
