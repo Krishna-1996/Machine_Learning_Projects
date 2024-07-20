@@ -135,8 +135,9 @@ Now, I need to normalize the data so that all data will be at same scale.
 - I have trained the neural network model using the scaled training data.
 - After the training, I have stored the training and validation loss values to our neural network during the training process.
   @Algorithm:
-    history = model.fit(x_train_scalar, y_train, epochs=50, batch_size=64, validation_data=(x_test_scalar, y_test))
-    
+  history = model.fit(x_train_scalar, y_train, epochs=50, batch_size=64, validation_data=(x_test_scalar, y_test))
+  model_losses = pd.DataFrame(history.history)
+  NOTE: Here, I trained the model with x and y respectively and run 50 epochs with each has 64 batch size. 
 
 #### **Step** 6: Model Evaluation
 
