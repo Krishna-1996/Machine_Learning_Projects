@@ -101,10 +101,13 @@ Now, I need to normalize the data so that all data will be at same scale.
 - Scaling has transformed both training and testing data using the scaling parameters.
 - MinMax Scaling as a range from 0 to 1
   1. Import and initialize the scale:
+      @Algorithm:
       scaler = scaler_name()
   2. Fit and Transform the training dataset
+      @Algorithm:
       x_train_scaler = scaler.fit_transform(x_train)
   3. Transform the testing dataset
+      @Algorithm:
       x_test_Scaler = scaler.transform(x_test)
   NOTE: Here two methods are used 'fit_transform' and transform. In training dataset the data has to transform first into
         0-1 range and then fit that transformed data into model so that calculation can be done. Therefore, 'fit_transform' method is used. 
@@ -115,6 +118,8 @@ Now, I need to normalize the data so that all data will be at same scale.
 - I have defined a neural network using TensorFlow and Keras for regression.
 - It has 4 sub-steps, initialize the model > load input layer > load hidden layer (as many required) > get output layer
   @Algorithm:
+  Define model => model = Keras.sequential()
+  Load Input layer => keras
 
 - After defining the model, I have compiled the model using the Huber Loss because of the robustness of the regression against outliers.
 
