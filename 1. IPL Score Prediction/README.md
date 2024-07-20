@@ -62,11 +62,11 @@ When dealing with cricket data, it contains data from the year 2008 to 2017. The
 
 - I have created a new dataframe by dropping several columns from the original DataFrame.
     df = ipl.drop(['enlist','all the','unnecessary','columns here', 'and drop them.'])
-- The new DataFrame contains the remaining columns that I are going to train the predictive model.
+- The new DataFrame contains the remaining columns that I'm going to train the predictive model.
 
 ##### 3.2 Further Pre-Processing
 
-- I have split the dataframe into independent variable (X) and dependent variables (y). Our dependent variables is the total score.
+- I have split the dataframe into independent variable (x) and dependent variables (y). Our dependent variables is the total score.
 
 ##### 3.3 Label Encoding
 
