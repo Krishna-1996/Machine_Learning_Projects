@@ -54,27 +54,32 @@ I'm here to explain the whole project step by step and also going to explain the
 #### **Step** 2: Loading the dataset!
 
 When dealing with cricket data, it contains data from the year 2008 to 2017. The dataset can be downloaded from here. The dataset contains features like venue, date, batting and bowling team, names of batsman and bowler, wickets, and more. I imported both the datasets using `.read_csv()` method into a variable "ipl" dataframe using pandas and displayed the first 5 rows of each dataset.
+    @Algorithm:
     ipl = pd.read_csv('file path/.csv')
 
 #### **Step** 3: Data Pre-processing
 
 ##### 3.1 Dropping unimportant features
 - I have created a new dataframe by dropping several columns from the original DataFrame.
+    @Algorithm:
     df = ipl.drop(['enlist','all the','unnecessary','columns here', 'and drop them.']).
 - The new DataFrame contains the remaining columns that I'm going to train the predictive model.
 
 ##### 3.2 Further Pre-Processing
 
 - I have split the dataframe into independent variable (x) and dependent variables (y). Our dependent variables is the total score.
+    @Algorithm:
     x = df.drop(['target column'].axis=1) # Include all column except target.
     y = df['target column'] # Include only target column.
 
 ##### 3.3 Label Encoding
 - Definition: It is a technique to convert the categorical data into numerical data, so that calculation can be done.
     1. Initialized the Encoder by:
+        @Algorithm:
         variable a = LabelEncoder() / This need to be done for all columns var a, b, c...
         variable b = LabelEncoder() \ that has categorical data in it..
     2. Then use fit_transform method to convert categorical data into numerical.
+        @Algorithm:
         x['column_name'] = variable a.fit_transform(x['column_name'])
         in a same way I have transformed all the columns with their respective variables. 
         NOTE: Here x is a variable that has stored df which has dropped targeted column and other un-necessary columns as well. 
@@ -86,6 +91,7 @@ When dealing with cricket data, it contains data from the year 2008 to 2017. The
 - `X_test` contains the testing data for your input features.
 - `y_train` contains the training data for your target variable.
 - `y_test` contains the testing data for your target variable.
+    @Algorithm:
     x_train, x_test, y_train, y_test = tts_method(x, y, test_size= , random_state=42)
 
 ##### 3.5 Feature Scaling
@@ -107,6 +113,9 @@ Now, I need to normalize the data so that all data will be at same scale.
 #### **Step** 4: Define the Neural Network
 
 - I have defined a neural network using TensorFlow and Keras for regression.
+- It has 4 sub-steps, initialize the model > load input layer > load hidden layer (as many required) > get output layer
+  @Algorithm:
+
 - After defining the model, I have compiled the model using the Huber Loss because of the robustness of the regression against outliers.
 
 #### **Step** 5: Model Training
