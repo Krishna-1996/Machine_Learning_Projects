@@ -67,6 +67,7 @@ When dealing with cricket data, it contains data from the year 2008 to 2017. The
 ##### 3.2 Further Pre-Processing
 
 - I have split the dataframe into independent variable (x) and dependent variables (y). Our dependent variables is the total score.
+    x = df.drop(['target column'].asix=1)
 
 ##### 3.3 Label Encoding
 
