@@ -77,9 +77,7 @@ When dealing with cricket data, it contains data from the year 2008 to 2017. The
     2. Then use fit_transform method to convert categorical data into numerical.
         x['column_name'] = variable a.fit_transform(x['column_name'])
         in a same way I have transformed all the columns with their respective variables. 
-- I have applied label encoding to the categorical features in X.
-- I have created separate `LabelEncoder` objects for each categorical feature and encoded their values.
-- I have created mappings to convert the encoded labels back to their original values, which can be helpful for interpreting the results.
+        NOTE: Here x is a variable that has stored df which has dropped targeted column and other un-necessary columns as well. 
 
 ##### 3.4 Train Test Split
 
@@ -88,9 +86,10 @@ When dealing with cricket data, it contains data from the year 2008 to 2017. The
 - `X_test` contains the testing data for your input features.
 - `y_train` contains the training data for your target variable.
 - `y_test` contains the testing data for your target variable.
+    x_train, x_test, y_train, y_test = tts_method(x, y, test_size= , random_state=42)
 
 ##### 3.5 Feature Scaling
-
+Now, I need to normalize the data so that all data will be at same scale.
 - I have performed Min-Max scaling on our input features to ensure all the features are on the same scale.
 - Scaling is performed to ensure consistent scale to improve model performance.
 - Scaling has transformed both training and testing data using the scaling parameters.
