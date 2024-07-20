@@ -90,9 +90,11 @@ When dealing with cricket data, it contains data from the year 2008 to 2017. The
 
 ##### 3.5 Feature Scaling
 Now, I need to normalize the data so that all data will be at same scale.
-- I have performed Min-Max scaling on our input features to ensure all the features are on the same scale.
+- I have performed Min-Max scaling on our input features.
 - Scaling is performed to ensure consistent scale to improve model performance.
 - Scaling has transformed both training and testing data using the scaling parameters.
+- MinMax Scaling as a range from 0 to 1
+  1. 
 
 #### **Step** 4: Define the Neural Network
 
