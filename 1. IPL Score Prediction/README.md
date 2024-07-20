@@ -94,7 +94,15 @@ Now, I need to normalize the data so that all data will be at same scale.
 - Scaling is performed to ensure consistent scale to improve model performance.
 - Scaling has transformed both training and testing data using the scaling parameters.
 - MinMax Scaling as a range from 0 to 1
-  1. 
+  1. Import and initialize the scale:
+      scaler = scaler_name()
+  2. Fit and Transform the training dataset
+      x_train_scaler = scaler.fit_transform(x_train)
+  3. Transform the testing dataset
+      x_test_Scaler = scaler.transform(x_test)
+  NOTE: Here two methods are used 'fit_transform' and transform. In training dataset the data has to transform first into
+        0-1 range and then fit that transformed data into model so that calculation can be done. Therefore, 'fit_transform' method is used. 
+        On, the other hand the 'transform' method is used on testing data set because this data don't need to fit anywhere, it will only use for comparing the result with the predicted output.
 
 #### **Step** 4: Define the Neural Network
 
