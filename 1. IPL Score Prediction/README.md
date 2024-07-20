@@ -118,8 +118,9 @@ Now, I need to normalize the data so that all data will be at same scale.
 - I have defined a neural network using TensorFlow and Keras for regression.
 - It has 4 sub-steps, initialize the model > load input layer > load hidden layer (as many required) > get output layer
   @Algorithm:
-  Define model => model = Keras.sequential()
-  Load Input layer => keras
+  Define model => model = eras.sequential()
+  Load Input layer => keras.layer.Input(shape=(x_train_scalar.shape[1],))
+  Lod
 
 - After defining the model, I have compiled the model using the Huber Loss because of the robustness of the regression against outliers.
 
