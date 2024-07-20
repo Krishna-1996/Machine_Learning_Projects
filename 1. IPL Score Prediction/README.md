@@ -75,6 +75,8 @@ When dealing with cricket data, it contains data from the year 2008 to 2017. The
         variable a = LabelEncoder() / This need to be done for all columns var a, b, c...
         variable b = LabelEncoder() \ that has categorical data in it..
     2. Then use fit_transform method to convert categorical data into numerical.
+        x['column_name'] = variable a.fit_transform(x['column_name'])
+        in a same way I have transformed all the columns with their respective variables. 
 - I have applied label encoding to the categorical features in X.
 - I have created separate `LabelEncoder` objects for each categorical feature and encoded their values.
 - I have created mappings to convert the encoded labels back to their original values, which can be helpful for interpreting the results.
