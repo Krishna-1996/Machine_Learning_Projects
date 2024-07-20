@@ -120,7 +120,10 @@ Now, I need to normalize the data so that all data will be at same scale.
   @Algorithm:
   Define model => model = eras.sequential()
   Load Input layer => keras.layer.Input(shape=(x_train_scalar.shape[1],))
-  Lod
+  Load hidden layer => keras.layer.Dense(512, activation ='___')
+  Load hidden layer => keras.layer.Dense(216, activation ='___') # I used relu activation
+  NOTE: Add as many hidden layer as required depending upon the dataset. 
+  Get output layer => keras
 
 - After defining the model, I have compiled the model using the Huber Loss because of the robustness of the regression against outliers.
 
