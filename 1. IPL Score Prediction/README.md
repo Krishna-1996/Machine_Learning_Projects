@@ -72,7 +72,8 @@ When dealing with cricket data, it contains data from the year 2008 to 2017. The
 
 ##### 3.3 Label Encoding
 - Definition: It is a technique to convert the categorical data into numerical data, so that calculation can be done.
-- I have applied label encoding to your categorical features in X.
+    1. 
+- I have applied label encoding to the categorical features in X.
 - I have created separate `LabelEncoder` objects for each categorical feature and encoded their values.
 - I have created mappings to convert the encoded labels back to their original values, which can be helpful for interpreting the results.
 
