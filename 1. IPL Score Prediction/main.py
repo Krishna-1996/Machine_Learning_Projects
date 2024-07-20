@@ -51,13 +51,13 @@ model = keras.Sequential([
     keras.layers.Dense(216, activation='relu'),
     keras.layers.Dense(1, activation='linear')
 ])
-# Compile the model
+# Compile the model.
 optimizer = keras.optimizers.Adam(learning_rate=0.001)
 model.compile(optimizer=optimizer, loss='huber', metrics=['mae'])
 
 # 5. MODEL TRAINING.
 history = model.fit(x_train_scalar, y_train, epochs=50, batch_size=64, validation_data=(x_test_scalar, y_test))
-# Store the training and validation loss values
+# Store the training and validation loss values.
 model_losses = pd.DataFrame(history.history)
 # Plot training and validation 
 model_losses.plot()
@@ -74,3 +74,4 @@ mae = mean_absolute_error(y_test, predict)
 mse = mean_squared_error(y_test, predict)
 print("Mean Absolute Error: ", mae)
 print("Mean Square Error: ", mse)
+"''"
