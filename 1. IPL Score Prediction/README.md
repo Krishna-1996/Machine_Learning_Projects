@@ -53,9 +53,9 @@ I'm here to explain the whole project step by step and also going to explain the
 
 #### **Step** 2: Loading the dataset!
 
-When dealing with cricket data, it contains data from the year 2008 to 2017. The dataset can be downloaded from kaggle. The dataset contains features like venue, date, batting and bowling team, names of batsman and bowler, wickets, and more. I imported both the datasets using `.read_csv()` method into a variable 'ipl' Dataframe using pandas and displayed the first 5 rows of each dataset.<br>
+When dealing with cricket data, it contains data from the year 2008 to 2017. The dataset can be downloaded from kaggle. The dataset contains features like venue, date, batting and bowling team, names of batsman and bowler, wickets, and more. I imported both the datasets using `.read_csv()` method into a variable 'ipl'. Dataframe using pandas and displayed the first 5 rows of each dataset.<br>
     @Algorithm:<br>
-        _ipl = pd.read_csv('file path/.csv')_
+        _ipl = pd.read_csv('file path/.csv')_<br>
 
 #### **Step** 3: Data Pre-processing
 
@@ -67,7 +67,7 @@ When dealing with cricket data, it contains data from the year 2008 to 2017. The
 
 ##### 3.2 Further Pre-Processing
 
-- I have split the Dataframe into independent variable (x) and dependent variables (y). Our dependent variables is the total score.<br>
+- I have split the Dataframe into independent variable `(x)` and dependent variables `(y)`. Our dependent variables is the *`total score.`*<br>
     @Algorithm:<br>
     _x = df.drop(['target column'].axis=1) # Include all column except target._<br>
     _y = df['target column'] # Include only target column._<br>
