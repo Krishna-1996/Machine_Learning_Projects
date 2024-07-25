@@ -73,7 +73,7 @@ When dealing with cricket data, it contains data from the year 2008 to 2017. The
     _y = df['target column'] # Include only target column._<br>
 
 ##### 3.3 Label Encoding
-- Definition: It is a technique to convert the categorical data into numerical data, so that calculation can be done.
+- `Definition:` It is a technique to convert the categorical data into numerical data, so that calculation can be done.
     1. Initialized the Encoder by:<br>
         @Algorithm:<br>
         _variable a = LabelEncoder()<br>
