@@ -74,8 +74,8 @@ When dealing with cricket data, it contains data from the year 2008 to 2017. The
 
 ##### 3.3 Label Encoding
 - Definition: It is a technique to convert the categorical data into numerical data, so that calculation can be done.
-    1. Initialized the Encoder by:
-        @Algorithm:
+    1. Initialized the Encoder by:<br>
+        @Algorithm:<br>
         _variable a = LabelEncoder()_
         _variable b = LabelEncoder()_
        **NOTE: This need to be done for all columns var a, b, c... that has categorical data in it.**
