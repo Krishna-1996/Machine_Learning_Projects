@@ -125,10 +125,10 @@ It has 4 sub-steps, initialize the model > load input layer > load hidden layer 
   **NOTE: Add as many hidden layer as required depending upon the dataset. 512, and 216 are the number of neurons used in the neural network**<br>
   _Get output layer => keras.layer.Dense(1, activation='linear')_ # As output is required to be linear only. 
 
-- After defining the model, I have compiled the model using the Huber Loss because of the robustness of the regression against outliers. The metrics used here is Mean Absolute Error.
-  @Algorithm:
-  _optimizer = keras.optimizers.Adam(learning_rate=0.001)_
-  _model.compile(optimizer=optimizer, loss='huber', metrics=['mae'])_
+- After defining the model, I have compiled the model using the Huber Loss because of the robustness of the regression against outliers. The metrics used here is Mean Absolute Error.<br>
+  @Algorithm:<br>
+  _optimizer = keras.optimizers.Adam(learning_rate=0.001)_<br>
+  _model.compile(optimizer=optimizer, loss='huber', metrics=['mae'])_<br>
   **NOTE: Adam is used with 0.001 learning rate means 0.001 is a size of  step that optimizer take to adjust the weight.**
   
 #### **Step** 5: Model Training
