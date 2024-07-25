@@ -23,7 +23,8 @@ I'm here to explain the whole project step by step and also going to explain the
 
 ### Why use Deep Learning for IPL Score Prediction?
 
-  We humans struggle to spot patterns in massive data, which is where machine learning and deep learning shine. These smart techniques learn from past performances of players and teams, improving prediction accuracy. While traditional methods offer decent results, deep learning models analyze various factors to provide even more precise live IPL score predictions.
+  We humans struggle to spot patterns in massive data, which is where machine learning and deep learning shine. These smart techniques learn from past performances of players and teams, improving prediction accuracy. <br>
+  While traditional methods offer decent results, deep learning models analyze various factors to provide even more precise live IPL score predictions.
 
 ### Prerequisites for IPL Score Prediction
 
