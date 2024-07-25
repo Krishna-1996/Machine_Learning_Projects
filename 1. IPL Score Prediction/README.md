@@ -133,7 +133,7 @@ It has 4 sub-steps, initialize the model > load input layer > load hidden layer 
   
 #### **Step** 5: Model Training
 
-- I have trained the neural network model using the scaled training data.
+- I have trained the *`Neural Network Model`* using the scaled training data.
 - After the training, I have stored the training and validation loss values to our neural network during the training process.
   @Algorithm:
   _history = model.fit(x_train_scalar, y_train, epochs=50, batch_size=64, validation_data=(x_test_scalar, y_test))_
