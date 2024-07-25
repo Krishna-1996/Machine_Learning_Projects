@@ -76,13 +76,13 @@ When dealing with cricket data, it contains data from the year 2008 to 2017. The
 - Definition: It is a technique to convert the categorical data into numerical data, so that calculation can be done.
     1. Initialized the Encoder by:<br>
         @Algorithm:<br>
-        _variable a = LabelEncoder()_
-        _variable b = LabelEncoder()_
+        _variable a = LabelEncoder()<br>
+        _variable b = LabelEncoder()_<br>
        **NOTE: This need to be done for all columns var a, b, c... that has categorical data in it.**
-    3. Then use fit_transform method to convert categorical data into numerical.
-        @Algorithm:
-        _x['column_name'] = variable a.fit_transform(x['column_name'])_
-        in a same way I have transformed all the columns with their respective variables. 
+    2. Then use fit_transform method to convert categorical data into numerical.<br>
+        @Algorithm:<br>
+        _x['column_name'] = variable a.fit_transform(x['column_name'])_<br>
+    3. In a same way I have transformed all the columns with their respective variables. <br>
         **NOTE: Here x is a variable that has stored df which has dropped targeted column and other un-necessary columns as well.**
 
 ##### 3.4 Train Test Split
