@@ -115,7 +115,7 @@ Now, I need to normalize the data so that all data will be at same scale.<br>
 
 #### **Step** 4: Define the Neural Network
 
-have defined a `**Neural Network**` using `TensorFlow` and `Keras` for regression.
+have defined a **`Neural Network`** using **`TensorFlow`** and **`Keras`** for regression.
 - It has 4 sub-steps, initialize the model > load input layer > load hidden layer (as many required) > get output layer.<br>
   @Algorithm:<br>
   _Define model => model = eras.sequential()_<br>
