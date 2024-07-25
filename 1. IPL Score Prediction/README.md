@@ -87,13 +87,13 @@ When dealing with cricket data, it contains data from the year 2008 to 2017. The
 
 ##### 3.4 Train Test Split
 
-I have split the data into training and testing sets. The training set contains 70 percent of the dataset and rest 30 percent is in test set.
+I have split the data into training and testing sets. The training set contains 70 percent of the dataset and rest 30 percent is in test set.<br>
   - `X_train` contains the training data for your input features.
   - `X_test` contains the testing data for your input features.
   - `y_train` contains the training data for your target variable.
-  - `y_test` contains the testing data for your target variable.
-    @Algorithm:
-    _x_train, x_test, y_train, y_test = tts_method(x, y, test_size= 0.3, random_state=42)_
+  - `y_test` contains the testing data for your target variable.<br>
+    @Algorithm:<br>
+    _x_train, x_test, y_train, y_test = tts_method(x, y, test_size= 0.3, random_state=42)_<br>
 
 ##### 3.5 Feature Scaling
 Now, I need to normalize the data so that all data will be at same scale.
