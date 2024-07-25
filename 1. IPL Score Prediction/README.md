@@ -23,8 +23,7 @@ I'm here to explain the whole project step by step and also going to explain the
 
 ### Why use Deep Learning for IPL Score Prediction?
 
-  We humans struggle to spot patterns in massive data, which is where machine learning and deep learning shine. These smart techniques learn from past performances of players and teams, improving prediction accuracy.
-  While traditional methods offer decent results, deep learning models analyze various factors to provide even more precise live IPL score predictions.
+  We humans struggle to spot patterns in massive data, which is where machine learning and deep learning shine. These smart techniques learn from past performances of players and teams, improving prediction accuracy. While traditional methods offer decent results, deep learning models analyze various factors to provide even more precise live IPL score predictions.
 
 ### Prerequisites for IPL Score Prediction
 
@@ -54,22 +53,22 @@ I'm here to explain the whole project step by step and also going to explain the
 
 #### **Step** 2: Loading the dataset!
 
-When dealing with cricket data, it contains data from the year 2008 to 2017. The dataset can be downloaded from here. The dataset contains features like venue, date, batting and bowling team, names of batsman and bowler, wickets, and more. I imported both the datasets using `.read_csv()` method into a variable 'ipl' dataframe using pandas and displayed the first 5 rows of each dataset.<br>
+When dealing with cricket data, it contains data from the year 2008 to 2017. The dataset can be downloaded from here. The dataset contains features like venue, date, batting and bowling team, names of batsman and bowler, wickets, and more. I imported both the datasets using `.read_csv()` method into a variable 'ipl' Dataframe using pandas and displayed the first 5 rows of each dataset.<br>
     @Algorithm:<br>
-    _ipl = pd.read_csv('file path/.csv')_
+        _ipl = pd.read_csv('file path/.csv')_
 
 #### **Step** 3: Data Pre-processing
 
 ##### 3.1 Dropping unimportant features
-- I have created a new dataframe by dropping several columns from the original DataFrame.
-    @Algorithm:
+- I have created a new Dataframe by dropping several columns from the original Dataframe.<br>
+    @Algorithm:<br>
     df = ipl.drop(['enlist','all the','unnecessary','columns here', 'and drop them.']).
-- The new DataFrame contains the remaining columns that I'm going to train the predictive model.
+- The new Dataframe contains the remaining columns that I'm going to train the predictive model.
 
 ##### 3.2 Further Pre-Processing
 
-- I have split the dataframe into independent variable (x) and dependent variables (y). Our dependent variables is the total score.
-    @Algorithm:
+- I have split the Dataframe into independent variable (x) and dependent variables (y). Our dependent variables is the total score.<br>
+    @Algorithm:<br>
     _x = df.drop(['target column'].axis=1) # Include all column except target._
     _y = df['target column'] # Include only target column._
 
@@ -139,7 +138,7 @@ Now, I need to normalize the data so that all data will be at same scale.
 - After the training, I have stored the training and validation loss values to our neural network during the training process.
   @Algorithm:
   _history = model.fit(x_train_scalar, y_train, epochs=50, batch_size=64, validation_data=(x_test_scalar, y_test))_
-  _model_losses = pd.DataFrame(history.history)_
+  _model_losses = pd.Dataframe(history.history)_
   **NOTE: Here, I trained the model with x and y respectively and run 50 epochs with each has 64 batch size.**
 
 #### **Step** 6: Model Evaluation
@@ -150,3 +149,6 @@ Now, I need to normalize the data so that all data will be at same scale.
 #### Conclusion:
 
 In conclusion, the application of deep learning in IPL score prediction represents a transformed approach to cricket analytics. By harnessing the poIr of advanced algorithms and historical data, teams and analysts can forecast match outcomes with greater accuracy than ever before. This not only enhances strategic decision-making during live matches but also enriches the fan experience by providing real-time insights and predictions. As technology continues to evolve, the future of cricket analytics promises to be increasingly data-driven, offering new opportunities to unravel the complexities of the game and elevate its competitive edge.
+
+
+jnkjfleu delete this 

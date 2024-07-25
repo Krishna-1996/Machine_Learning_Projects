@@ -74,4 +74,3 @@ mae = mean_absolute_error(y_test, predict)
 mse = mean_squared_error(y_test, predict)
 print("Mean Absolute Error: ", mae)
 print("Mean Square Error: ", mse)
-"''"
