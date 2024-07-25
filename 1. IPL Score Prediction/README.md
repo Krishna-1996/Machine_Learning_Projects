@@ -69,8 +69,8 @@ When dealing with cricket data, it contains data from the year 2008 to 2017. The
 
 - I have split the Dataframe into independent variable (x) and dependent variables (y). Our dependent variables is the total score.<br>
     @Algorithm:<br>
-    _x = df.drop(['target column'].axis=1) # Include all column except target._
-    _y = df['target column'] # Include only target column._
+    _x = df.drop(['target column'].axis=1) # Include all column except target._<br>
+    _y = df['target column'] # Include only target column._<br>
 
 ##### 3.3 Label Encoding
 - Definition: It is a technique to convert the categorical data into numerical data, so that calculation can be done.
@@ -87,11 +87,11 @@ When dealing with cricket data, it contains data from the year 2008 to 2017. The
 
 ##### 3.4 Train Test Split
 
-- I have split the data into training and testing sets. The training set contains 70 percent of the dataset and rest 30 percent is in test set.
-- `X_train` contains the training data for your input features.
-- `X_test` contains the testing data for your input features.
-- `y_train` contains the training data for your target variable.
-- `y_test` contains the testing data for your target variable.
+I have split the data into training and testing sets. The training set contains 70 percent of the dataset and rest 30 percent is in test set.
+  - `X_train` contains the training data for your input features.
+  - `X_test` contains the testing data for your input features.
+  - `y_train` contains the training data for your target variable.
+  - `y_test` contains the testing data for your target variable.
     @Algorithm:
     _x_train, x_test, y_train, y_test = tts_method(x, y, test_size= 0.3, random_state=42)_
 
