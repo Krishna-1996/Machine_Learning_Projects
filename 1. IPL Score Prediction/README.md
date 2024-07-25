@@ -138,7 +138,7 @@ It has 4 sub-steps, initialize the model > load input layer > load hidden layer 
   @Algorithm:
   _history = model.fit(x_train_scalar, y_train, epochs=50, batch_size=64, validation_data=(x_test_scalar, y_test))_
   _model_losses = pd.Dataframe(history.history)_
-  **NOTE: Here, I trained the model with x and y respectively and run 50 epochs with each has 64 batch size.**
+  **NOTE: Here, I trained the model with x and y respectively and run `50 epochs` with each has `64 batch size`.**
 
 #### **Step** 6: Model Evaluation
 
