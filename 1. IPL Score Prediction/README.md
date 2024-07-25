@@ -110,13 +110,13 @@ Now, I need to normalize the data so that all data will be at same scale.<br>
   3. Transform the testing dataset<br>
       @Algorithm:<br>
       _x_test_Scaler = scaler.transform(x_test)_<br>
-  **NOTE: Here two methods are used 'fit_transform' and transform. In training dataset the data has to transform first    into 0-1 range and then fit that transformed data into model so that calculation can be done.** <br>
-  **Therefore, `fit_transform` method is used.On, the other hand the 'transform' method is used on testing data set because this data don't need to fit anywhere, it will only use for comparing the result with the predicted output.**
+  **NOTE: Here two methods are used `fit_transform` and transform. In training dataset the data has to transform first    into 0-1 range and then fit that transformed data into model so that calculation can be done.** <br>
+  **Therefore, `fit_transform` method is used. On, the other hand the `transform` method is used on testing data set because this data don't need to fit anywhere, it will only use for comparing the result with the predicted output.**
 
 #### **Step** 4: Define the Neural Network
 
-have defined a **`Neural Network`** using **`TensorFlow`** and **`Keras`** for regression.
-- It has 4 sub-steps, initialize the model > load input layer > load hidden layer (as many required) > get output layer.<br>
+I have defined a **`Neural Network`** using **`TensorFlow`** and **`Keras`** for regression.
+It has 4 sub-steps, initialize the model > load input layer > load hidden layer (as many required) > get output layer.<br>
   @Algorithm:<br>
   _Define model => model = eras.sequential()_<br>
   _Load Input layer => keras.layer.Input(shape=(x_train_scalar.shape[1],))_<br>
