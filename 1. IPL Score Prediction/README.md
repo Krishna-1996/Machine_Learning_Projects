@@ -1,6 +1,6 @@
 # IPL Score Prediction using Deep Learning
 
-In today's cricket world, where every run and decision can make a big difference, Deep Learning is transforming IPL score predictions. This article dives into how advanced algorithms are being used to forecast IPL scores in real time with amazing accuracy. By analyzing past data, player stats, and current match conditions, these predictive models are changing how I understand and strategize the game. Whether you're a cricket fan or a data science geek, find out how this technology is taking cricket analytics to the next level.
+In today's cricket world, where every run and decision can make a big difference, Deep Learning is transforming IPL score predictions. This project dives into how advanced algorithms are being used to forecast IPL scores in real time with amazing accuracy. By analyzing past data, player stats, and current match conditions, this predictive model is going to change how we understand and blueprint the game. Whether you're a cricket fan or a data science geek, find out how this technology is taking cricket analytics to the next level.
 
 ## Everything about this project with explanation and full algorithm 
 
