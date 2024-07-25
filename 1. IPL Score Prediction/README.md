@@ -121,8 +121,8 @@ It has 4 sub-steps, initialize the model > load input layer > load hidden layer 
   _Define model => model = eras.sequential()_<br>
   _Load Input layer => keras.layer.Input(shape=(x_train_scalar.shape[1],))_<br>
   _Load hidden layer => keras.layer.Dense(512, activation ='___')_<br>
-  _Load hidden layer => keras.layer.Dense(216, activation ='___')_ # I used relu activation function.<br>
-  **NOTE: Add as many hidden layer as required depending upon the dataset. 512, and 216 are the number of neurons used in the neural network**
+  _Load hidden layer => keras.layer.Dense(216, activation ='___')_ # I used **`relu activation function.`**<br>
+  **NOTE: Add as many hidden layer as required depending upon the dataset. 512, and 216 are the number of neurons used in the neural network**<br>
   _Get output layer => keras.layer.Dense(1, activation='linear')_ # As output is required to be linear only. 
 
 - After defining the model, I have compiled the model using the Huber Loss because of the robustness of the regression against outliers. The metrics used here is Mean Absolute Error.
