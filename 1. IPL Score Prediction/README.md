@@ -96,20 +96,20 @@ I have split the data into training and testing sets. The training set contains 
     _x_train, x_test, y_train, y_test = tts_method(x, y, test_size= 0.3, random_state=42)_<br>
 
 ##### 3.5 Feature Scaling
-Now, I need to normalize the data so that all data will be at same scale.
+Now, I need to normalize the data so that all data will be at same scale.<br>
 - I have performed Min-Max scaling on our input features.
 - Scaling is performed to ensure consistent scale to improve model performance.
 - Scaling has transformed both training and testing data using the scaling parameters.
 - MinMax Scaling as a range from 0 to 1
-  1. Import and initialize the scale:
-      @Algorithm:
-      _scaler = scaler_name()_
-  2. Fit and Transform the training dataset
-      @Algorithm:
-      _x_train_scaler = scaler.fit_transform(x_train)_
-  3. Transform the testing dataset
-      @Algorithm:
-      _x_test_Scaler = scaler.transform(x_test)_
+  1. Import and initialize the scale:<br>
+      @Algorithm:<br>
+      _scaler = scaler_name()_<br>
+  2. Fit and Transform the training dataset<br>
+      @Algorithm:<br>
+      _x_train_scaler = scaler.fit_transform(x_train)_<br>
+  3. Transform the testing dataset<br>
+      @Algorithm:<br>
+      _x_test_Scaler = scaler.transform(x_test)_<br>
   **NOTE: Here two methods are used 'fit_transform' and transform. In training dataset the data has to transform first into
     0-1 range and then fit that transformed data into model so that calculation can be done. Therefore, 'fit_transform' method is used.
      On, the other hand the 'transform' method is used on testing data set because this data don't need to fit anywhere, it will only use for comparing the          result with the predicted output.**
