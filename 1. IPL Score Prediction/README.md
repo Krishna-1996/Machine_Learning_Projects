@@ -110,7 +110,8 @@ Now, I need to normalize the data so that all data will be at same scale.<br>
   3. Transform the testing dataset<br>
       @Algorithm:<br>
       _x_test_Scaler = scaler.transform(x_test)_<br>
-  **NOTE: Here two methods are used 'fit_transform' and transform. In training dataset the data has to transform first into0-1 range and then fit that transformed data into model so that calculation can be done. Therefore, `fit_transform` method is used.On, the other hand the 'transform' method is used on testing data set because this data don't need to fit anywhere, it will only use for comparing the result with the predicted output.**
+  **NOTE: Here two methods are used 'fit_transform' and transform. In training dataset the data has to transform first    into 0-1 range and then fit that transformed data into model so that calculation can be done.** <br>
+  **Therefore, `fit_transform` method is used.On, the other hand the 'transform' method is used on testing data set because this data don't need to fit anywhere, it will only use for comparing the result with the predicted output.**
 
 #### **Step** 4: Define the Neural Network
 
