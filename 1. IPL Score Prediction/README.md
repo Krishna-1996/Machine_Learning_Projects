@@ -150,7 +150,7 @@ It has 4 sub-steps, initialize the model > load input layer > load hidden layer 
 In conclusion, the application of *`Deep Learning`* in IPL score prediction signifies a revolutionary shift in cricket analytics. By leveraging advanced algorithms and extensive historical data, teams and analysts can now predict match outcomes with unprecedented accuracy. <br>This advancement enhances strategic decision-making during live matches and enriches the fan experience with real-time insights and predictions. As technology continues to advance, the future of cricket analytics will become increasingly data-driven, presenting new opportunities to decode the intricacies of the game and elevate its competitive edge.<br>
 <br>
 <br>
-*HAPPY CODING*<br>
+*HAPPY CODING..!!*<br>
 *KRISHNA GOPAL SHARMA*<br>
 
 
