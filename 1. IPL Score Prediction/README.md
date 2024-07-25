@@ -28,13 +28,14 @@ I'm here to explain the whole project step by step and also going to explain the
 
 #### Tools used:
 
-  Visual Studio: I used VS Code as sometime I worked offline and VS Code is great option for offline work. Although, I have experienced with Google-Colab and Jupyter NoteBook but for tis I preferred VS Code. This shows my love for VS. 
+  Visual Studio: I used VS Code as sometime I worked offline and VS Code is great option for offline work. Although, I have experienced with Google-Colab and Jupyter NoteBook but for tis I preferred VS Code. This shows my love for VSC. 
 
 #### Technology used:
 
 - Machine Learning
 - Deep Learning
 - TensorFlow
+- ChatGPT
 
 #### Libraries Used
 
