@@ -63,7 +63,7 @@ model_losses = pd.DataFrame(history.history)
 model_losses.plot()
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
-plt.title('Training and Validation Loss')
+plt.title('Training and Validation Loss')  
 plt.show()
 
 # 6. MODEL EVALUATION
