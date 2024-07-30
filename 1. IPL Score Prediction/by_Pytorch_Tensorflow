@@ -1,4 +1,4 @@
-# 1. Import Necessary Libraries:
+# 1. IMPORT NECESSARY LIBRARIES:
 
 import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
@@ -14,13 +14,13 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 
-# 2. Import Dataset:
+# 2. IMPORT DATASET:
 
 ipl = pd.read_csv('E:/Machine Learning/Machine Learning/Machine_Learning_Projects/Machine_Learning_Projects/1. IPL Score Prediction/ipl_data.csv')
 
-# 3. Data Pre-processing:
+# 3. DATA PRE-PROCESSING:
 
-# Drop unnecessary columns
+# 3.1 Drop unnecessary columns
 df = ipl.drop(['date', 'runs', 'wickets', 'overs', 'runs_last_5', 'wickets_last_5','mid', 'striker', 'non-striker'], axis=1)
 
 # Define the x (independent variable) and y (dependent variable)
