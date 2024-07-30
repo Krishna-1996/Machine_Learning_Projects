@@ -23,11 +23,11 @@ ipl = pd.read_csv('E:/Machine Learning/Machine Learning/Machine_Learning_Project
 # 3.1 Drop unnecessary columns
 df = ipl.drop(['date', 'runs', 'wickets', 'overs', 'runs_last_5', 'wickets_last_5','mid', 'striker', 'non-striker'], axis=1)
 
-# Define the x (independent variable) and y (dependent variable)
+# 3.2 Define the x (independent variable) and y (dependent variable)
 x = df.drop(['total'], axis=1)
 y = df['total']
 
-# Label Encoding
+# 3.3 Label Encoding
 venue_encoder = LabelEncoder()
 bat_team_encoder = LabelEncoder()
 bowl_team_encoder = LabelEncoder()
@@ -40,10 +40,40 @@ x['bowl_team'] = bowl_team_encoder.fit_transform(x['bowl_team'])
 x['batsman'] = batsman_encoder.fit_transform(x['batsman'])
 x['bowler'] = bowler_encoder.fit_transform(x['bowler'])
 
-# Train-Test Split
+# 3.4 Train-Test Split
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=42)
 
-# Feature Scaling
+# 3.5 Feature Scaling
 scaler = MinMaxScaler()
 x_train_scaled = scaler.fit_transform(x_train)
 x_test_scaled = scaler.transform(x_test)
+
+# 4. CONVERT DATA TO PYTORCH TENSORS:
+# 4.1 Convert to PyTorch tensors
+x_train_tensor = torch.tensor(x_train_scaled, dtype=torch.float32)
+y_train_tensor = torch.tensor(y_train.values, dtype=torch.float32).view(-1, 1)
+x_test_tensor = torch.tensor(x_test_scaled, dtype=torch.float32)
+y_test_tensor = torch.tensor(y_test.values, dtype=torch.float32).view(-1, 1)
+
+# 4.2 Create DataLoader
+train_dataset = TensorDataset(x_train_tensor, y_train_tensor)
+test_dataset = TensorDataset(x_test_tensor, y_test_tensor)
+
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
+
+# 5. DEFINE
+class IPLScorePredictor(nn.Module):
+    def __init__(self):
+        super(IPLScorePredictor, self).__init__()
+        self.fc1 = nn.Linear(x_train_tensor.shape[1], 512)
+        self.fc2 = nn.Linear(512, 216)
+        self.fc3 = nn.Linear(216, 1)
+        
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        x = torch.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
+
+model = IPLScorePredictor()
