@@ -8,6 +8,7 @@ I'm here to explain the whole project step by step and also going to explain the
 
 ### Table of Content
 
+- What is Recommendation Systems?
 - Why use Deep Learning for Movie Recommendation System?
 - Prerequisites for Movie Recommendation System
   - Tools used
@@ -20,6 +21,13 @@ I'm here to explain the whole project step by step and also going to explain the
   - **Step** 4: Define the Neural Network
   - **Step** 5: Model Training
   - **Step** 6: Model Evaluation
+
+### What is Recommendation Systems?
+A recommendation system is a tool that suggests items like movies, products, or music to users based on their preferences and behavior. It analyzes data such as past choices or similarities with other users to make personalized suggestions. This helps users discover new content they'll likely enjoy.
+**There are two main types of recommendation systems:**
+
+**1. Collaborative Filtering –** Based on user-item interactions (e.g., user ratings, reviews).
+**2. Content-Based Filtering –** Recommends similar items based on content attributes (e.g., movie genres, actors).
 
 ### Why use Deep Learning for Movie Recommendation System?
 
