@@ -1,7 +1,7 @@
 # Movie Recommendation System using Deep Learning
 
 ChatGPT: https://chatgpt.com/c/66f65bf9-b390-800d-bc58-62f2bab12c84
-In the electrifying world of modern cricket, where every run and decision can tip the scales, Deep Learning is revolutionizing Movie Recommendation Systems. This cutting-edge project delves into the power of advanced algorithms to forecast IPL scores with astounding precision in real time. By scrutinizing historical data, player statistics, and current match conditions, this predictive model is set to transform our understanding and strategy of the game. Whether you're a cricket enthusiast or a data science aficionado, discover how this technology is propelling cricket analytics to unprecedented heights.
+In the dynamic world of entertainment, where countless films vie for attention, Deep Learning is transforming the way we discover and enjoy movies. This cutting-edge project harnesses the power of advanced algorithms to deliver highly accurate movie recommendations in real time. By analyzing user preferences, viewing histories, and genre trends, this predictive model is set to revolutionize how we explore and choose films. Whether you're a cinema lover or a data science enthusiast, discover how this technology is taking movie recommendation systems to unprecedented levels of personalization and accuracy.
 ## Everything about this project with explanation and full algorithm 
 
 I'm here to explain the whole project step by step and also going to explain the algorithm and background of the code and the process as well.
