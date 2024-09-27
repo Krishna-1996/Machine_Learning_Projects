@@ -1,7 +1,7 @@
 # Movie Recommendation System using Deep Learning
 
 ChatGPT: https://chatgpt.com/c/66f65bf9-b390-800d-bc58-62f2bab12c84
-Let's begin the tour of Movie recommendation system using Deep Learning project and I'm Krishna your guide will explain you the 
+Let's begin the tour of Movie recommendation system using Deep Learning project and I'm Krishna your guide will explain you the each and every thing step by step process. 
 ## Everything about this project with explanation and full algorithm 
 
 I'm here to explain the whole project step by step and also going to explain the algorithm and background of the code and the process as well.
