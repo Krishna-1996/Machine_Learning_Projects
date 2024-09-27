@@ -23,7 +23,7 @@ I'm here to explain the whole project step by step and also going to explain the
 
 ### Why use Deep Learning for Movie Recommendation System?
 
-  We humans struggle to spot patterns in massive data, which is where machine learning and deep learning shine. These smart techniques learn from past performances of players and teams, improving prediction accuracy. While traditional methods offer decent results, deep learning models analyze various factors to provide even more precise live Movie Recommendation Systems.
+  Deep Learning is ideal for movie recommendation systems due to its ability to handle vast, complex datasets and uncover deep, non-linear patterns in user preferences and movie features. Traditional methods like collaborative filtering or content-based approaches may struggle with intricate relationships between users and content, while deep learning models, particularly neural networks, excel at learning these nuanced interactions. By processing user behavior, metadata, and even textual or visual information from movies, deep learning can provide highly accurate and personalized recommendations, improving user satisfaction and enhancing discovery in large, diverse movie libraries.
 
 ### Prerequisites for Movie Recommendation System
 
