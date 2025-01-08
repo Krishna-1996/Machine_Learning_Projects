@@ -4,46 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maze Solver</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-
-<h1>Maze Solver</h1>
-
-<div class="form-container">
-    <form action="/run_algorithm" method="POST">
+    <h1>Maze Solver</h1>
+    <form method="post" action="/run_algorithm">
         <label for="obstacle_percentage">Obstacle Percentage:</label>
-        <input type="range" id="obstacle_percentage" name="obstacle_percentage" min="0" max="100" value="0">
-        <span id="obstacle_percentage_value">0%</span>
+        <input type="number" id="obstacle_percentage" name="obstacle_percentage" min="0" max="100" required><br><br>
 
-        <label for="algorithm_choice">Algorithm:</label>
+        <label for="algorithm_choice">Choose Algorithm:</label>
         <select id="algorithm_choice" name="algorithm_choice">
             <option value="BFS">BFS</option>
-            <option value="DFS">DFS</option>
-            <option value="Greedy BFS">Greedy BFS</option>
-            <option value="A*">A*</option>
-        </select>
+        </select><br><br>
 
-        <button type="submit">Run Algorithm</button>
+        <input type="submit" value="Run Algorithm">
     </form>
-</div>
 
-<div class="maze-container">
     {% if maze_image %}
-        <img src="{{ maze_image }}" alt="Maze" class="maze-image">
-        <p><strong>Algorithm:</strong> {{ algorithm }}</p>
-        <p><strong>Path Length:</strong> {{ path_length }}</p>
-        <p><strong>Exploration Length:</strong> {{ search_length }}</p>
-    {% else %}
-        <p>No maze generated yet. Please run the algorithm.</p>
+        <h2>Maze Visualization</h2>
+        <img src="{{ maze_image }}" alt="Maze Image"><br><br>
+        <p>Algorithm: {{ algorithm }}</p>
+        <p>Path Length: {{ path_length }}</p>
+        <p>Search Length: {{ search_length }}</p>
     {% endif %}
-</div>
-
-<script>
-    document.getElementById('obstacle_percentage').addEventListener('input', function(event) {
-        document.getElementById('obstacle_percentage_value').innerText = event.target.value + '%';
-    });
-</script>
-
 </body>
 </html>
