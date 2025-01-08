@@ -12,19 +12,31 @@ obstacle_files = {
     50: "Obstacles_Design_4_50p.csv"
 }
 
+# Predefined goal positions
+goal_positions = {
+    "Top Left": (1, 1),
+    "Top Right": (1, 99),
+    "Bottom Left": (49, 1),
+    "Bottom Right": (49, 99),
+    "Center": (25, 50)
+}
+
 # Main class for the GUI
 class MazeSolverApp(tk.Tk):
     def __init__(self):
         super().__init__()
 
         self.title("Maze Solver")
-        self.geometry("600x150")
+        self.geometry("700x150")
 
         # Algorithm choice (default is BFS)
         self.algorithm = tk.StringVar(value="BFS")
 
         # Obstacle percentage choice (default is 0%)
         self.obstacle_percentage = tk.IntVar(value=0)
+
+        # Goal position choice (default is "Top Left")
+        self.goal_position = tk.StringVar(value="Top Left")
 
         # Frame for the dropdowns and button (to place them on the same line)
         self.dropdown_frame = tk.Frame(self)
@@ -35,6 +47,9 @@ class MazeSolverApp(tk.Tk):
 
         # Dropdown for obstacle percentage selection
         self.create_obstacle_selection()
+
+        # Dropdown for goal selection
+        self.create_goal_selection()
 
         # Button to run the selected algorithm on the maze
         self.create_run_button()
@@ -57,6 +72,15 @@ class MazeSolverApp(tk.Tk):
         obstacle_menu = tk.OptionMenu(self.dropdown_frame, self.obstacle_percentage, *obstacle_choices)
         obstacle_menu.grid(row=0, column=3, padx=10)
 
+    def create_goal_selection(self):
+        """Create the dropdown for goal selection."""
+        label = tk.Label(self.dropdown_frame, text="Select Goal Position:", font=("Arial", 10, "bold"))
+        label.grid(row=0, column=4, padx=10)
+
+        goal_choices = list(goal_positions.keys())  # The keys of the goal_positions dictionary
+        goal_menu = tk.OptionMenu(self.dropdown_frame, self.goal_position, *goal_choices)
+        goal_menu.grid(row=0, column=5, padx=10)
+
     def create_run_button(self):
         """Create the 'Run' button to execute the algorithm."""
         run_button = tk.Button(self.dropdown_frame, text="Run", command=self.run_algorithm, 
@@ -66,7 +90,7 @@ class MazeSolverApp(tk.Tk):
         run_button.bind("<Enter>", lambda e: self.on_hover(run_button))
         run_button.bind("<Leave>", lambda e: self.on_leave(run_button))
         
-        run_button.grid(row=0, column=4, padx=10)
+        run_button.grid(row=1, column=2, padx=10)
 
     def on_hover(self, button):
         """Change button color when the mouse hovers over it."""
@@ -78,21 +102,19 @@ class MazeSolverApp(tk.Tk):
 
     def run_algorithm(self):
         """Run the selected algorithm on the maze."""
-        # Get the algorithm and obstacle percentage
+        # Get the algorithm, obstacle percentage, and goal position
         algorithm_choice = self.algorithm.get().lower()
         obstacle_percentage = self.obstacle_percentage.get()
+        goal_choice = self.goal_position.get()
+        goal_position = goal_positions[goal_choice]  # Get the selected goal position from the dictionary
 
         # Path to the selected obstacle CSV file
         csv_file_path = os.path.join("D:/Machine_Learning_Projects/4. Efficient_Maze_Pathfinding_Under_Obstacles/maze_csvs", obstacle_files[obstacle_percentage])
-        # D:/Machine_Learning_Projects/4. Efficient_Maze_Pathfinding_Under_Obstacles
 
         try:
             # Load the maze
             m = maze(50, 100)
             m.CreateMaze(loadMaze=csv_file_path)
-
-            # Define the goal position
-            goal_position = (1, 1)
 
             # Dynamically import the algorithm based on user selection
             if algorithm_choice == "bfs":
