@@ -1,52 +1,58 @@
 import heapq
-from pyamaze import maze, agent, COLOR, textLabel
+from pyamaze import maze
 
-def heuristic(a, b):
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+def greedy_bfs_search(m, goal):
+    start = (0, 0)
+    open_list = []
+    heapq.heappush(open_list, (manhattan_distance(start, goal), start))  # (f_score, position)
+    came_from = {}  # To reconstruct path
+    visited_cells = set()
+    exploration_order = []
 
-def greedy_bfs_search(m, start=None, goal=None):
-    if start is None:
-        start = (m.rows - 1, m.cols - 1)  # Default start position
-    if goal is None:
-        goal = (1, 1)  # Default goal position
+    # Directions: North, South, East, West (relative movement)
+    directions = {
+        'N': (-1, 0),  # North (row - 1)
+        'S': (1, 0),   # South (row + 1)
+        'E': (0, 1),   # East (col + 1)
+        'W': (0, -1)   # West (col - 1)
+    }
 
-    frontier = []  # Priority queue for Greedy BFS
-    heapq.heappush(frontier, (heuristic(start, goal), start))
-    visited = {start: None}  # Store visited cells and their parents
-    exploration_order = []  # Keep track of the exploration order
-
-    while frontier:
-        _, current = heapq.heappop(frontier)
+    while open_list:
+        _, current = heapq.heappop(open_list)
         exploration_order.append(current)
 
+        # If the goal is reached, stop
         if current == goal:
             break
+        
+        visited_cells.add(current)
 
-        for direction in 'ESNW':  # Check all four directions
-            if m.mazeMap[current][direction] == 1:  # If the direction is open
-                next_cell = get_next_cell(current, direction)
-                if next_cell not in visited:
-                    visited[next_cell] = current
-                    heapq.heappush(frontier, (heuristic(next_cell, goal), next_cell))
+        # Check all possible directions (North, South, East, West)
+        for direction, (d_row, d_col) in directions.items():
+            next_cell = (current[0] + d_row, current[1] + d_col)
 
-    # Reconstruct the path
-    path_to_goal = {}
-    if goal in visited:
-        cell = goal
-        while cell != start:
-            path_to_goal[visited[cell]] = cell
-            cell = visited[cell]
+            # Ensure next_cell is within bounds and has an open wall
+            if 0 <= next_cell[0] < m.rows and 0 <= next_cell[1] < m.cols:
+                if direction == 'N' and m.maze_map[current]["N"] == 1:  # Check if North wall is open
+                    heapq.heappush(open_list, (manhattan_distance(next_cell, goal), next_cell))
+                    came_from[next_cell] = current
+                elif direction == 'S' and m.maze_map[current]["S"] == 1:  # Check if South wall is open
+                    heapq.heappush(open_list, (manhattan_distance(next_cell, goal), next_cell))
+                    came_from[next_cell] = current
+                elif direction == 'E' and m.maze_map[current]["E"] == 1:  # Check if East wall is open
+                    heapq.heappush(open_list, (manhattan_distance(next_cell, goal), next_cell))
+                    came_from[next_cell] = current
+                elif direction == 'W' and m.maze_map[current]["W"] == 1:  # Check if West wall is open
+                    heapq.heappush(open_list, (manhattan_distance(next_cell, goal), next_cell))
+                    came_from[next_cell] = current
 
-    return exploration_order, visited, path_to_goal
+    # Reconstruct the path to the goal
+    path_to_goal = []
+    current = goal
+    while current != start:
+        path_to_goal.append(current)
+        current = came_from[current]
+    path_to_goal.append(start)
+    path_to_goal.reverse()
 
-def get_next_cell(current, direction):
-    x, y = current
-    if direction == 'E':
-        return (x, y + 1)  # Move East
-    elif direction == 'W':
-        return (x, y - 1)  # Move West
-    elif direction == 'N':
-        return (x - 1, y)  # Move North
-    elif direction == 'S':
-        return (x + 1, y)  # Move South
-    return current
+    return exploration_order, visited_cells, path_to_goal

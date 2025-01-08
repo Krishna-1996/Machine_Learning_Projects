@@ -1,62 +1,62 @@
-from pyamaze import maze, agent, COLOR, textLabel
+from pyamaze import maze
 from collections import deque
-from algorithms.BFS_Algorithm import bfs_search
 
-# Function to search the maze using BFS
-def bfs_search(maze_obj, start=None, goal=None):
-    start = (m.rows - 1, m.cols - 1)  # Start at the bottom-right corner
-    queue = deque([start])  # Initialize queue with the start position
-    visited = set([start])  # Set of visited cells
-    parent_map = {}  # Map to store the parent of each cell
-    exploration_order = []  # List to store the order of exploration
+def bfs_search(m, goal):
+    start = (0, 0)
+    queue = deque([start])
+    visited = set()
+    parent_map = {}
+    exploration_order = []
+    visited_cells = set()
 
-    # Perform BFS to find the path
+    # Directions: North, South, East, West (relative movement)
+    directions = {
+        'N': (-1, 0),  # North (row - 1)
+        'S': (1, 0),   # South (row + 1)
+        'E': (0, 1),   # East (col + 1)
+        'W': (0, -1)   # West (col - 1)
+    }
+
     while queue:
         current = queue.popleft()
-        exploration_order.append(current)  # Add the current cell to the exploration order
+        exploration_order.append(current)
+        visited.add(current)
+        visited_cells.add(current)
 
-        if current == goal:  # If we reached the goal, stop
+        # If the goal is reached, stop
+        if current == goal:
             break
         
-        # Explore all four directions (East, West, North, South)
-        for direction in 'ESNW':
-            if m.maze_map[current][direction] == 1:  # If the direction is open
-                next_cell = get_next_cell(current, direction)
-                if next_cell not in visited:
-                    visited.add(next_cell)
-                    queue.append(next_cell)
-                    parent_map[next_cell] = current  # Store the parent of the next cell
+        # Check all possible directions (North, South, East, West)
+        for direction, (d_row, d_col) in directions.items():
+            next_cell = (current[0] + d_row, current[1] + d_col)
+            
+            # Ensure next_cell is within bounds and has an open wall
+            if 0 <= next_cell[0] < m.rows and 0 <= next_cell[1] < m.cols:
+                if direction == 'N' and m.maze_map[current]["N"] == 1:  # Check if North wall is open
+                    if next_cell not in visited:
+                        queue.append(next_cell)
+                        parent_map[next_cell] = current
+                elif direction == 'S' and m.maze_map[current]["S"] == 1:  # Check if South wall is open
+                    if next_cell not in visited:
+                        queue.append(next_cell)
+                        parent_map[next_cell] = current
+                elif direction == 'E' and m.maze_map[current]["E"] == 1:  # Check if East wall is open
+                    if next_cell not in visited:
+                        queue.append(next_cell)
+                        parent_map[next_cell] = current
+                elif direction == 'W' and m.maze_map[current]["W"] == 1:  # Check if West wall is open
+                    if next_cell not in visited:
+                        queue.append(next_cell)
+                        parent_map[next_cell] = current
 
-    # If goal is not in visited, there's no path to the goal
-    if goal not in parent_map:
-        return exploration_order, visited, []  # No path found, return empty path
-
-    # Reconstruct the path from goal to start
-    path_to_goal = reconstruct_path(parent_map, goal, start)
-    return exploration_order, visited, path_to_goal
-
-# Function to get the next cell based on the current cell and direction
-def get_next_cell(current, direction):
-    x, y = current
-    if direction == 'E':
-        return (x, y + 1)  # Move East
-    elif direction == 'W':
-        return (x, y - 1)  # Move West
-    elif direction == 'N':
-        return (x - 1, y)  # Move North
-    elif direction == 'S':
-        return (x + 1, y)  # Move South
-    return current
-
-# Function to reconstruct the path from the goal to the start using parent_map
-def reconstruct_path(parent_map, goal, start):
-    path = []
+    # Trace path to the goal
+    path_to_goal = []
     current = goal
-    while current != start:  # Keep going until we reach the start
-        path.append(current)  # Add current cell to the path
-        current = parent_map.get(current)  # Get the parent of the current cell
-        if current is None:  # If no parent exists, stop the reconstruction (in case of no valid path)
-            return []
-    path.append(start)  # Add the start to the path
-    path.reverse()  # Reverse the path to get it from start to goal
-    return path
+    while current != start:
+        path_to_goal.append(current)
+        current = parent_map[current]
+    path_to_goal.append(start)
+    path_to_goal.reverse()
+
+    return exploration_order, visited_cells, path_to_goal

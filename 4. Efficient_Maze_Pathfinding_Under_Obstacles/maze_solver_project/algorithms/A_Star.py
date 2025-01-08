@@ -1,62 +1,79 @@
 import heapq
-from pyamaze import maze, agent, COLOR, textLabel
+from pyamaze import maze
 
-# Heuristic function to calculate Manhattan distance between two points
-def heuristic(a, b):
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+def A_star_search(m, goal):
+    start = (0, 0)
+    open_list = []
+    heapq.heappush(open_list, (0, start))  # (f_score, position)
+    g_score = {start: 0}  # Actual cost from start
+    f_score = {start: manhattan_distance(start, goal)}  # Estimated cost (g_score + heuristic)
+    came_from = {}  # To reconstruct path
+    visited_cells = set()
+    exploration_order = []
 
-# Get the next cell based on the current cell and the direction
-def get_next_cell(current, direction):
-    x, y = current
-    if direction == 'E':
-        return (x, y + 1)  # Move East
-    elif direction == 'W':
-        return (x, y - 1)  # Move West
-    elif direction == 'N':
-        return (x - 1, y)  # Move North
-    elif direction == 'S':
-        return (x + 1, y)  # Move South
-    return current
+    # Directions: North, South, East, West (relative movement)
+    directions = {
+        'N': (-1, 0),  # North (row - 1)
+        'S': (1, 0),   # South (row + 1)
+        'E': (0, 1),   # East (col + 1)
+        'W': (0, -1)   # West (col - 1)
+    }
 
-def A_star_search(m, start=None, goal=None):
-    if start is None:
-        start = (m.rows, m.cols)  # Default start position
-    if goal is None:
-        goal = (m.rows // 2, m.cols // 2)  # Default goal position
-    if not (0 <= goal[0] < m.rows and 0 <= goal[1] < m.cols):
-        raise ValueError(f"Invalid goal position: {goal}. It must be within the bounds of the maze.")
-    
-    frontier = []  # Priority queue for frontier cells
-    heapq.heappush(frontier, (0 + heuristic(start, goal), start))  # Add start cell to frontier
-    visited = {}  # Dictionary to store visited cells
-    exploration_order = []  # Order of exploration
-    explored = set([start])  # Set of explored cells
-    g_costs = {start: 0}  # Cost to reach each cell
-    
-    while frontier:
-        _, current = heapq.heappop(frontier)  # Get the cell with lowest cost
+    while open_list:
+        _, current = heapq.heappop(open_list)
+        exploration_order.append(current)
+
+        # If the goal is reached, stop
         if current == goal:
-            break  # Stop if goal is reached
-        for direction in 'ESNW':  # Check all four directions
-            if m.mazeMap[current][direction] == 1:  # If the direction is open
-                next_cell = get_next_cell(current, direction)  # Get next cell in that direction
-                new_g_cost = g_costs[current] + 1  # Increment cost
-                if next_cell not in explored or new_g_cost < g_costs.get(next_cell, float('inf')):
-                    g_costs[next_cell] = new_g_cost  # Update cost
-                    f_cost = new_g_cost + heuristic(next_cell, goal)  # Total cost (g + h)
-                    heapq.heappush(frontier, (f_cost, next_cell))  # Add to frontier
-                    visited[next_cell] = current  # Store the path
-                    exploration_order.append(next_cell)  # Add to exploration order
-                    explored.add(next_cell)  # Mark as explored
-    
-    if goal not in visited:  # If no path to goal
-        print("Goal is unreachable!")
-        return [], {}, {}
-    
-    path_to_goal = {}  # Reconstruct path from goal to start
-    cell = goal
-    while cell != start:
-        path_to_goal[visited[cell]] = cell
-        cell = visited[cell]
-    
-    return exploration_order, visited, path_to_goal
+            break
+        
+        visited_cells.add(current)
+
+        # Check all possible directions (North, South, East, West)
+        for direction, (d_row, d_col) in directions.items():
+            next_cell = (current[0] + d_row, current[1] + d_col)
+
+            # Ensure next_cell is within bounds and has an open wall
+            if 0 <= next_cell[0] < m.rows and 0 <= next_cell[1] < m.cols:
+                if direction == 'N' and m.maze_map[current]["N"] == 1:  # Check if North wall is open
+                    tentative_g_score = g_score[current] + 1
+                    if next_cell not in g_score or tentative_g_score < g_score[next_cell]:
+                        g_score[next_cell] = tentative_g_score
+                        f_score[next_cell] = g_score[next_cell] + manhattan_distance(next_cell, goal)
+                        heapq.heappush(open_list, (f_score[next_cell], next_cell))
+                        came_from[next_cell] = current
+                elif direction == 'S' and m.maze_map[current]["S"] == 1:  # Check if South wall is open
+                    tentative_g_score = g_score[current] + 1
+                    if next_cell not in g_score or tentative_g_score < g_score[next_cell]:
+                        g_score[next_cell] = tentative_g_score
+                        f_score[next_cell] = g_score[next_cell] + manhattan_distance(next_cell, goal)
+                        heapq.heappush(open_list, (f_score[next_cell], next_cell))
+                        came_from[next_cell] = current
+                elif direction == 'E' and m.maze_map[current]["E"] == 1:  # Check if East wall is open
+                    tentative_g_score = g_score[current] + 1
+                    if next_cell not in g_score or tentative_g_score < g_score[next_cell]:
+                        g_score[next_cell] = tentative_g_score
+                        f_score[next_cell] = g_score[next_cell] + manhattan_distance(next_cell, goal)
+                        heapq.heappush(open_list, (f_score[next_cell], next_cell))
+                        came_from[next_cell] = current
+                elif direction == 'W' and m.maze_map[current]["W"] == 1:  # Check if West wall is open
+                    tentative_g_score = g_score[current] + 1
+                    if next_cell not in g_score or tentative_g_score < g_score[next_cell]:
+                        g_score[next_cell] = tentative_g_score
+                        f_score[next_cell] = g_score[next_cell] + manhattan_distance(next_cell, goal)
+                        heapq.heappush(open_list, (f_score[next_cell], next_cell))
+                        came_from[next_cell] = current
+
+    # Reconstruct the path to the goal
+    path_to_goal = []
+    current = goal
+    while current != start:
+        path_to_goal.append(current)
+        current = came_from[current]
+    path_to_goal.append(start)
+    path_to_goal.reverse()
+
+    return exploration_order, visited_cells, path_to_goal
+
+def manhattan_distance(cell1, cell2):
+    return abs(cell1[0] - cell2[0]) + abs(cell1[1] - cell2[1])
