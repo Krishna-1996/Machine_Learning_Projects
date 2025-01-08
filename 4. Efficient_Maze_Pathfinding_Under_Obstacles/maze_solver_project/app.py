@@ -6,7 +6,7 @@ from collections import deque
 
 app = Flask(__name__)
 
-# Function to add random obstacles to the maze
+# Generate maze with obstacles
 def add_obstacles(m, obstacle_percentage):
     total_cells = m.rows * m.cols
     num_obstacles = int(total_cells * (obstacle_percentage / 100))
@@ -24,6 +24,7 @@ def add_obstacles(m, obstacle_percentage):
                 m.maze_map[(row, col)]["N"] = 0  # Block North wall
                 m.maze_map[(row, col)]["S"] = 0  # Block South wall
     return m
+
 
 # Function to save maze visualization as an image
 def save_maze_image(m):

@@ -1,66 +1,53 @@
-from pyamaze import maze
 from collections import deque
 
+# Modified BFS Search function to handle KeyError
 def bfs_search(m, goal):
-    start = (0, 0)
-    open_list = deque([start])  # Queue to explore the maze
+    # Ensure the starting point (0, 0) is valid
+    start = (0, 0)  # Starting point
+    if start not in m.maze_map:
+        raise ValueError("Start position (0, 0) is not valid in maze.")
+
+    # Directions for moving (N, S, E, W)
+    directions = ['N', 'S', 'E', 'W']
+    queue = deque([start])  # BFS queue
+    parent_map = {}  # To track the path
     visited = set([start])  # Set of visited cells
-    parent_map = {start: None}  # To reconstruct the path
-    
-    # Directions: (row offset, col offset)
-    directions = {
-        'N': (-1, 0),  # North
-        'S': (1, 0),   # South
-        'E': (0, 1),   # East
-        'W': (0, -1),  # West
-    }
+    exploration_order = []  # Cells visited during BFS
+    path_to_goal = []  # Path from start to goal
 
-    exploration_order = []  # To track exploration order
-    visited_cells = set()   # To track visited cells
-
-    while open_list:
-        current = open_list.popleft()  # Get the next cell to explore
+    while queue:
+        current = queue.popleft()
         exploration_order.append(current)
-        visited_cells.add(current)
 
         if current == goal:
-            break  # If we reached the goal, stop the search
+            # Reconstruct the path to the goal
+            while current in parent_map:
+                path_to_goal.append(current)
+                current = parent_map[current]
+            path_to_goal.append(start)
+            path_to_goal.reverse()
+            break
 
-        # Check all four possible directions (N, S, E, W)
-        for direction, (dr, dc) in directions.items():
-            next_cell = (current[0] + dr, current[1] + dc)
+        # Explore neighbors in 4 directions (N, S, E, W)
+        for direction in directions:
+            if direction == 'N':
+                neighbor = (current[0] - 1, current[1])
+            elif direction == 'S':
+                neighbor = (current[0] + 1, current[1])
+            elif direction == 'E':
+                neighbor = (current[0], current[1] + 1)
+            elif direction == 'W':
+                neighbor = (current[0], current[1] - 1)
 
-            # Ensure the next cell is within bounds of the maze
-            if 0 <= next_cell[0] < m.rows and 0 <= next_cell[1] < m.cols:
-                # Check if the move is valid (i.e., the wall is not blocking the path)
-                if direction == 'N' and m.maze_map[current]["N"] == 1:  # Move North is possible
-                    if next_cell not in visited:
-                        visited.add(next_cell)
-                        open_list.append(next_cell)
-                        parent_map[next_cell] = current
-                elif direction == 'S' and m.maze_map[current]["S"] == 1:  # Move South is possible
-                    if next_cell not in visited:
-                        visited.add(next_cell)
-                        open_list.append(next_cell)
-                        parent_map[next_cell] = current
-                elif direction == 'E' and m.maze_map[current]["E"] == 1:  # Move East is possible
-                    if next_cell not in visited:
-                        visited.add(next_cell)
-                        open_list.append(next_cell)
-                        parent_map[next_cell] = current
-                elif direction == 'W' and m.maze_map[current]["W"] == 1:  # Move West is possible
-                    if next_cell not in visited:
-                        visited.add(next_cell)
-                        open_list.append(next_cell)
-                        parent_map[next_cell] = current
+            if neighbor not in visited:
+                # Check if the neighbor is within bounds and if the wall in that direction is not blocked
+                if neighbor in m.maze_map and m.maze_map[current].get(direction, 0) == 1:
+                    visited.add(neighbor)
+                    queue.append(neighbor)
+                    parent_map[neighbor] = current
 
-    # Reconstruct the path to the goal from the parent map
-    path_to_goal = []
-    current = goal
-    while current != start:
-        path_to_goal.append(current)
-        current = parent_map[current]
-    path_to_goal.append(start)
-    path_to_goal.reverse()  # Reverse the path to get it from start to goal
+    # Check if goal was reached
+    if goal not in path_to_goal:
+        path_to_goal = []  # No path found to goal
 
-    return exploration_order, visited_cells, path_to_goal
+    return exploration_order, visited, path_to_goal
