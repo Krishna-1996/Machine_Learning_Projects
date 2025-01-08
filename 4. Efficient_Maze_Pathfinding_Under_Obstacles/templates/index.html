@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Solver</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { display: flex; flex-direction: column; align-items: center; }
+        .slider-container { margin-bottom: 20px; }
+        .result { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Maze Solver</h1>
+
+        <!-- Obstacle Percentage Slider -->
+        <div class="slider-container">
+            <label for="obstacle-slider">Obstacle Percentage: <span id="obstacle-value">0</span>%</label>
+            <input type="range" id="obstacle-slider" min="0" max="100" step="1" value="0">
+        </div>
+
+        <!-- Algorithm Selection -->
+        <label for="algorithm">Select Algorithm:</label>
+        <select id="algorithm">
+            <option value="BFS_Algorithm">BFS</option>
+            <option value="DFS_Algorithm">DFS</option>
+            <option value="A_Star">A*</option>
+            <option value="Greedy_BFS">Greedy BFS</option>
+        </select>
+
+        <!-- Run Button -->
+        <button id="run-button">Run</button>
+
+        <!-- Results -->
+        <div class="result">
+            <p><strong>Path Length:</strong> <span id="path-length">N/A</span></p>
+            <p><strong>Exploration Length:</strong> <span id="exploration-length">N/A</span></p>
+            <p><strong>Exploration Time:</strong> <span id="exploration-time">N/A</span></p>
+            <p><strong>Best Algorithm:</strong> <span id="best-algorithm">N/A</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Update the obstacle value when the slider is moved
+        document.getElementById("obstacle-slider").addEventListener("input", function() {
+            document.getElementById("obstacle-value").textContent = this.value;
+        });
+
+        // Handle the run button click event
+        document.getElementById("run-button").addEventListener("click", function() {
+            let algorithm = document.getElementById("algorithm").value;
+            let obstacle_percentage = document.getElementById("obstacle-slider").value;
+
+            // Send request to run the algorithm
+            fetch('/run_algorithm', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `algorithm=${algorithm}&obstacle_percentage=${obstacle_percentage}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert("Error: " + data.error);
+                } else {
+                    document.getElementById("path-length").textContent = data.path_length;
+                    document.getElementById("exploration-length").textContent = data.exploration_length;
+                    document.getElementById("exploration-time").textContent = data.elapsed_time.toFixed(2);
+
+                    // Show best algorithm based on exploration time (example logic)
+                    document.getElementById("best-algorithm").textContent = data.algorithm;
+                }
+            })
+            .catch(err => console.error("Error: ", err));
+        });
+    </script>
+</body>
+</html>

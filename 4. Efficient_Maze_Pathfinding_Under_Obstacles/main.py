@@ -83,8 +83,8 @@ class MazeSolverApp(tk.Tk):
         obstacle_percentage = self.obstacle_percentage.get()
 
         # Path to the selected obstacle CSV file
-        csv_file_path = os.path.join("D:/Masters Projects/Master-In-AI/Foundation of Artificial Intelligence/Project 3 ICA/Advance Version of obstacle project/maze_csvs", obstacle_files[obstacle_percentage])
-
+        csv_file_path = os.path.join("D:/Machine_Learning_Projects/4. Efficient_Maze_Pathfinding_Under_Obstacles/maze_csvs", obstacle_files[obstacle_percentage])
+                                    # D:/Machine_Learning_Projects/4. Efficient_Maze_Pathfinding_Under_Obstacles
         try:
             # Load the maze
             m = maze(50, 100)
