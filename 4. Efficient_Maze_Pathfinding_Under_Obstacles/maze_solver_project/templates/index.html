@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Solver</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            display: block;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Maze Solver</h1>
+
+    <form id="mazeForm">
+        <label for="algorithm">Algorithm:</label>
+        <select id="algorithm">
+            <option value="BFS_Algorithm">BFS</option>
+            <option value="DFS_Algorithm">DFS</option>
+            <option value="A_Star">A*</option>
+            <option value="Greedy_BFS">Greedy BFS</option>
+        </select>
+
+        <label for="obstacle">Obstacle Percentage:</label>
+        <select id="obstacle">
+            <option value="0">0%</option>
+            <option value="10">10%</option>
+            <option value="30">30%</option>
+            <option value="50">50%</option>
+        </select>
+
+        <label for="goal">Goal Position:</label>
+        <select id="goal">
+            <option value="Top Left">Top Left</option>
+            <option value="Top Right">Top Right</option>
+            <option value="Bottom Left">Bottom Left</option>
+            <option value="Bottom Right">Bottom Right</option>
+            <option value="Center">Center</option>
+        </select>
+
+        <button type="submit">Solve Maze</button>
+    </form>
+
+    <canvas id="mazeCanvas" width="500" height="500"></canvas>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

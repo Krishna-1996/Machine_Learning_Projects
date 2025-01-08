@@ -17,21 +17,25 @@ def get_next_cell(current, direction):
     return current
 
 def load_maze_from_csv(file_path, maze_obj):
-    """Load maze from CSV."""
+    """Load maze from CSV into the maze object."""
     with open(file_path, mode='r') as f:
         reader = csv.reader(f)
         next(reader)  # Skip header
         for row in reader:
             coords = eval(row[0])  # Converts string to tuple
             E, W, N, S = map(int, row[1:])  # Parse the directions
-            maze_obj.maze_map[coords] = {"E": E, "W": W, "N": N, "S": S}  # Update maze map with directions
+            maze_obj[coords] = {"E": E, "W": W, "N": N, "S": S}  # Update maze map with directions
+
+def is_valid_move(current, direction, maze_obj):
+    """Check if moving in the given direction is valid (i.e., no wall)."""
+    return maze_obj.get(current, {}).get(direction, 0) == 1
 
 def bfs_search(maze_obj, start=None, goal=None):
-    """Breadth-First Search algorithm."""
+    """Breadth-First Search (BFS) algorithm."""
     if start is None:
-        start = (maze_obj.rows, maze_obj.cols)  # Default start position
+        start = (1, 1)  # Default start position
     if goal is None:
-        goal = (maze_obj.rows // 2, maze_obj.cols // 2)  # Default goal position
+        goal = (50, 100)  # Default goal position
 
     frontier = deque([start])  # Queue for BFS
     visited = {}  # Stores the visited cells
@@ -45,7 +49,7 @@ def bfs_search(maze_obj, start=None, goal=None):
             break  # Stop if we reached the goal
 
         for direction in 'ESNW':  # Check all possible directions (East, West, North, South)
-            if maze_obj.maze_map[current][direction] == 1:  # If a wall is not blocking
+            if is_valid_move(current, direction, maze_obj):  # If a wall is not blocking
                 next_cell = get_next_cell(current, direction)  # Get the next cell in that direction
                 if next_cell not in explored:  # If the next cell is unexplored
                     frontier.append(next_cell)  # Add it to the frontier

@@ -13,25 +13,28 @@ def get_next_cell(current, direction):
     """Calculate the next cell based on the current cell and direction."""
     x, y = current
     if direction == 'E':
-        return (x, y + 1)  # Move East
+        return (x, y + 1)
     elif direction == 'W':
-        return (x, y - 1)  # Move West
+        return (x, y - 1)
     elif direction == 'N':
-        return (x - 1, y)  # Move North
+        return (x - 1, y)
     elif direction == 'S':
-        return (x + 1, y)  # Move South
+        return (x + 1, y)
     return current
 
-# Function to load the maze from a CSV file
 def load_maze_from_csv(file_path, maze_obj):
-    """Load maze from CSV."""
+    """Load maze from CSV into the maze object."""
     with open(file_path, mode='r') as f:
         reader = csv.reader(f)
         next(reader)  # Skip header
         for row in reader:
-            coords = eval(row[0])  # Convert the string to a tuple
-            E, W, N, S = map(int, row[1:])  # Extract wall data
-            maze_obj.maze_map[coords] = {"E": E, "W": W, "N": N, "S": S}
+            coords = eval(row[0])  # Converts string to tuple
+            E, W, N, S = map(int, row[1:])  # Parse the directions
+            maze_obj[coords] = {"E": E, "W": W, "N": N, "S": S}  # Update maze map with directions
+
+def is_valid_move(current, direction, maze_obj):
+    """Check if moving in the given direction is valid (i.e., no wall)."""
+    return maze_obj.get(current, {}).get(direction, 0) == 1
 
 # Function to add random obstacles to the maze
 def add_obstacles(maze_obj, obstacle_percentage=20):

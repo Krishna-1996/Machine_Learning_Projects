@@ -4,66 +4,70 @@ import random
 
 def get_next_cell(current, direction):
     """Calculate the next cell based on the current cell and direction."""
-    x, y = current  # Deconstruct current position into x, y coordinates
-    if direction == 'E':  # If direction is East, move right
+    x, y = current
+    if direction == 'E':
         return (x, y + 1)
-    elif direction == 'W':  # If direction is West, move left
+    elif direction == 'W':
         return (x, y - 1)
-    elif direction == 'N':  # If direction is North, move up
+    elif direction == 'N':
         return (x - 1, y)
-    elif direction == 'S':  # If direction is South, move down
+    elif direction == 'S':
         return (x + 1, y)
-    return current  # Return current if no valid direction
+    return current
 
 def load_maze_from_csv(file_path, maze_obj):
-    """Load maze from CSV."""
+    """Load maze from CSV into the maze object."""
     with open(file_path, mode='r') as f:
-        reader = csv.reader(f)  # Read the CSV file
-        next(reader)  # Skip header row
-        for row in reader:  # Iterate through each row in the CSV
-            coords = eval(row[0])  # Convert coordinate string to a tuple
-            E, W, N, S = map(int, row[1:])  # Parse the direction data
-            maze_obj.maze_map[coords] = {"E": E, "W": W, "N": N, "S": S}  # Update maze with walls data
+        reader = csv.reader(f)
+        next(reader)  # Skip header
+        for row in reader:
+            coords = eval(row[0])  # Converts string to tuple
+            E, W, N, S = map(int, row[1:])  # Parse the directions
+            maze_obj[coords] = {"E": E, "W": W, "N": N, "S": S}  # Update maze map with directions
+
+def is_valid_move(current, direction, maze_obj):
+    """Check if moving in the given direction is valid (i.e., no wall)."""
+    return maze_obj.get(current, {}).get(direction, 0) == 1
+
 
 def dfs_search(maze_obj, start=None, goal=None):
-    """Depth-First Search algorithm."""
+    """Depth-First Search (DFS) algorithm."""
     if start is None:
-        start = (maze_obj.rows, maze_obj.cols)  # Default start position (bottom-right)
+        start = (1, 1)  # Default start position
     if goal is None:
-        goal = (maze_obj.rows // 2, maze_obj.cols // 2)  # Default goal position (center)
+        goal = (50, 100)  # Default goal position
 
-    frontier = [start]  # Use a stack for DFS
-    visited = {}  # Dictionary to store visited cells
-    exploration_order = []  # List to store the order of exploration
-    explored = set([start])  # Set to track all explored cells
+    frontier = [start]  # Stack for DFS
+    visited = {}  # Stores the visited cells
+    exploration_order = []  # The order of exploration
+    explored = set([start])  # Set of already explored cells
 
-    while frontier:  # Continue exploring while there are cells to visit
-        current = frontier.pop()  # Pop from stack to get the current cell
+    while frontier:
+        current = frontier.pop()  # Pop the next cell from the stack
 
-        if current == goal:  # Stop if we reach the goal
-            break
+        if current == goal:
+            break  # Stop if we reached the goal
 
-        for direction in 'ESNW':  # Check each direction (East, South, North, West)
-            if maze_obj.maze_map[current][direction] == 1:  # If the path is open
-                next_cell = get_next_cell(current, direction)  # Get the next cell in the direction
-                if next_cell not in explored:  # If the next cell hasn't been explored yet
-                    frontier.append(next_cell)  # Add the cell to the stack
-                    visited[next_cell] = current  # Mark current cell as the predecessor of the next cell
-                    exploration_order.append(next_cell)  # Record the exploration order
-                    explored.add(next_cell)  # Mark the cell as explored
+        for direction in 'ESNW':  # Check all possible directions (East, West, North, South)
+            if is_valid_move(current, direction, maze_obj):  # If a wall is not blocking
+                next_cell = get_next_cell(current, direction)  # Get the next cell in that direction
+                if next_cell not in explored:  # If the next cell is unexplored
+                    frontier.append(next_cell)  # Add it to the frontier
+                    visited[next_cell] = current  # Mark the current cell as visited from 'next_cell'
+                    exploration_order.append(next_cell)  # Add it to the exploration order
+                    explored.add(next_cell)  # Add to explored set
 
-    if goal not in visited:  # If goal is unreachable, return empty results
+    if goal not in visited:
         print("Goal is unreachable!")
-        return [], {}, {}
+        return [], {}, {}  # Return empty if the goal is unreachable
 
-    # Reconstruct the path to the goal by tracing back from goal to start
-    path_to_goal = {}
+    path_to_goal = {}  # To store the path from goal to start
     cell = goal
     while cell != start:
-        path_to_goal[visited[cell]] = cell  # Record the cell's predecessor
-        cell = visited[cell]  # Move backwards along the path
+        path_to_goal[visited[cell]] = cell  # Trace path backwards from goal to start
+        cell = visited[cell]
 
-    return exploration_order, visited, path_to_goal  # Return the exploration order, visited cells, and the path to goal
+    return exploration_order, visited, path_to_goal  # Return exploration order, visited cells, and path to goal
 
 if __name__ == '__main__':
     m = maze(50, 100)  # Create a maze of size 50x100
