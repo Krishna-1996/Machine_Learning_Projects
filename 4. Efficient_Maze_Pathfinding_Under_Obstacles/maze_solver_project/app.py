@@ -35,8 +35,10 @@ def index():
 def run_algorithm():
     obstacle_percentage = int(request.form.get('obstacle_percentage'))
     algorithm_choice = request.form.get('algorithm_choice')
-
+    m = maze(50, 100)
+    m.CreateMaze(loadMaze='path/to/your/maze.csv')
     # Generate maze with obstacles
+    obstacles = add_obstacles(m, obstacle_percentage)
     m = generate_maze(obstacle_percentage)
     goal_position = (1, 1)  # Goal position
     print(f"Running BFS algorithm with goal {goal_position}")
