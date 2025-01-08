@@ -1,49 +1,47 @@
-from collections import deque
 from pyamaze import maze, agent, COLOR, textLabel
+from collections import deque
 
-def bfs_search(m, start=None, goal=None):
-    if start is None:
-        start = (m.rows - 1, m.cols - 1)  # Default start position
-    if goal is None:
-        goal = (1, 1)  # Default goal position
-
-    # Initialize queue for BFS
+def bfs_search(m, goal):
+    start = (m.rows - 1, m.cols - 1)  # Start at the bottom-right corner
     queue = deque([start])
-    visited = {start: None}  # Store visited cells and their parents
-    exploration_order = []  # Keep track of the exploration order
-
+    visited = set([start])
+    parent_map = {}
+    exploration_order = []
+    
     while queue:
         current = queue.popleft()
         exploration_order.append(current)
-
+        
         if current == goal:
             break
-
-        for direction in 'ESNW':  # Check all four directions
-            if m.mazeMap[current][direction] == 1:  # If the direction is open
+        
+        for direction in 'ESNW':
+            if m.maze_map[current][direction] == 1:  # If the direction is open
                 next_cell = get_next_cell(current, direction)
                 if next_cell not in visited:
-                    visited[next_cell] = current
+                    visited.add(next_cell)
                     queue.append(next_cell)
-
-    # Reconstruct the path
-    path_to_goal = {}
-    if goal in visited:
-        cell = goal
-        while cell != start:
-            path_to_goal[visited[cell]] = cell
-            cell = visited[cell]
-
+                    parent_map[next_cell] = current
+    
+    path_to_goal = reconstruct_path(parent_map, goal, start)
     return exploration_order, visited, path_to_goal
 
 def get_next_cell(current, direction):
     x, y = current
     if direction == 'E':
-        return (x, y + 1)  # Move East
+        return (x, y + 1)
     elif direction == 'W':
-        return (x, y - 1)  # Move West
+        return (x, y - 1)
     elif direction == 'N':
-        return (x - 1, y)  # Move North
+        return (x - 1, y)
     elif direction == 'S':
-        return (x + 1, y)  # Move South
-    return current
+        return (x + 1, y)
+
+def reconstruct_path(parent_map, goal, start):
+    path = []
+    current = goal
+    while current != start:
+        path.append(current)
+        current = parent_map[current]
+    path.reverse()
+    return path

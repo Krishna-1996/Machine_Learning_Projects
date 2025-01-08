@@ -5,77 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maze Solver</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { display: flex; flex-direction: column; align-items: center; }
-        .slider-container { margin-bottom: 20px; }
-        .result { margin-top: 20px; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        .maze-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .maze-image {
+            max-width: 100%;
+            height: auto;
+        }
+        .form-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .form-container select, .form-container button {
+            padding: 10px;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Maze Solver</h1>
 
-        <!-- Obstacle Percentage Slider -->
-        <div class="slider-container">
-            <label for="obstacle-slider">Obstacle Percentage: <span id="obstacle-value">0</span>%</label>
-            <input type="range" id="obstacle-slider" min="0" max="100" step="1" value="0">
-        </div>
+<h1>Maze Solver</h1>
 
-        <!-- Algorithm Selection -->
-        <label for="algorithm">Select Algorithm:</label>
-        <select id="algorithm">
-            <option value="BFS_Algorithm">BFS</option>
-            <option value="DFS_Algorithm">DFS</option>
-            <option value="A_Star">A*</option>
-            <option value="Greedy_BFS">Greedy BFS</option>
+<div class="form-container">
+    <form action="/run_algorithm" method="POST">
+        <label for="obstacle_percentage">Obstacle Percentage:</label>
+        <input type="range" id="obstacle_percentage" name="obstacle_percentage" min="0" max="100" value="0">
+        <span id="obstacle_percentage_value">0%</span>
+
+        <label for="algorithm_choice">Algorithm:</label>
+        <select id="algorithm_choice" name="algorithm_choice">
+            <option value="BFS">BFS</option>
+            <option value="DFS">DFS</option>
+            <option value="Greedy BFS">Greedy BFS</option>
+            <option value="A*">A*</option>
         </select>
 
-        <!-- Run Button -->
-        <button id="run-button">Run</button>
+        <button type="submit">Run Algorithm</button>
+    </form>
+</div>
 
-        <!-- Results -->
-        <div class="result">
-            <p><strong>Path Length:</strong> <span id="path-length">N/A</span></p>
-            <p><strong>Exploration Length:</strong> <span id="exploration-length">N/A</span></p>
-            <p><strong>Exploration Time:</strong> <span id="exploration-time">N/A</span></p>
-            <p><strong>Best Algorithm:</strong> <span id="best-algorithm">N/A</span></p>
-        </div>
-    </div>
+<div class="maze-container">
+    {% if maze_image %}
+        <img src="{{ maze_image }}" alt="Maze" class="maze-image">
+        <p><strong>Algorithm:</strong> {{ algorithm }}</p>
+        <p><strong>Path Length:</strong> {{ path_length }}</p>
+        <p><strong>Exploration Length:</strong> {{ search_length }}</p>
+    {% else %}
+        <p>No maze generated yet. Please run the algorithm.</p>
+    {% endif %}
+</div>
 
-    <script>
-        // Update the obstacle value when the slider is moved
-        document.getElementById("obstacle-slider").addEventListener("input", function() {
-            document.getElementById("obstacle-value").textContent = this.value;
-        });
+<script>
+    document.getElementById('obstacle_percentage').addEventListener('input', function(event) {
+        document.getElementById('obstacle_percentage_value').innerText = event.target.value + '%';
+    });
+</script>
 
-        // Handle the run button click event
-        document.getElementById("run-button").addEventListener("click", function() {
-            let algorithm = document.getElementById("algorithm").value;
-            let obstacle_percentage = document.getElementById("obstacle-slider").value;
-
-            // Send request to run the algorithm
-            fetch('/run_algorithm', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `algorithm=${algorithm}&obstacle_percentage=${obstacle_percentage}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert("Error: " + data.error);
-                } else {
-                    document.getElementById("path-length").textContent = data.path_length;
-                    document.getElementById("exploration-length").textContent = data.exploration_length;
-                    document.getElementById("exploration-time").textContent = data.elapsed_time.toFixed(2);
-
-                    // Show best algorithm based on exploration time (example logic)
-                    document.getElementById("best-algorithm").textContent = data.algorithm;
-                }
-            })
-            .catch(err => console.error("Error: ", err));
-        });
-    </script>
 </body>
 </html>
