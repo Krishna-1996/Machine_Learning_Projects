@@ -30,6 +30,8 @@ def index():
     return render_template('index.html', maze_image=None)
 
 @app.route('/run_algorithm', methods=['POST'])
+
+
 def run_algorithm():
     obstacle_percentage = int(request.form.get('obstacle_percentage'))
     algorithm_choice = request.form.get('algorithm_choice')
@@ -37,6 +39,11 @@ def run_algorithm():
     # Generate maze with obstacles
     m = generate_maze(obstacle_percentage)
     goal_position = (1, 1)  # Goal position
+    print(f"Running BFS algorithm with goal {goal_position}")
+    exploration_order, visited_cells, path_to_goal = bfs_search(m, goal=goal_position)
+    print(f"Exploration Order: {exploration_order}")
+    print(f"Visited Cells: {visited_cells}")
+    print(f"Path to Goal: {path_to_goal}")
 
     # Run the selected algorithm
     if algorithm_choice == "BFS":

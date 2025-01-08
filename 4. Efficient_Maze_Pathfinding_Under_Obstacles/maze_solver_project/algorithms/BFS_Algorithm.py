@@ -1,8 +1,9 @@
 from pyamaze import maze, agent, COLOR, textLabel
 from collections import deque
+from algorithms.BFS_Algorithm import bfs_search
 
 # Function to search the maze using BFS
-def bfs_search(m, goal):
+def bfs_search(maze_obj, start=None, goal=None):
     start = (m.rows - 1, m.cols - 1)  # Start at the bottom-right corner
     queue = deque([start])  # Initialize queue with the start position
     visited = set([start])  # Set of visited cells
