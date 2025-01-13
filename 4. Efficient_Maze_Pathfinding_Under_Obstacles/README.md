@@ -1,4 +1,4 @@
-# **Maze Solving Algorithms: Pathfinding in Mazes**
+# **Efficient_Maze_Pathfinding_Under_Obstacles**
 
 In this project, we explore the implementation and performance of **four pathfinding algorithms** — **Breadth-First Search (BFS)**, **Depth-First Search (DFS)**, **A\***, and **Greedy BFS** — on various mazes with different obstacle densities. The goal is to analyze each algorithm's efficiency and accuracy in terms of **path length** and **exploration length** while navigating through obstacle-laden mazes.
 
