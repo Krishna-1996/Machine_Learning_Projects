@@ -25,7 +25,8 @@ The primary goal of this project is to compare the efficiency of four maze-solvi
 - **Path Length**: The shortest distance from the start point to the goal.
 - **Exploration Length**: The total number of cells explored by the algorithm before reaching the goal.
 
-In addition to performance metrics, visualizations of the algorithm's exploration process are included to give a clear understanding of how each algorithm works.
+In addition to performance metrics, visualizations of the algorithm's exploration process are included to give a clear understanding of how each algorithm works. 
+
 
 ---
 
@@ -77,7 +78,7 @@ Each algorithm's exploration and pathfinding process is displayed in **real-time
 ---
 
 ## **Experimental Results**
-
+**All Experiment are done with goal position at top-left corner for better distance and highest result.**
 ### **Path Length Comparison** (Shortest Path)
 
 | Algorithm        | 0% Density | 10% Density | 30% Density | 50% Density |
