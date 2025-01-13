@@ -1,6 +1,6 @@
 # **Efficient_Maze_Pathfinding_Under_Obstacles**
 
-In this project, we explore the implementation and performance of **four pathfinding algorithms** — **Breadth-First Search (BFS)**, **Depth-First Search (DFS)**, **A\***, and **Greedy BFS** — on various mazes with different obstacle densities **0%** — **10%** — **30%** — and **50%**. The goal is to analyze each algorithm's efficiency and accuracy in terms of **path length** and **exploration length** while navigating through obstacle-laden mazes. In new update I have also added 5 goal positions i.e. **Top Left** — **Top Right** — **Bottom Left** — **Bottom Right** and **Centre**.
+In this project, we explore the implementation and performance of **four pathfinding algorithms** — **Breadth-First Search (BFS)**, **Depth-First Search (DFS)**, **A\***, and **Greedy BFS** — on various mazes with different obstacle densities **0%** — **10%** — **30%** — and **50%**. The goal is to analyze each algorithm's efficiency and accuracy in terms of **path length** and **exploration length** while navigating through obstacle-laden mazes. In new update I have also added 5 goal positions i.e. **Top Left** — **Top Right** — **Bottom Left** — **Bottom Right** — and **Centre**.
 
 ---
 
@@ -18,7 +18,7 @@ In this project, we explore the implementation and performance of **four pathfin
 
 ## **Introduction**
 
-The primary goal of this project is to compare the efficiency of four maze-solving algorithms — **BFS**, **DFS**, **A\***, and **Greedy BFS** — across different obstacle densities. Each algorithm was tested in mazes with obstacle densities of **0%**, **10%**, **30%**, and **50%**, different goal positions i.e. **Top Left** — **Top Right** — **Bottom Left** — **Bottom Right** and **Centre**.
+The primary goal of this project is to compare the efficiency of four maze-solving algorithms — **BFS**, **DFS**, **A\***, and **Greedy BFS** — across different obstacle densities. Each algorithm was tested in mazes with obstacle densities of **0%**, **10%**, **30%**, and **50%**, different goal positions i.e. **Top Left** — **Top Right** — **Bottom Left** — **Bottom Right** — and **Centre**.
 
 ### **Performance Metrics Evaluated:**
 
