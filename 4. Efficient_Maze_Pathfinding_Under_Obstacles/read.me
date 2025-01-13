@@ -1,92 +1,139 @@
-Maze Solving Algorithms: Pathfinding in Mazes   
-In this project, we explore the implementation and performance of four pathfinding algorithms—Breadth-First Search (BFS), Depth-First Search (DFS), A*, and Greedy BFS—on various mazes with different obstacle densities. The goal of this project is to analyze each algorithm's efficiency and accuracy in terms of path length and exploration length while navigating through obstacle-laden mazes.
+# **Maze Solving Algorithms: Pathfinding in Mazes**
 
-Table of Contents
-Introduction
-Algorithms Overview
-Maze Generation
-Visualization
-Experimental Results
-Discussion and Future Work
-Conclusion
-Introduction
-The primary goal of this project is to compare the efficiency of four maze-solving algorithms—BFS, DFS, A*, and Greedy BFS—across different obstacle densities. Each algorithm was tested in mazes with obstacle densities of 0%, 10%, 30%, and 50%. The performance is evaluated in terms of:
+In this project, we explore the implementation and performance of **four pathfinding algorithms** — **Breadth-First Search (BFS)**, **Depth-First Search (DFS)**, **A\***, and **Greedy BFS** — on various mazes with different obstacle densities. The goal is to analyze each algorithm's efficiency and accuracy in terms of **path length** and **exploration length** while navigating through obstacle-laden mazes.
 
-Path Length: The shortest distance from the start point to the goal.
-Exploration Length: The total number of cells explored by the algorithm before reaching the goal.
+---
+
+## **Table of Contents**
+
+- **[Introduction](#introduction)**
+- **[Algorithms Overview](#algorithms-overview)**
+- **[Maze Generation](#maze-generation)**
+- **[Visualization](#visualization)**
+- **[Experimental Results](#experimental-results)**
+- **[Discussion and Future Work](#discussion-and-future-work)**
+- **[Conclusion](#conclusion)**
+
+---
+
+## **Introduction**
+
+The primary goal of this project is to compare the efficiency of four maze-solving algorithms — **BFS**, **DFS**, **A\***, and **Greedy BFS** — across different obstacle densities. Each algorithm was tested in mazes with obstacle densities of **0%**, **10%**, **30%**, and **50%**. 
+
+### **Performance Metrics Evaluated:**
+
+- **Path Length**: The shortest distance from the start point to the goal.
+- **Exploration Length**: The total number of cells explored by the algorithm before reaching the goal.
+
 In addition to performance metrics, visualizations of the algorithm's exploration process are included to give a clear understanding of how each algorithm works.
 
-Algorithms Overview
-1. Breadth-First Search (BFS)
-Approach: BFS explores all possible paths level by level and guarantees the shortest path in an unweighted grid.
-Performance: It is optimal for finding the shortest path but inefficient in terms of exploration, especially in dense mazes.
-2. Depth-First Search (DFS)
-Approach: DFS explores a path as far as possible, backtracking when necessary. It does not guarantee the shortest path.
-Performance: DFS works well in sparse mazes but becomes inefficient with increasing obstacles, as it tends to backtrack excessively.
-3. A (A-Star)*
-Approach: A* uses a heuristic (Manhattan Distance) to find the optimal path efficiently. It balances between the path taken and the remaining distance to the goal.
-Performance: A* is optimal for finding the shortest path and performs well in both sparse and dense mazes, though its exploration time increases in denser environments.
-4. Greedy BFS
-Approach: Greedy BFS uses only a heuristic to prioritize cells closer to the goal, potentially taking suboptimal paths.
-Performance: It is faster than BFS and DFS but may take longer detours, leading to less optimal paths.
-Maze Generation
-The maze is generated from the CSV file Maze_1_90_loopPercent.csv, which has a 90% loop percentage. Obstacles are added based on the specified densities (0%, 10%, 30%, and 50%). The maze is represented as a grid, and the agent navigates from the start point to the goal, avoiding obstacles.
+---
 
-The maze creation process involves:
+## **Algorithms Overview**
 
-Loading the maze CSV file.
-Adding obstacles based on the specified density.
-Saving the modified maze for use in the algorithms.
-Visualization
-The maze and the agent's movements are visualized using the Pyamaze library. The visualizations include:
+### 1. **Breadth-First Search (BFS)**  
+- **Approach**: Explores all possible paths level by level and guarantees the shortest path in an unweighted grid.
+- **Performance**: Optimal for finding the shortest path but inefficient in terms of exploration, especially in dense mazes.
 
-Open cells shown in white.
-Obstacles shown in black.
-The agent is depicted with different colors based on the algorithm used:
-Red for BFS and Greedy BFS.
-Yellow for A*.
-Blue for DFS.
-The goal is marked with a green square.
-Each algorithm's exploration and pathfinding process is displayed in real-time to understand how the algorithm behaves as it navigates the maze.
+### 2. **Depth-First Search (DFS)**  
+- **Approach**: Explores a path as far as possible, backtracking when necessary. Does not guarantee the shortest path.
+- **Performance**: Works well in sparse mazes but becomes inefficient in dense mazes, often backtracking excessively.
 
-Experimental Results
-Path Length
-Algorithm	0%	10%	30%	50%
-A*	149	149	161	231
-BFS	149	149	161	231
-DFS	167	185	327	259
-Greedy BFS	177	209	211	271
-A* and BFS consistently find the shortest path, with A* maintaining a slightly more efficient path length.
-DFS struggles with denser mazes, and Greedy BFS sometimes takes suboptimal paths but is faster in finding a solution.
-Exploration Length
-Algorithm	0%	10%	30%	50%
-A*	2492	2618	3321	2198
-BFS	4998	4984	4889	2389
-DFS	301	327	700	832
-Greedy BFS	294	402	397	655
-A* exhibits efficient exploration, especially in denser mazes.
-BFS explores significantly more cells than A* or Greedy BFS, particularly in obstacle-rich environments.
-DFS has the lowest exploration length in sparse mazes but becomes inefficient as the maze complexity increases.
-Discussion and Future Work
-Future Work
-Optimizations: Implement advanced data structures like priority queues for A* and BFS to improve their performance.
-Additional Algorithms: Consider including other algorithms such as Dijkstra’s and Bidirectional BFS for further comparison.
-Dynamic Obstacles: Introduce obstacles that change during the solving process to add an extra layer of complexity.
-Interactive Visualization: Enhance the GUI with real-time exploration tracking and the ability to interactively design mazes.
-Discussion
-The results highlight the trade-off between algorithm efficiency and pathfinding accuracy:
+### 3. **A\***  
+- **Approach**: Uses a heuristic (Manhattan Distance) to find the optimal path efficiently. Balances between the path taken and the remaining distance to the goal.
+- **Performance**: Optimal for finding the shortest path and performs well in both sparse and dense mazes, though its exploration time increases in denser environments.
 
-A* is the best choice for optimal paths but can be slow in dense mazes.
-Greedy BFS offers faster solutions but may not always provide the shortest path.
-BFS guarantees the shortest path but at the cost of excessive exploration.
-DFS works well in simple, sparse mazes but becomes inefficient in more complex scenarios.
-Conclusion
+### 4. **Greedy BFS**  
+- **Approach**: Uses only a heuristic to prioritize cells closer to the goal, potentially taking suboptimal paths.
+- **Performance**: Faster than BFS and DFS, but may take longer detours, leading to less optimal paths.
+
+---
+
+## **Maze Generation**
+
+The maze is generated from the **CSV file** `Maze_1_90_loopPercent.csv`, which has a **90% loop percentage**. Obstacles are added based on the specified densities (0%, 10%, 30%, and 50%).
+
+### **Maze Creation Process:**
+- **Loading the maze CSV file**.
+- **Adding obstacles** based on the specified density.
+- **Saving the modified maze** for use in the algorithms.
+
+---
+
+## **Visualization**
+
+The maze and the agent's movements are visualized using the **Pyamaze** library. The visualizations include:
+
+- **Open cells**: Shown in **white**.
+- **Obstacles**: Shown in **black**.
+- **The agent**: Depicted with different colors based on the algorithm used:
+  - **Red** for BFS and Greedy BFS.
+  - **Yellow** for A\*.
+  - **Blue** for DFS.
+- **The goal**: Marked with a **green square**.
+
+Each algorithm's exploration and pathfinding process is displayed in **real-time** to understand how the algorithm behaves as it navigates the maze.
+
+---
+
+## **Experimental Results**
+
+### **Path Length Comparison** (Shortest Path)
+
+| Algorithm        | 0% Density | 10% Density | 30% Density | 50% Density |
+|------------------|------------|-------------|-------------|-------------|
+| **A\***           | **149**    | **149**     | **161**     | **231**     |
+| **BFS**           | **149**    | **149**     | **161**     | **231**     |
+| **DFS**           | **167**    | **185**     | **327**     | **259**     |
+| **Greedy BFS**    | **177**    | **209**     | **211**     | **271**     |
+
+- **Key Takeaway**: **A\*** and **BFS** consistently find the shortest path, with **A\*** maintaining a slightly more efficient path length.  
+- **DFS** struggles with denser mazes, while **Greedy BFS** sometimes takes suboptimal paths but is faster in finding a solution.
+
+### **Exploration Length Comparison** (Total Explored Cells)
+
+| Algorithm        | 0% Density | 10% Density | 30% Density | 50% Density |
+|------------------|------------|-------------|-------------|-------------|
+| **A\***           | **2492**   | **2618**    | **3321**    | **2198**    |
+| **BFS**           | **4998**   | **4984**    | **4889**    | **2389**    |
+| **DFS**           | **301**    | **327**     | **700**     | **832**     |
+| **Greedy BFS**    | **294**    | **402**     | **397**     | **655**     |
+
+- **Key Takeaway**: 
+  - **A\*** exhibits efficient exploration, especially in denser mazes.  
+  - **BFS** explores significantly more cells than **A\*** or **Greedy BFS**, particularly in obstacle-rich environments.  
+  - **DFS** has the lowest exploration length in sparse mazes but becomes inefficient as the maze complexity increases.
+
+---
+
+## **Discussion and Future Work**
+
+### **Future Work**
+- **Optimizations**: Implement advanced data structures like **priority queues** for **A\*** and **BFS** to improve performance.
+- **Additional Algorithms**: Consider including other algorithms such as **Dijkstra’s** and **Bidirectional BFS** for further comparison.
+- **Dynamic Obstacles**: Introduce obstacles that change during the solving process to add an extra layer of complexity.
+- **Interactive Visualization**: Enhance the GUI with **real-time exploration tracking** and the ability to interactively design mazes.
+
+### **Discussion**
+- The results highlight the trade-off between **algorithm efficiency** and **pathfinding accuracy**:
+  - **A\*** is the best choice for optimal paths but can be slow in dense mazes.
+  - **Greedy BFS** offers faster solutions but may not always provide the shortest path.
+  - **BFS** guarantees the shortest path but at the cost of excessive exploration.
+  - **DFS** works well in simple, sparse mazes but becomes inefficient as the maze density increases.
+
+---
+
+## **Conclusion**
+
 The choice of the best pathfinding algorithm depends on the specific task and the maze's complexity:
 
-A* is ideal when finding the shortest path is a priority.
-Greedy BFS is suitable for scenarios where speed is more important than path optimality.
-BFS is reliable but inefficient in large, obstacle-dense mazes.
-DFS is effective in sparse mazes but becomes inefficient as the maze density increases.
-This study emphasizes that when selecting a maze-solving algorithm, the trade-off between path optimality and exploration efficiency must be carefully considered based on the specific requirements of the application.
+- **A\*** is ideal when finding the shortest path is a priority.
+- **Greedy BFS** is suitable for scenarios where **speed** is more important than path optimality.
+- **BFS** is reliable but inefficient in **large, obstacle-dense mazes**.
+- **DFS** is effective in **sparse mazes** but becomes inefficient as the maze density increases.
 
-Happy Pathfinding!
+This study emphasizes that when selecting a maze-solving algorithm, the trade-off between **path optimality** and **exploration efficiency** must be carefully considered based on the specific requirements of the application.
+
+---
+
+**Happy Pathfinding!** 🚀
