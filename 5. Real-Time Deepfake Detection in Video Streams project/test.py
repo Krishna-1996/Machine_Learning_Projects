@@ -82,10 +82,6 @@ X_data = np.array(X_data)
 y_data = np.array(y_data)
 
 # %%
-print(X_data)
-print(y_data)
-
-# %%
 # Split data into train and test sets
 X_train, X_test, y_train, y_test = train_test_split(X_data, y_data, test_size=0.2, random_state=42)
 
@@ -115,3 +111,5 @@ test_loss, test_accuracy = model.evaluate(X_test, y_test)
 print(f"Test accuracy: {test_accuracy * 100:.2f}%")
 
 # You can also check model performance on the test set and plot loss/accuracy if needed
+
+# %%
