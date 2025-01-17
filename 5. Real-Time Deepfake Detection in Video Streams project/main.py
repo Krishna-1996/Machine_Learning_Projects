@@ -30,6 +30,10 @@ def extract_features(video_path):
     cap = cv2.VideoCapture(video_path)
     frames = []
     
+    if not cap.isOpened():
+        print(f"Error: Unable to open video {video_path}")
+        return []  # Return empty list if video can't be opened
+    
     # Read some frames from the video (e.g., first 5 frames)
     for _ in range(5):
         ret, frame = cap.read()
@@ -37,8 +41,15 @@ def extract_features(video_path):
             # Resize the frame and extract color histogram or mean pixel values
             frame_resized = cv2.resize(frame, (64, 64))
             frames.append(np.mean(frame_resized))  # Using mean pixel value as feature
-            
+        else:
+            print(f"Warning: Could not read a frame from {video_path}")
+    
     cap.release()
+    
+    # If no features are extracted, return an empty list
+    if len(frames) == 0:
+        print(f"Warning: No features extracted for video {video_path}")
+        return []
     
     # Flatten the list of features (in this case, 5 mean values from 5 frames)
     return np.array(frames).flatten()
@@ -55,36 +66,46 @@ for video_path in video_paths:
     
     # Extract features for the current video
     feature_vector = extract_features(video_path)
-    features.append(feature_vector)
     
-    # Label assignment based on folder
-    if folder_name == "Celeb-real":
-        labels.append(0)  # 0 for real videos
-    elif folder_name == "Celeb-synthesis":
-        labels.append(1)  # 1 for synthetic videos
-    else:  # YouTube-real
-        labels.append(0)  # 0 for real videos
+    # Only append the features if they are valid (not empty)
+    if len(feature_vector) > 0:
+        features.append(feature_vector)
+        
+        # Label assignment based on folder
+        if folder_name == "Celeb-real":
+            labels.append(0)  # 0 for real videos
+        elif folder_name == "Celeb-synthesis":
+            labels.append(1)  # 1 for synthetic videos
+        else:  # YouTube-real
+            labels.append(0)  # 0 for real videos
+    else:
+        print(f"Skipping video {video_path} due to extraction failure")
 
 # Convert the features and labels to numpy arrays
 X = np.array(features)
 y = np.array(labels)
 
 # %%
-# Perform a train-test split (80% train, 20% test)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# Ensure that X is not empty and has at least 1 feature
+if X.shape[1] == 0:
+    print("Error: No valid features extracted. Exiting.")
+else:
+    # Perform a train-test split (80% train, 20% test)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+    # Train a Random Forest classifier
+    clf = RandomForestClassifier(n_estimators=100, random_state=42)
+    clf.fit(X_train, y_train)
+
+    # Make predictions on the test set
+    y_pred = clf.predict(X_test)
+
+    # Evaluate the model's accuracy
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"Accuracy of the Random Forest model: {accuracy:.4f}")
 
 # %%
-# Train a Random Forest classifier
-clf = RandomForestClassifier(n_estimators=100, random_state=42)
-clf.fit(X_train, y_train)
 
-# Make predictions on the test set
-y_pred = clf.predict(X_test)
-
-# Evaluate the model's accuracy
-accuracy = accuracy_score(y_test, y_pred)
-print(f"Accuracy of the Random Forest model: {accuracy:.4f}")
 
 # %%
 
