@@ -18,8 +18,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 # %%
 # Base directory where the videos are located
-base_dir = r"D:\MSc. Project DeepFake Detection Datasets\Celeb-DF-v1"  # Adjust the path if needed
-
+base_dir = r"D:/MSc. Project DeepFake Detection Datasets/Celeb-DF-v1"  # Replace with your actual base directory
+video_path = 'YouTube-real/00170.mp4'  # This is from CSV or input data
 # %%
 # Load the test video list from the CSV
 csv_file = os.path.join(base_dir, "Test_Videos_List.csv")  # Full path to the CSV
