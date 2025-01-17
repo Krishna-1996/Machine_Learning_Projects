@@ -48,12 +48,43 @@ features = []
 labels = []
 
 # %%
+# Loop through all video paths and extract features and assign labels based on folder
+for video_path in video_paths:
+    # Extract the label (folder name)
+    folder_name = video_path.split('/')[0]
+    
+    # Extract features for the current video
+    feature_vector = extract_features(video_path)
+    features.append(feature_vector)
+    
+    # Label assignment based on folder
+    if folder_name == "Celeb-real":
+        labels.append(0)  # 0 for real videos
+    elif folder_name == "Celeb-synthesis":
+        labels.append(1)  # 1 for synthetic videos
+    else:  # YouTube-real
+        labels.append(0)  # 0 for real videos
+
+# Convert the features and labels to numpy arrays
+X = np.array(features)
+y = np.array(labels)
 
 # %%
+# Perform a train-test split (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 
 # %%
+# Train a Random Forest classifier
+clf = RandomForestClassifier(n_estimators=100, random_state=42)
+clf.fit(X_train, y_train)
 
+# Make predictions on the test set
+y_pred = clf.predict(X_test)
+
+# Evaluate the model's accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy of the Random Forest model: {accuracy:.4f}")
 
 # %%
 
