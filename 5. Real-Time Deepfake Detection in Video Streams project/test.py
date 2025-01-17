@@ -1,5 +1,6 @@
 
 # %%
+# Import necessary libraries and modules.
 import os
 import numpy as np
 import cv2
