@@ -17,16 +17,19 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 # %%
+# Base directory where the videos are located
+base_dir = r"D:\MSc. Project DeepFake Detection Datasets\Celeb-DF-v1"  # Adjust the path if needed
+
+# %%
 # Load the test video list from the CSV
-csv_file = "D:/MSc. Project DeepFake Detection Datasets/Celeb-DF-v1/Test_Videos_List.csv"
+csv_file = os.path.join(base_dir, "Test_Videos_List.csv")  # Full path to the CSV
 df = pd.read_csv(csv_file, header=None)
 video_paths = df[0].tolist()
 
+
 # %%
 # Define a function to extract features from videos
-# For the purpose of this example, we'll just use some basic feature extraction (like mean pixel values).
 def extract_features(video_path):
-    # Open the video file using OpenCV
     cap = cv2.VideoCapture(video_path)
     frames = []
     
@@ -38,20 +41,15 @@ def extract_features(video_path):
     for _ in range(5):
         ret, frame = cap.read()
         if ret:
-            # Resize the frame and extract color histogram or mean pixel values
             frame_resized = cv2.resize(frame, (64, 64))
             frames.append(np.mean(frame_resized))  # Using mean pixel value as feature
-        else:
-            print(f"Warning: Could not read a frame from {video_path}")
-    
+            
     cap.release()
     
-    # If no features are extracted, return an empty list
     if len(frames) == 0:
-        print(f"Warning: No features extracted for video {video_path}")
-        return []
+        print(f"Warning: No frames read for video {video_path}")
+        return []  # Return empty if no frames were read
     
-    # Flatten the list of features (in this case, 5 mean values from 5 frames)
     return np.array(frames).flatten()
 
 # Create a list of features and labels
@@ -61,13 +59,15 @@ labels = []
 # %%
 # Loop through all video paths and extract features and assign labels based on folder
 for video_path in video_paths:
-    # Extract the label (folder name)
+    # Extract the folder name (e.g., Celeb-real, Celeb-synthesis, or YouTube-real)
     folder_name = video_path.split('/')[0]
     
-    # Extract features for the current video
-    feature_vector = extract_features(video_path)
+    # Construct the full path to the video file
+    full_video_path = os.path.join(base_dir, video_path)  # Full path
     
-    # Only append the features if they are valid (not empty)
+    # Extract features for the current video
+    feature_vector = extract_features(full_video_path)
+    
     if len(feature_vector) > 0:
         features.append(feature_vector)
         
@@ -106,6 +106,56 @@ else:
 
 # %%
 
+from tensorflow.keras.applications import VGG16
+from tensorflow.keras.preprocessing import image
+from tensorflow.keras.applications.vgg16 import preprocess_input
+
+# Load pre-trained VGG16 model (without the top layer)
+base_model = VGG16(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
+
+# Function to extract deep features using VGG16
+def extract_deep_features(video_path):
+    cap = cv2.VideoCapture(video_path)
+    frames = []
+    
+    if not cap.isOpened():
+        print(f"Error: Unable to open video {video_path}")
+        return np.array([])  # Return empty array if video can't be opened
+    
+    # Extract a few frames from the video
+    for _ in range(5):
+        ret, frame = cap.read()
+        if ret:
+            frame_resized = cv2.resize(frame, (224, 224))  # Resize to 224x224 for VGG16
+            # Preprocess the frame for VGG16
+            img_array = image.img_to_array(frame_resized)
+            img_array = np.expand_dims(img_array, axis=0)
+            img_array = preprocess_input(img_array)
+            
+            # Extract features
+            features = base_model.predict(img_array)
+            features = features.flatten()  # Flatten the features
+            frames.append(features)
+        else:
+            break
+    
+    cap.release()
+    
+    if len(frames) == 0:
+        print(f"Warning: No frames read for video {video_path}")
+        return np.array([])  # Return empty array if no frames were read
+    
+    # Return the feature array as a numpy array
+    return np.array(frames).flatten()
+
+# Example: Extract deep features from a video
+video_path = 'YouTube-real/00170.mp4'
+features = extract_deep_features(video_path)
+
+if features.size > 0:  # Check if features were extracted
+    print(features.shape)  # Check the shape of extracted features
+else:
+    print("No features extracted")
 
 # %%
 
