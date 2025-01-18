@@ -119,3 +119,15 @@ test_loss, test_accuracy = model.evaluate(X_test, y_test)
 print(f"Test accuracy: {test_accuracy * 100:.2f}%")
 
 # %%
+from tensorflow.keras.layers import Conv3D, MaxPooling3D, Flatten
+
+model = Sequential()
+model.add(Conv3D(32, (3, 3, 3), activation='relu', input_shape=(30, 224, 224, 3)))  # 30 frames
+model.add(MaxPooling3D(pool_size=(2, 2, 2)))
+model.add(Conv3D(64, (3, 3, 3), activation='relu'))
+model.add(MaxPooling3D(pool_size=(2, 2, 2)))
+model.add(Flatten())
+model.add(Dense(512, activation='relu'))
+model.add(Dense(2, activation='softmax'))  # Binary output for real/fake
+
+# %%
