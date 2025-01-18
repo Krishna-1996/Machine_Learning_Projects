@@ -54,6 +54,10 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 # %%
+print(f"Loaded features shape: {X_data.shape}")
+print(f"Loaded labels shape: {y_data.shape}")
+
+# %%
 # One-hot encode the labels
 y_train = to_categorical(y_train, 2)
 y_test = to_categorical(y_test, 2)
