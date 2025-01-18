@@ -49,6 +49,7 @@ def extract_frames(video_path, frame_count=30, target_size=(224, 224)):
     cap.release()
     return np.array(frames)
 
+# %%
 # Prepare data for training and testing
 X_data = []
 y_data = []
