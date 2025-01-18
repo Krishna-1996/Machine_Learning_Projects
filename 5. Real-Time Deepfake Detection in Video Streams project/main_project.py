@@ -1,58 +1,113 @@
-
 # %%
+# Import necessary libraries
 import os
 import numpy as np
-import pickle
-from sklearn.model_selection import train_test_split
-from sklearn.utils.class_weight import compute_class_weight
+import pandas as pd
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, LSTM, Bidirectional, Dropout, Input
+from tensorflow.keras.layers import Dense, LSTM, Dropout, Input
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.utils import to_categorical
-from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from tensorflow.keras import regularizers
-import matplotlib.pyplot as plt
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
+from tensorflow.keras.utils import to_categorical
+import matplotlib.pyplot as plt
 
 # %%
-# Directory to load processed features
+# Path to the main directory
 base_dir = r"D:\MSc. Project DeepFake Detection Datasets\Celeb-DF-v1"
-processed_data_dir = os.path.join(base_dir, "processed_data")
+train_sample_dir = os.path.join(base_dir, "train_sample")
+test_sample_dir = os.path.join(base_dir, "test_sample")
 
 # %%
-# Load features and labels
-print("Loading features and labels...")
+# Load the CSV file with video paths and labels
+csv_file = os.path.join(base_dir, "Video_Label_and_Dataset_List.csv")
+df = pd.read_csv(csv_file)
+
+# %%
+# Check class distribution
+class_counts = df['Label'].value_counts()
+print(f"Class distribution: \n{class_counts}")
+class_weights = {0: len(df) / (2 * class_counts[0]), 1: len(df) / (2 * class_counts[1])}
+print(f"Class weights: {class_weights}")
+
+# %%
+# Prepare the data
 X_data = []
-for file in sorted(os.listdir(processed_data_dir)):
-    if file.startswith('features_') and file.endswith('.npy'):
-        feature_file = os.path.join(processed_data_dir, file)
-        features = np.load(feature_file)
-        X_data.append(features)
-
-# Load labels
-labels_file = os.path.join(processed_data_dir, 'labels.pkl')
-with open(labels_file, 'rb') as f:
-    y_data = pickle.load(f)
+y_data = []
 
 # %%
-# Convert to NumPy arrays
+# Function to load and preprocess video frames (Replace with actual frame extraction if not done yet)
+def extract_frames(video_path, frame_count=30, target_size=(224, 224)):
+    if not os.path.exists(video_path):
+        print(f"Video file {video_path} does not exist.")
+        return None
+    
+    cap = cv2.VideoCapture(video_path)
+    frames = []
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    interval = total_frames // frame_count  # Extract `frame_count` evenly spaced frames
+
+    # Read the frames
+    for i in range(frame_count):
+        frame_id = i * interval
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_id)
+        ret, frame = cap.read()
+        if ret:
+            # Resize and normalize the frame
+            frame = cv2.resize(frame, target_size)
+            frame = preprocess_input(frame)  # VGG16 preprocessing
+            frames.append(frame)
+    
+    cap.release()
+
+    if len(frames) > 0:
+        print(f"Extracted {len(frames)} frames from {video_path}.")
+    else:
+        print(f"No frames extracted from {video_path}.")
+    
+    return np.array(frames)
+
+# %%
+# Iterate through the CSV and load corresponding video data
+for idx, row in df.iterrows():
+    video_path = row['Video Path']
+    label = 1 if row['Label'] == 'fake' else 0  # Fake -> 1, Real -> 0
+    
+    # Create full video path for train/test samples
+    full_video_path = os.path.join(base_dir, video_path)
+    
+    # Extract frames (Make sure this step is correct and efficient)
+    frames = extract_frames(full_video_path, frame_count=30)
+    
+    # If frame extraction returns empty, skip
+    if frames is None or len(frames) == 0:
+        continue
+    
+    X_data.append(frames)
+    y_data.append(label)
+
+# %%
+# Convert X_data and y_data into NumPy arrays
 X_data = np.array(X_data)
 y_data = np.array(y_data)
 
 # %%
-print(f"Loaded features shape: {X_data.shape}")
-print(f"Loaded labels shape: {y_data.shape}")
+# Check if the data shapes are correct
+print(f"Shape of X_data: {X_data.shape}")
+print(f"Shape of y_data: {y_data.shape}")
 
 # %%
-# Reshape X_data for temporal modeling (LSTM)
-frame_count = 30  # Assuming each video has 30 frames
-X_data = X_data.reshape(X_data.shape[0], frame_count, -1)  # Shape: (num_samples, 30, features_per_frame)
+# Ensure frames data is consistent
+# Normalize the input features (pixel values range from 0-255)
+X_data = X_data / 255.0
 
 # %%
 # Split data into train and test sets
-X_train, X_test, y_train, y_test = train_test_split(
-    X_data, y_data, test_size=0.2, random_state=42, stratify=y_data
-)
+if X_data.shape[0] == 0:
+    print("Error: No data available after frame extraction. Please check your extract_frames function.")
+else:
+    X_train, X_test, y_train, y_test = train_test_split(X_data, y_data, test_size=0.2, random_state=42)
 
 # %%
 # One-hot encode the labels
@@ -60,42 +115,22 @@ y_train = to_categorical(y_train, 2)
 y_test = to_categorical(y_test, 2)
 
 # %%
-# Compute class weights to address imbalance
-class_weights = compute_class_weight(
-    class_weight='balanced',
-    classes=np.unique(y_data),
-    y=y_data
-)
-class_weights = dict(enumerate(class_weights))
-
-# %%
-# Build the updated Bidirectional LSTM model
+# Model architecture (Simple LSTM with dropout)
 model = Sequential()
-model.add(Input(shape=(frame_count, X_data.shape[2])))
-model.add(Bidirectional(LSTM(256, return_sequences=True)))
-model.add(Bidirectional(LSTM(128, return_sequences=False)))
-model.add(Dense(512, activation='relu', kernel_regularizer=regularizers.l2(0.01)))
-model.add(Dropout(0.5))  # Increased dropout rate
+model.add(Input(shape=(X_train.shape[1], X_train.shape[2], X_train.shape[3])))  # 30 frames, 224x224 RGB
+model.add(LSTM(256, return_sequences=False))  # Reduce units to simplify the model
+model.add(Dropout(0.3))  # Dropout layer to prevent overfitting
+model.add(Dense(512, activation='relu', kernel_regularizer=regularizers.l2(0.01)))  # L2 Regularization
 model.add(Dense(2, activation='softmax'))  # 2 output classes: real and fake
 
 # %%
-# Compile the model with a learning rate scheduler
+# Compile the model with an Adam optimizer and categorical crossentropy loss
+model.compile(optimizer=Adam(learning_rate=0.0005), loss='categorical_crossentropy', metrics=['accuracy'])
+
+# %%
+# Early stopping and learning rate reduction callbacks
+early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
 lr_scheduler = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, verbose=1)
-
-# %%
-model.compile(
-    optimizer=Adam(learning_rate=0.001),  # Start with a slightly higher learning rate
-    loss='categorical_crossentropy',
-    metrics=['accuracy']
-)
-
-# %%
-# Define early stopping to prevent overfitting
-early_stopping = EarlyStopping(
-    monitor='val_loss',
-    patience=5,
-    restore_best_weights=True
-)
 
 # %%
 # Train the model with enhanced regularization and learning rate scheduling
@@ -108,55 +143,38 @@ history = model.fit(
     class_weight=class_weights,
     callbacks=[early_stopping, lr_scheduler]
 )
+
+# %%
 # Evaluate the model on the test set
 test_loss, test_accuracy = model.evaluate(X_test, y_test)
 print(f"Test accuracy: {test_accuracy * 100:.2f}%")
 
 # %%
-# Save the model in the recommended Keras format
-# model_save_path = os.path.join(base_dir, "deepfake_lstm_model.keras")
-# model.save(model_save_path)
-# print(f"Model saved at: {model_save_path}")
-
-# %%
-# Save training history for future analysis
-# history_save_path = os.path.join(base_dir, "training_history.pkl")
-# with open(history_save_path, 'wb') as f:
-#     pickle.dump(history.history, f)
-# print(f"Training history saved at: {history_save_path}")
-
-# %%
-# Plot the training history
-print("Plotting training history...")
-plt.figure(figsize=(12, 6))
-plt.plot(history.history['accuracy'], label='Training Accuracy')
-plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
-plt.title('Model Accuracy')
-plt.xlabel('Epochs')
-plt.ylabel('Accuracy')
-plt.legend()
-plt.show()
-
-# %%
-plt.figure(figsize=(12, 6))
-plt.plot(history.history['loss'], label='Training Loss')
-plt.plot(history.history['val_loss'], label='Validation Loss')
-plt.title('Model Loss')
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
-plt.legend()
-plt.show()
-
-# %%
-# Evaluate additional metrics like classification report and confusion matrix
+# Get detailed classification metrics
 y_pred = np.argmax(model.predict(X_test), axis=1)
 y_true = np.argmax(y_test, axis=1)
 
-# %%
 print("Classification Report:")
 print(classification_report(y_true, y_pred, target_names=['Real', 'Fake']))
 
-# %%
 print("Confusion Matrix:")
 cm = confusion_matrix(y_true, y_pred)
 print(cm)
+
+# %%
+# Plot training and validation loss/accuracy curves
+plt.figure(figsize=(12, 6))
+plt.subplot(1, 2, 1)
+plt.plot(history.history['accuracy'], label='Train Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.title('Training and Validation Accuracy')
+plt.legend()
+
+# %%
+plt.subplot(1, 2, 2)
+plt.plot(history.history['loss'], label='Train Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.title('Training and Validation Loss')
+plt.legend()
+
+plt.show()
