@@ -72,44 +72,39 @@ class_weights = compute_class_weight(
 class_weights = dict(enumerate(class_weights))
 
 # %%
-# Build the Bidirectional LSTM model
+# Build the updated Bidirectional LSTM model
 model = Sequential()
 model.add(Input(shape=(frame_count, X_data.shape[2])))
+model.add(Bidirectional(LSTM(256, return_sequences=True)))
 model.add(Bidirectional(LSTM(128, return_sequences=False)))
 model.add(Dense(512, activation='relu', kernel_regularizer=regularizers.l2(0.01)))
-model.add(Dropout(0.5))  # Regularization
+model.add(Dropout(0.5))  # Increased dropout rate
 model.add(Dense(2, activation='softmax'))  # 2 output classes: real and fake
 
 # %%
-# Compile the model
+# Compile the model with a learning rate scheduler
+from tensorflow.keras.callbacks import ReduceLROnPlateau
+lr_scheduler = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, verbose=1)
+
 model.compile(
-    optimizer=Adam(learning_rate=0.0001),
+    optimizer=Adam(learning_rate=0.001),  # Start with a slightly higher learning rate
     loss='categorical_crossentropy',
     metrics=['accuracy']
 )
 
 # %%
-# Define early stopping to prevent overfitting
-early_stopping = EarlyStopping(
-    monitor='val_loss',
-    patience=5,
-    restore_best_weights=True
-)
-
-# %%
-# Train the model
-print("Training the model...")
+# Train the model with enhanced regularization and learning rate scheduling
+print("Training the model with enhancements...")
 history = model.fit(
     X_train, y_train,
     epochs=50,
     batch_size=32,
     validation_data=(X_test, y_test),
     class_weight=class_weights,
-    callbacks=[early_stopping]
+    callbacks=[early_stopping, lr_scheduler]
 )
 
-# %%
-# Evaluate the model on the test set
+# Evaluate the model
 test_loss, test_accuracy = model.evaluate(X_test, y_test)
 print(f"Test accuracy: {test_accuracy * 100:.2f}%")
 
