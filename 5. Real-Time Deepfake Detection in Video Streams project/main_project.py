@@ -9,9 +9,10 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, LSTM, Bidirectional, Dropout, Input
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import to_categorical
-from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from tensorflow.keras import regularizers
 import matplotlib.pyplot as plt
+from sklearn.metrics import classification_report, confusion_matrix
 
 # %%
 # Directory to load processed features
@@ -28,7 +29,6 @@ for file in sorted(os.listdir(processed_data_dir)):
         features = np.load(feature_file)
         X_data.append(features)
 
-# %%
 # Load labels
 labels_file = os.path.join(processed_data_dir, 'labels.pkl')
 with open(labels_file, 'rb') as f:
@@ -39,6 +39,7 @@ with open(labels_file, 'rb') as f:
 X_data = np.array(X_data)
 y_data = np.array(y_data)
 
+# %%
 print(f"Loaded features shape: {X_data.shape}")
 print(f"Loaded labels shape: {y_data.shape}")
 
@@ -52,10 +53,6 @@ X_data = X_data.reshape(X_data.shape[0], frame_count, -1)  # Shape: (num_samples
 X_train, X_test, y_train, y_test = train_test_split(
     X_data, y_data, test_size=0.2, random_state=42, stratify=y_data
 )
-
-# %%
-print(f"Loaded features shape: {X_data.shape}")
-print(f"Loaded labels shape: {y_data.shape}")
 
 # %%
 # One-hot encode the labels
@@ -83,13 +80,21 @@ model.add(Dense(2, activation='softmax'))  # 2 output classes: real and fake
 
 # %%
 # Compile the model with a learning rate scheduler
-from tensorflow.keras.callbacks import ReduceLROnPlateau
 lr_scheduler = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, verbose=1)
 
+# %%
 model.compile(
     optimizer=Adam(learning_rate=0.001),  # Start with a slightly higher learning rate
     loss='categorical_crossentropy',
     metrics=['accuracy']
+)
+
+# %%
+# Define early stopping to prevent overfitting
+early_stopping = EarlyStopping(
+    monitor='val_loss',
+    patience=5,
+    restore_best_weights=True
 )
 
 # %%
@@ -103,8 +108,7 @@ history = model.fit(
     class_weight=class_weights,
     callbacks=[early_stopping, lr_scheduler]
 )
-
-# Evaluate the model
+# Evaluate the model on the test set
 test_loss, test_accuracy = model.evaluate(X_test, y_test)
 print(f"Test accuracy: {test_accuracy * 100:.2f}%")
 
@@ -142,3 +146,17 @@ plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()
 plt.show()
+
+# %%
+# Evaluate additional metrics like classification report and confusion matrix
+y_pred = np.argmax(model.predict(X_test), axis=1)
+y_true = np.argmax(y_test, axis=1)
+
+# %%
+print("Classification Report:")
+print(classification_report(y_true, y_pred, target_names=['Real', 'Fake']))
+
+# %%
+print("Confusion Matrix:")
+cm = confusion_matrix(y_true, y_pred)
+print(cm)
