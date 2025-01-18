@@ -111,6 +111,9 @@ model.add(Dense(2, activation='softmax'))  # 2 output classes: real and fake
 # %% 
 # Compile the model
 model.compile(optimizer=Adam(lr=0.0001), loss='categorical_crossentropy', metrics=['accuracy'])
+model.compile(optimizer=Adam(learning_rate=0.0001), loss='categorical_crossentropy', metrics=['accuracy'])
+
+
 
 # %% 
 # Train the model
