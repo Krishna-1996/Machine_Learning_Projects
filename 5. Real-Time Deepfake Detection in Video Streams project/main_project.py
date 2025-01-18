@@ -114,16 +114,16 @@ print(f"Test accuracy: {test_accuracy * 100:.2f}%")
 
 # %%
 # Save the model in the recommended Keras format
-model_save_path = os.path.join(base_dir, "deepfake_lstm_model.keras")
-model.save(model_save_path)
-print(f"Model saved at: {model_save_path}")
+# model_save_path = os.path.join(base_dir, "deepfake_lstm_model.keras")
+# model.save(model_save_path)
+# print(f"Model saved at: {model_save_path}")
 
 # %%
 # Save training history for future analysis
-history_save_path = os.path.join(base_dir, "training_history.pkl")
-with open(history_save_path, 'wb') as f:
-    pickle.dump(history.history, f)
-print(f"Training history saved at: {history_save_path}")
+# history_save_path = os.path.join(base_dir, "training_history.pkl")
+# with open(history_save_path, 'wb') as f:
+#     pickle.dump(history.history, f)
+# print(f"Training history saved at: {history_save_path}")
 
 # %%
 # Plot the training history
