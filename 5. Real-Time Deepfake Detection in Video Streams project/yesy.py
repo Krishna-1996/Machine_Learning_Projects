@@ -5,8 +5,7 @@ import cv2
 import pandas as pd
 from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Flatten
-from tensorflow.keras.preprocessing.image import img_to_array
+from tensorflow.keras.layers import Dense, Flatten, Input
 from tensorflow.keras.optimizers import Adam
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.utils import to_categorical
@@ -62,7 +61,10 @@ for idx, row in df.iterrows():
     features = base_model.predict(frames)
     
     # Flatten features to 1D vector per frame
-    features = features.reshape(features.shape[0], -1)
+    features = features.reshape(features.shape[0], -1)  # Flatten each frame's features
+    
+    # Flatten the sequence of frames into a single vector (30 * 25088)
+    features = features.flatten()  # Flatten the entire sequence of frames
     
     X_data.append(features)
     y_data.append(label)
@@ -83,7 +85,7 @@ y_test = to_categorical(y_test, 2)
 
 # Build a simple deep learning model for classification
 model = Sequential()
-model.add(Flatten(input_shape=(X_train.shape[1],)))  # Flatten input
+model.add(Input(shape=(X_train.shape[1],)))  # Adjust input shape
 model.add(Dense(512, activation='relu'))
 model.add(Dense(2, activation='softmax'))  # 2 output classes: real and fake
 
