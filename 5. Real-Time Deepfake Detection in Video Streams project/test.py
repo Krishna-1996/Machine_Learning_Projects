@@ -113,7 +113,6 @@ model.add(Dense(2, activation='softmax'))  # 2 output classes: real and fake
 model.compile(optimizer=Adam(learning_rate=0.0001), loss='categorical_crossentropy', metrics=['accuracy'])
 
 
-
 # %% 
 # Train the model
 history = model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test))
