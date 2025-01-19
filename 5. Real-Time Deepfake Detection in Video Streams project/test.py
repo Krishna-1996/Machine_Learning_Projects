@@ -179,11 +179,4 @@ plt.plot(history.history['loss'], label='Train Loss')
 plt.plot(history.history['val_loss'], label='Validation Loss')
 plt.title('Training and Validation Loss')
 plt.legend()
-
 plt.show()
-# %%
-# %%
-# Evaluate the model
-test_loss, test_accuracy = model.evaluate(X_test, y_test)
-print(f"Test accuracy: {test_accuracy * 100:.2f}%")
-# %%
