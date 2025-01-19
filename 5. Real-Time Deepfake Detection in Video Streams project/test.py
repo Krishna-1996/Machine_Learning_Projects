@@ -118,28 +118,39 @@ y_train = to_categorical(y_train, 2)
 y_test = to_categorical(y_test, 2)
 
 # %%
-# Model architecture (Simple LSTM with dropout)
+# #############################################
+
+from tensorflow.keras.layers import TimeDistributed, Conv2D, MaxPooling2D, Flatten, LSTM, Dense, Dropout, Reshape
+from tensorflow.keras.models import Sequential
+from tensorflow.keras import regularizers
+
+# Build the model
 model = Sequential()
 
-# Input layer: input shape (30 frames, 224x224x3), we need to reshape it to (30, 224*224*3)
-model.add(Input(shape=(X_train.shape[1], X_train.shape[2], X_train.shape[3])))  # 30 frames, 224x224 RGB
-model.add(Reshape((30, 224 * 224 * 3)))  # Flatten each frame to a vector of 224*224*3 features
+# Input layer specifying the shape (30 frames, 224x224 RGB)
+model.add(Input(shape=(30, 224, 224, 3)))  # Shape of the input data (30 frames, 224x224 RGB)
 
-# Add LSTM layer
+# Apply TimeDistributed Conv2D and MaxPooling2D
+model.add(TimeDistributed(Conv2D(32, (3, 3), activation='relu', padding='same')))  # Conv2D with 3x3 filter, 32 filters
+model.add(TimeDistributed(MaxPooling2D(pool_size=(2, 2))))  # MaxPooling2D with 2x2 pool size
+
+# Flatten each frame separately
+model.add(TimeDistributed(Flatten()))  # Flatten each frame individually
+
+# Print the model summary to see the shape of the output after these layers
+model.summary()
+
+# Proceed with the rest of the layers
 model.add(LSTM(256, return_sequences=False))  # LSTM expects a 3D input: (batch_size, timesteps, features)
-
-# Dropout for regularization
 model.add(Dropout(0.3))
 
-# Dense layer with L2 regularization
 model.add(Dense(512, activation='relu', kernel_regularizer=regularizers.l2(0.01)))
 
 # Output layer with softmax activation
 model.add(Dense(2, activation='softmax'))  # 2 output classes: real and fake
 
-# %%
-# Compile the model with an Adam optimizer and categorical crossentropy loss
-model.compile(optimizer=Adam(learning_rate=0.0005), loss='categorical_crossentropy', metrics=['accuracy'])
+# Compile the model
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
 # %%
 # Early stopping and learning rate reduction callbacks
