@@ -2,13 +2,15 @@ import os
 import numpy as np
 import pandas as pd
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Dense, Dropout, Input, LayerNormalization
+from tensorflow.keras.layers import Input, Dense, Dropout
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, confusion_matrix
 from tensorflow.keras.utils import to_categorical
-import tensorflow as tf
-from tensorflow.keras import layers
+import matplotlib.pyplot as plt
+from transformers import ViTFeatureExtractor, ViTForImageClassification
+import torch
 
 # Paths
 base_dir = r"D:\MSc. Project DeepFake Detection Datasets\Celeb-DF-v1"
@@ -34,108 +36,79 @@ X_train, X_test, y_train, y_test = train_test_split(X_data, y_data, test_size=0.
 y_train = to_categorical(y_train, 2)
 y_test = to_categorical(y_test, 2)
 
-# Custom Positional Embedding Layer
-class PositionalEmbedding(layers.Layer):
-    def __init__(self, num_patches, embedding_dim):
-        super(PositionalEmbedding, self).__init__()
-        self.num_patches = num_patches
-        self.embedding_dim = embedding_dim
+# ####################### Load Vision Transformer (ViT) from Hugging Face #######################
+# Load the feature extractor and the ViT model from Hugging Face
+extractor = ViTFeatureExtractor.from_pretrained('google/vit-base-patch16-224-in21k')
+vit_model = ViTForImageClassification.from_pretrained('google/vit-base-patch16-224-in21k')
 
-    def build(self, input_shape):
-        # Create learnable positional embeddings
-        self.positional_embeddings = self.add_weight(
-            name="positional_embeddings", 
-            shape=(self.num_patches, self.embedding_dim), 
-            initializer="random_normal"
-        )
+# Function to preprocess inputs using ViT feature extractor
+def preprocess_input(images):
+    return extractor(images, return_tensors="pt")  # Process images into PyTorch tensors
 
-    def call(self, inputs):
-        # Add positional embeddings to input patches
-        return inputs + self.positional_embeddings
+# ####################### Define the Keras Model #######################
+input_layer = Input(shape=(224, 224, 3))  # Assuming input images are 224x224 RGB
 
-# Vision Transformer Model
-def build_vit_model(input_shape):
-    inputs = Input(shape=input_shape)
-    patch_size = 16
-    num_patches = input_shape[0] // patch_size
-    
-    # Patch embedding (Linear projection)
-    patch_projection = Dense(128, activation='relu')(inputs)
+# Preprocess input using Hugging Face feature extractor
+x = preprocess_input(input_layer)  # Preprocess input images
 
-    # Add positional embeddings using the custom layer
-    position_embedding_layer = PositionalEmbedding(num_patches, 128)
-    x = position_embedding_layer(patch_projection)
+# Flatten the ViT output to pass through Dense layers
+x = torch.flatten(vit_model(**x).logits, 1).numpy()  # Flatten the logits output of ViT
 
-    # Transformer blocks
-    for _ in range(4):  # 4 transformer layers
-        x1 = LayerNormalization()(x)
-        attention_output = layers.MultiHeadAttention(num_heads=4, key_dim=128)(x1, x1)
-        x2 = Dropout(0.1)(attention_output + x)
-        x3 = LayerNormalization()(x2)
-        x = Dense(128, activation='relu')(x3)
+# Add Dense layers for classification
+x = Dense(512, activation='relu')(x)
+x = Dropout(0.5)(x)  # Dropout to reduce overfitting
+x = Dense(2, activation='softmax')(x)  # Softmax for binary classification (real or fake)
 
-    x = tf.reduce_mean(x, axis=1)  # Global average pooling
-    outputs = Dense(2, activation='softmax')(x)
+# Define the full Keras model
+model = Model(inputs=input_layer, outputs=x)
 
-    model = Model(inputs, outputs)
-    return model
+# Compile the model
+model.compile(optimizer=Adam(learning_rate=0.0001),
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
 
-# Build and compile the model
-vit_model = build_vit_model((X_train.shape[1],))  # Shape of the input (number of features)
-vit_model.compile(optimizer=Adam(learning_rate=0.0005), loss='categorical_crossentropy', metrics=['accuracy'])
-
-# Callbacks
+# Callbacks for early stopping and learning rate reduction
 callbacks = [
     EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True),
     ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3)
 ]
 
-# Train the ViT model
-history_vit = vit_model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_test, y_test), callbacks=callbacks)
+# ####################### Train the Model #######################
+history = model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_test, y_test), callbacks=callbacks)
 
-# Save the trained model
-vit_model_path = os.path.join(base_dir, 'Model_3_Using_Vision_Transformer_ViT.h5')
-vit_model.save(vit_model_path)
-print(f"Vision Transformer model saved at: {vit_model_path}")
+# ####################### Save the Model #######################
+model_save_path = os.path.join(base_dir, 'Model_3_ViT_Transfer_Learning.h5')
+model.save(model_save_path)
+print(f"Model saved at: {model_save_path}")
 
-# Evaluate the model on the test set
-metrics = vit_model.evaluate(X_test, y_test)
-print(f"Test Accuracy (ViT): {metrics[1] * 100:.2f}%")
+# ####################### Evaluate the Model #######################
+metrics = model.evaluate(X_test, y_test)
+print(f"Test Accuracy: {metrics[1] * 100:.2f}%")
 
-# Additional: If you want to print classification report and confusion matrix
-from sklearn.metrics import classification_report, confusion_matrix
+# ####################### Metrics and Reporting #######################
+predictions = np.argmax(model.predict(X_test), axis=1)
+true_labels = np.argmax(y_test, axis=1)
 
-# Predict on test set
-y_pred = vit_model.predict(X_test)
-y_pred_classes = np.argmax(y_pred, axis=1)
-y_true_classes = np.argmax(y_test, axis=1)
-
-# Print classification report
 print("Classification Report:")
-print(classification_report(y_true_classes, y_pred_classes))
+print(classification_report(true_labels, predictions, target_names=['Real', 'Fake']))
 
-# Print confusion matrix
+cm = confusion_matrix(true_labels, predictions)
 print("Confusion Matrix:")
-print(confusion_matrix(y_true_classes, y_pred_classes))
+print(cm)
 
-# Optional: Plot training history (accuracy and loss)
-import matplotlib.pyplot as plt
+# ####################### Plot Training History #######################
+plt.figure(figsize=(12, 6))
 
-# Plot training & validation accuracy values
-plt.plot(history_vit.history['accuracy'])
-plt.plot(history_vit.history['val_accuracy'])
-plt.title('Model accuracy')
-plt.xlabel('Epochs')
-plt.ylabel('Accuracy')
-plt.legend(['Train', 'Test'], loc='upper left')
+plt.subplot(1, 2, 1)
+plt.plot(history.history['accuracy'], label='Train Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.title('Accuracy')
+plt.legend()
+
+plt.subplot(1, 2, 2)
+plt.plot(history.history['loss'], label='Train Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.title('Loss')
+plt.legend()
+
 plt.show()
-
-# Plot training & validation loss values
-plt.plot(history_vit.history['loss'])
-plt.plot(history_vit.history['val_loss'])
-plt.title('Model loss')
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
-plt.legend(['Train', 'Test'], loc='upper left')
-plt.show()
-
