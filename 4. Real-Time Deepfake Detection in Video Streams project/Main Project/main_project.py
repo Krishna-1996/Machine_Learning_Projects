@@ -51,7 +51,13 @@ callbacks = [
 
 # Train
 history = model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_test, y_test), callbacks=callbacks)
+# #########################################
+# Save the model after training
+model_save_path = os.path.join(base_dir, 'Neural_Network_Model using Keras_Sequential.h5')
+model.save(model_save_path)
+print(f"Model saved at: {model_save_path}")
 
+# #########################################
 # Evaluate
 metrics = model.evaluate(X_test, y_test)
 print(f"Test Accuracy: {metrics[1] * 100:.2f}%")
