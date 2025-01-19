@@ -159,3 +159,25 @@ print(classification_report(y_true, y_pred, target_names=['Real', 'Fake']))
 print("Confusion Matrix:")
 cm = confusion_matrix(y_true, y_pred)
 print(cm)
+
+
+# %%
+# Plot training and validation loss/accuracy curves
+plt.figure(figsize=(12, 6))
+
+# Training and validation accuracy
+plt.subplot(1, 2, 1)
+plt.plot(history.history['accuracy'], label='Train Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.title('Training and Validation Accuracy')
+plt.legend()
+plt.show()
+# %%
+# Training and validation loss
+plt.subplot(1, 2, 2)
+plt.plot(history.history['loss'], label='Train Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.title('Training and Validation Loss')
+plt.legend()
+
+plt.show()
