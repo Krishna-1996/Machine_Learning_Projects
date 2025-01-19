@@ -17,7 +17,7 @@ ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Load pre-trained model
-model_path = 'D:/MSc. Project DeepFake Detection Datasets/Celeb-DF-v1/Neural_Network_Model using Keras_Sequential.h5'
+model_path = 'D:/MSc. Project DeepFake Detection Datasets/Celeb-DF-v1/Model_2 ResNet50_Transfer_Learning.h5'
 model = load_model(model_path)
 
 # Load VGG16 model for feature extraction

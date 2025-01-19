@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, Dropout
+from tensorflow.keras.layers import GlobalAveragePooling2D, Input, Dense, Dropout
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
@@ -39,15 +39,15 @@ y_test = to_categorical(y_test, 2)
 # Load ResNet50 with pre-trained ImageNet weights, excluding the top classification layers
 base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
 
-# Add custom layers on top of ResNet50 for deepfake detection
-x = base_model.output
-x = GlobalAveragePooling2D()(x)  # Global Pooling to reduce dimensionality
-x = Dense(512, activation='relu')(x)
+input_shape = X_train.shape[1:] 
+# Define the model using Dense layers
+input_layer = Input(shape=input_shape)
+x = Dense(512, activation='relu')(input_layer)
 x = Dropout(0.5)(x)  # Dropout to reduce overfitting
-x = Dense(2, activation='softmax')(x)  # Softmax for multi-class classification (real or fake)
+x = Dense(2, activation='softmax')(x)  # Softmax for binary classification (real or fake)
 
 # Define the model
-model = Model(inputs=base_model.input, outputs=x)
+model = Model(inputs=input_layer, outputs=x)
 
 # Freeze the base model layers (optional for fine-tuning)
 for layer in base_model.layers:
