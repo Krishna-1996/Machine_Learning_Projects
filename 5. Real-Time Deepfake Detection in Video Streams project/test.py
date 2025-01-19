@@ -1,79 +1,142 @@
-# %% Importing necessary libraries
+# %%
+# Import necessary libraries
 import os
 import numpy as np
 import pandas as pd
-import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Dropout, Reshape, Flatten, Input
+from tensorflow.keras.layers import Dense, LSTM, Dropout, Input
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras import regularizers
-from tensorflow.keras.callbacks import EarlyStopping, LearningRateScheduler
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
-from tensorflow.keras.preprocessing import image
+from sklearn.metrics import classification_report, confusion_matrix
+from tensorflow.keras.utils import to_categorical
+import matplotlib.pyplot as plt
+from tensorflow.keras.applications.vgg16 import preprocess_input
 
-# %% Load your dataset
-# Assuming you already have a DataFrame with paths and labels, here is an example:
-# df = pd.read_csv("your_data.csv")  # Your CSV file containing file paths and labels
 
-# Example class distribution for fake/real
-# df['Label'] = ['fake' or 'real']
+# %%
+# Path to the main directory
+base_dir = r"D:\MSc. Project DeepFake Detection Datasets\Celeb-DF-v1"
+train_sample_dir = os.path.join(base_dir, "train_sample")
+test_sample_dir = os.path.join(base_dir, "test_sample")
 
-# %% Preprocess the data (load frames, resize, normalize)
-def extract_frames_from_video(video_path, num_frames=30):
-    # Placeholder function to simulate frame extraction from video
-    # Replace this with actual code to extract frames from video files
-    frames = np.random.rand(num_frames, 224, 224, 3)  # Example: 30 frames, 224x224 RGB
-    return frames
+# %%
+# Load the CSV file with video paths and labels
+csv_file = os.path.join(base_dir, "Video_Label_and_Dataset_List.csv")
+df = pd.read_csv(csv_file)
 
-# %% Prepare the dataset for model input
+# %%
+# Check class distribution
+class_counts = df['Label'].value_counts()
+print(f"Class distribution: \n{class_counts}")
+class_weights = {0: len(df) / (2 * class_counts[0]), 1: len(df) / (2 * class_counts[1])}
+print(f"Class weights: {class_weights}")
+
+# %%
+# Prepare the data
 X_data = []
 y_data = []
 
-# Loop through the DataFrame and extract frames for each video
-for index, row in df.iterrows():
-    video_path = row['video_path']  # Adjust the column name if needed
-    label = row['Label']  # Ensure labels are 0 for fake, 1 for real
-    frames = extract_frames_from_video(video_path)
-    X_data.append(frames)
-    y_data.append(0 if label == 'fake' else 1)
+# %%
+# Function to load and preprocess video frames (Replace with actual frame extraction if not done yet)
+import cv2
+def extract_frames(video_path, frame_count=30, target_size=(224, 224)):
+    if not os.path.exists(video_path):
+        print(f"Video file {video_path} does not exist.")
+        return None
+    
+    cap = cv2.VideoCapture(video_path)
+    frames = []
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    interval = total_frames // frame_count  # Extract `frame_count` evenly spaced frames
 
+    # Read the frames
+    for i in range(frame_count):
+        frame_id = i * interval
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_id)
+        ret, frame = cap.read()
+        if ret:
+            # Resize and normalize the frame
+            frame = cv2.resize(frame, target_size)
+            frame = preprocess_input(frame)  # VGG16 preprocessing
+            frames.append(frame)
+    
+    cap.release()
+
+    if len(frames) > 0:
+        print(f"Extracted {len(frames)} frames from {video_path}.")
+    else:
+        print(f"No frames extracted from {video_path}.")
+    
+    return np.array(frames)
+
+# %%
+# Iterate through the CSV and load corresponding video data
+for idx, row in df.iterrows():
+    video_path = row['Video Path']
+    label = 1 if row['Label'] == 'fake' else 0  # Fake -> 1, Real -> 0
+    
+    # Create full video path for train/test samples
+    full_video_path = os.path.join(base_dir, video_path)
+    
+    # Extract frames (Make sure this step is correct and efficient)
+    frames = extract_frames(full_video_path, frame_count=30)
+    
+    # If frame extraction returns empty, skip
+    if frames is None or len(frames) == 0:
+        continue
+    
+    X_data.append(frames)
+    y_data.append(label)
+
+# %%
+# Convert X_data and y_data into NumPy arrays
 X_data = np.array(X_data)
 y_data = np.array(y_data)
 
-# %% Reshape and split data into train/test sets
-# X_data shape should be (num_samples, 30, 224, 224, 3)
-# Flatten frames for LSTM (time_steps, features)
-X_data_reshaped = X_data.reshape(X_data.shape[0], X_data.shape[1], -1)  # (num_samples, 30, 224*224*3)
+# %%
+# Check if the data shapes are correct
+print(f"Shape of X_data: {X_data.shape}")
+print(f"Shape of y_data: {y_data.shape}")
 
-# Train/test split
-X_train, X_test, y_train, y_test = train_test_split(X_data_reshaped, y_data, test_size=0.2, random_state=42)
+# %%
+# Ensure frames data is consistent
+# Normalize the input features (pixel values range from 0-255)
+X_data = X_data / 255.0
 
-# %% One-hot encoding for labels
-y_train = tf.keras.utils.to_categorical(y_train, 2)
-y_test = tf.keras.utils.to_categorical(y_test, 2)
+# %%
+# Split data into train and test sets
+if X_data.shape[0] == 0:
+    print("Error: No data available after frame extraction. Please check your extract_frames function.")
+else:
+    X_train, X_test, y_train, y_test = train_test_split(X_data, y_data, test_size=0.2, random_state=42)
 
-# %% Compute class weights for imbalanced dataset
-class_counts = pd.Series(y_data).value_counts()
-class_weights = {0: len(y_data) / (2 * class_counts[0]), 1: len(y_data) / (2 * class_counts[1])}
+# %%
+# One-hot encode the labels
+y_train = to_categorical(y_train, 2)
+y_test = to_categorical(y_test, 2)
 
-# %% Build the Model
+# %%
+# Model architecture (Simple LSTM with dropout)
 model = Sequential()
+model.add(Input(shape=(X_train.shape[1], X_train.shape[2], X_train.shape[3])))  # 30 frames, 224x224 RGB
+model.add(LSTM(256, return_sequences=False))  # Reduce units to simplify the model
+model.add(Dropout(0.3))  # Dropout layer to prevent overfitting
+model.add(Dense(512, activation='relu', kernel_regularizer=regularizers.l2(0.01)))  # L2 Regularization
+model.add(Dense(2, activation='softmax'))  # 2 output classes: real and fake
 
-# LSTM layer
-model.add(Input(shape=(X_train.shape[1], X_train.shape[2])))  # 30 frames, flattened 224*224*3 features
-model.add(LSTM(256, return_sequences=False))  # LSTM layer
-model.add(Dropout(0.3))  # Dropout to avoid overfitting
-model.add(Dense(512, activation='relu', kernel_regularizer=regularizers.l2(0.01)))  # L2 regularization
-model.add(Dense(2, activation='softmax'))  # Output layer for binary classification
-
-# %% Compile the model
+# %%
+# Compile the model with an Adam optimizer and categorical crossentropy loss
 model.compile(optimizer=Adam(learning_rate=0.0005), loss='categorical_crossentropy', metrics=['accuracy'])
 
-# %% Set up callbacks for early stopping and learning rate scheduling
+# %%
+# Early stopping and learning rate reduction callbacks
 early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
-lr_scheduler = LearningRateScheduler(lambda epoch: 0.0005 * 0.9 ** epoch)
+lr_scheduler = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, verbose=1)
 
-# %% Train the model
+# %%
+# Train the model with enhanced regularization and learning rate scheduling
 print("Training the model with enhancements...")
 history = model.fit(
     X_train, y_train,
@@ -84,12 +147,37 @@ history = model.fit(
     callbacks=[early_stopping, lr_scheduler]
 )
 
-# %% Evaluate the model on the test set
+# %%
+# Evaluate the model on the test set
 test_loss, test_accuracy = model.evaluate(X_test, y_test)
 print(f"Test accuracy: {test_accuracy * 100:.2f}%")
 
-# %% Model summary
-model.summary()
+# %%
+# Get detailed classification metrics
+y_pred = np.argmax(model.predict(X_test), axis=1)
+y_true = np.argmax(y_test, axis=1)
 
-# %% Save the model if desired
-model.save('deepfake_detection_model.h5')
+print("Classification Report:")
+print(classification_report(y_true, y_pred, target_names=['Real', 'Fake']))
+
+print("Confusion Matrix:")
+cm = confusion_matrix(y_true, y_pred)
+print(cm)
+
+# %%
+# Plot training and validation loss/accuracy curves
+plt.figure(figsize=(12, 6))
+plt.subplot(1, 2, 1)
+plt.plot(history.history['accuracy'], label='Train Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.title('Training and Validation Accuracy')
+plt.legend()
+
+# %%
+plt.subplot(1, 2, 2)
+plt.plot(history.history['loss'], label='Train Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.title('Training and Validation Loss')
+plt.legend()
+
+plt.show()
