@@ -12,6 +12,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
 from tensorflow.keras.utils import to_categorical
 import matplotlib.pyplot as plt
+from tensorflow.keras.applications.vgg16 import preprocess_input
+
 
 # %%
 # Path to the main directory
@@ -38,6 +40,7 @@ y_data = []
 
 # %%
 # Function to load and preprocess video frames (Replace with actual frame extraction if not done yet)
+import cv2
 def extract_frames(video_path, frame_count=30, target_size=(224, 224)):
     if not os.path.exists(video_path):
         print(f"Video file {video_path} does not exist.")
