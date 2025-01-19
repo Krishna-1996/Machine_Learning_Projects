@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepFake Detection</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            width: 50%;
+            margin: 0 auto;
+            text-align: center;
+        }
+        input[type="file"] {
+            margin: 20px 0;
+        }
+        .result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>DeepFake Video Detection</h1>
+        <input type="file" id="videoFile" accept="video/*">
+        <button onclick="uploadVideo()">Upload and Predict</button>
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        async function uploadVideo() {
+            const fileInput = document.getElementById('videoFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select a video file');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('video', file);
+
+            try {
+                const response = await axios.post('http://localhost:5000/predict', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    }
+                });
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = `<p>Prediction: ${response.data.prediction}</p>
+                                       <p>Authenticity Level: ${response.data.authenticity_level}</p>`;
+            } catch (error) {
+                console.error(error);
+                alert('Error uploading or predicting the video.');
+            }
+        }
+    </script>
+</body>
+</html>
