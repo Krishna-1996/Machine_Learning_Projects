@@ -4,7 +4,7 @@ import os
 import numpy as np
 import pandas as pd
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, LSTM, Dropout, Input
+from tensorflow.keras.layers import Dense, LSTM, Dropout, Input, Reshape
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras import regularizers
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
@@ -120,10 +120,21 @@ y_test = to_categorical(y_test, 2)
 # %%
 # Model architecture (Simple LSTM with dropout)
 model = Sequential()
+
+# Input layer: input shape (30 frames, 224x224x3), we need to reshape it to (30, 224*224*3)
 model.add(Input(shape=(X_train.shape[1], X_train.shape[2], X_train.shape[3])))  # 30 frames, 224x224 RGB
-model.add(LSTM(256, return_sequences=False))  # Reduce units to simplify the model
-model.add(Dropout(0.3))  # Dropout layer to prevent overfitting
-model.add(Dense(512, activation='relu', kernel_regularizer=regularizers.l2(0.01)))  # L2 Regularization
+model.add(Reshape((30, 224 * 224 * 3)))  # Flatten each frame to a vector of 224*224*3 features
+
+# Add LSTM layer
+model.add(LSTM(256, return_sequences=False))  # LSTM expects a 3D input: (batch_size, timesteps, features)
+
+# Dropout for regularization
+model.add(Dropout(0.3))
+
+# Dense layer with L2 regularization
+model.add(Dense(512, activation='relu', kernel_regularizer=regularizers.l2(0.01)))
+
+# Output layer with softmax activation
 model.add(Dense(2, activation='softmax'))  # 2 output classes: real and fake
 
 # %%
