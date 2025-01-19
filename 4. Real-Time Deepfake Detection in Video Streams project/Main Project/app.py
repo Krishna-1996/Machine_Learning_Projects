@@ -1,9 +1,11 @@
 import os
+import numpy as np
 from flask import Flask, render_template, request, redirect, url_for
 from werkzeug.utils import secure_filename
-import numpy as np
 from tensorflow.keras.models import load_model
-from extract_and_save_features import extract_frames  # Assuming you have this function in extract_and_save_features.py
+from extract_and_save_features import extract_frames  # Import your frame extraction function
+from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
+from tensorflow.keras.preprocessing import image
 import cv2
 
 app = Flask(__name__)
@@ -14,8 +16,12 @@ ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Load your trained model
-model = load_model('D:/MSc. Project DeepFake Detection Datasets/Celeb-DF-v1/Neural_Network_Model using Keras_Sequential.h5')
+# Load pre-trained model
+model_path = 'D:/MSc. Project DeepFake Detection Datasets/Celeb-DF-v1/Neural_Network_Model using Keras_Sequential.h5'
+model = load_model(model_path)
+
+# Load VGG16 model for feature extraction
+vgg16_model = VGG16(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
 
 # Function to check allowed file types
 def allowed_file(filename):
@@ -44,20 +50,26 @@ def upload_file():
         file.save(filepath)
 
         # Process the video and extract frames
-        try:
-            frames = extract_frames(filepath, frame_count=30)
-        except Exception as e:
-            return f'Error extracting frames: {str(e)}'
-        
+        frames = extract_frames(filepath, frame_count=30)
+
         if frames.shape[0] > 0:
-            # Preprocess frames (e.g., resize, normalization) before prediction
-            features = model.predict(frames)
-            prediction = np.argmax(features, axis=1)  # Predict fake (1) or real (0)
-            authenticity = np.max(features) * 100  # Percentage of authenticity (confidence score)
+            # Use VGG16 to extract features (flatten and preprocess the frames)
+            features = vgg16_model.predict(frames)  # Output will be of shape (30, 7, 7, 512)
             
-            result = "Fake" if prediction == 1 else "Real"
+            # Flatten the features
+            features = features.reshape(features.shape[0], -1)  # Now shape is (30, 25088)
             
-            # Render the result in the result.html template
+            # If needed, you can average the features across frames to get a single feature vector
+            features = features.mean(axis=0)  # Shape will be (25088,)
+
+            # Use the trained model to predict the label
+            prediction = model.predict(np.expand_dims(features, axis=0))  # Add batch dimension
+            prediction_class = np.argmax(prediction, axis=1)  # 0 -> Real, 1 -> Fake
+            
+            authenticity = np.max(prediction) * 100  # Confidence score (percentage)
+
+            # Show result
+            result = "Fake" if prediction_class == 1 else "Real"
             return render_template('result.html', result=result, authenticity=authenticity)
         else:
             return 'Error: No frames extracted from video'
