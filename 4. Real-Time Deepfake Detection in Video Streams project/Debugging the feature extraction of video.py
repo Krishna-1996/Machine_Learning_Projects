@@ -7,7 +7,7 @@ from tensorflow.keras.applications.vgg16 import preprocess_input
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # Base directory path where the video folders are stored
-base_dir = "D:/MSc. Project DeepFake Detection Datasets/Celeb-DF-v1"  # Change this to your base directory
+base_dir = "D:/MSc. Project DeepFake Detection Datasets/Celeb-DF-v1"  
 
 # Load pre-trained VGG16 model (without the top layer)
 base_model = VGG16(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
