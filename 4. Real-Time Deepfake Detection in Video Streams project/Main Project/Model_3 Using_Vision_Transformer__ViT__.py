@@ -44,7 +44,7 @@ def build_vit_model(input_shape):
     patch_projection = Dense(128, activation='relu')(inputs)
 
     # Add positional embeddings
-    position_embeddings = Dense(128, activation='relu')(tf.range(num_patches, dtype=tf.float32))
+    position_embeddings = Dense(128, activation='relu')(tf.range(num_patches, dtype=tf.float32)[None, :])
     x = patch_projection + position_embeddings
 
     # Transformer blocks
