@@ -1,6 +1,10 @@
+
+# %%
 import os
 import numpy as np
 import pandas as pd
+import tensorflow as tf
+import tensorflow_hub as hub
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense, Dropout
 from tensorflow.keras.optimizers import Adam
@@ -9,17 +13,18 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
 from tensorflow.keras.utils import to_categorical
 import matplotlib.pyplot as plt
-from transformers import ViTFeatureExtractor, ViTForImageClassification
-import torch
 
+# %%
 # Paths
 base_dir = r"D:\MSc. Project DeepFake Detection Datasets\Celeb-DF-v1"
 Updated_processed_data_dir = os.path.join(base_dir, "Updated_processed_data")
 
+# %%
 # Load pre-extracted features and labels
 X_data = []
 y_data = []
 
+# %%
 df = pd.read_csv(os.path.join(base_dir, "Video_Label_and_Dataset_List.csv"))
 for idx, row in df.iterrows():
     feature_file = os.path.join(Updated_processed_data_dir, f'features_{idx}.npy')
@@ -28,38 +33,36 @@ for idx, row in df.iterrows():
         X_data.append(features)
         y_data.append(row['Label'])
 
+# %%
 X_data = np.array(X_data)
 y_data = np.array([1 if label == 'fake' else 0 for label in y_data])
 
+# %%
 # Train-test split
 X_train, X_test, y_train, y_test = train_test_split(X_data, y_data, test_size=0.2, random_state=42)
 y_train = to_categorical(y_train, 2)
 y_test = to_categorical(y_test, 2)
 
-# ####################### Load Vision Transformer (ViT) from Hugging Face #######################
-# Load the feature extractor and the ViT model from Hugging Face
-extractor = ViTFeatureExtractor.from_pretrained('google/vit-base-patch16-224-in21k')
-vit_model = ViTForImageClassification.from_pretrained('google/vit-base-patch16-224-in21k')
+# Ensure input shape compatibility
+input_shape = (224, 224, 3)  # Vision Transformer requires 224x224x3 input images
+X_train = np.reshape(X_train, (-1, *input_shape))
+X_test = np.reshape(X_test, (-1, *input_shape))
 
-# Function to preprocess inputs using ViT feature extractor
-def preprocess_input(images):
-    return extractor(images, return_tensors="pt")  # Process images into PyTorch tensors
+# %%
+# ####################### Transfer Learning with Vision Transformer #######################
+# Load Vision Transformer model from TensorFlow Hub
+vit_model_url = "https://tfhub.dev/sayakpaul/vit_b16_fe/1"
+vit_layer = hub.KerasLayer(vit_model_url, trainable=False, name="vit_layer")
 
-# ####################### Define the Keras Model #######################
-input_layer = Input(shape=(224, 224, 3))  # Assuming input images are 224x224 RGB
-
-# Preprocess input using Hugging Face feature extractor
-x = preprocess_input(input_layer)  # Preprocess input images
-
-# Flatten the ViT output to pass through Dense layers
-x = torch.flatten(vit_model(**x).logits, 1).numpy()  # Flatten the logits output of ViT
-
-# Add Dense layers for classification
+# Define the model using Dense layers
+input_layer = Input(shape=input_shape)
+x = vit_layer(input_layer)
 x = Dense(512, activation='relu')(x)
 x = Dropout(0.5)(x)  # Dropout to reduce overfitting
 x = Dense(2, activation='softmax')(x)  # Softmax for binary classification (real or fake)
 
-# Define the full Keras model
+# %%
+# Define the model
 model = Model(inputs=input_layer, outputs=x)
 
 # Compile the model
@@ -73,19 +76,21 @@ callbacks = [
     ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3)
 ]
 
-# ####################### Train the Model #######################
+# Train the model
 history = model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_test, y_test), callbacks=callbacks)
 
-# ####################### Save the Model #######################
-model_save_path = os.path.join(base_dir, 'Model_3_ViT_Transfer_Learning.h5')
+# %%
+# ########################## Save the Model ##########################
+model_save_path = os.path.join(base_dir, 'Model_ViT_Transfer_Learning.h5')
 model.save(model_save_path)
 print(f"Model saved at: {model_save_path}")
 
-# ####################### Evaluate the Model #######################
+# %%
+# ########################## Evaluate the Model ##########################
 metrics = model.evaluate(X_test, y_test)
 print(f"Test Accuracy: {metrics[1] * 100:.2f}%")
 
-# ####################### Metrics and Reporting #######################
+# ########################## Metrics and Reporting ##########################
 predictions = np.argmax(model.predict(X_test), axis=1)
 true_labels = np.argmax(y_test, axis=1)
 
@@ -96,7 +101,8 @@ cm = confusion_matrix(true_labels, predictions)
 print("Confusion Matrix:")
 print(cm)
 
-# ####################### Plot Training History #######################
+# %%
+# ########################## Plot Training History ##########################
 plt.figure(figsize=(12, 6))
 
 plt.subplot(1, 2, 1)
