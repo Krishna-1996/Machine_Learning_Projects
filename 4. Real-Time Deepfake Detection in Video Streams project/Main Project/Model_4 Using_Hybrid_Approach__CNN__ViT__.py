@@ -4,7 +4,7 @@ import pandas as pd
 import tensorflow as tf
 import tensorflow_hub as hub
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Dense, Dropout, Flatten, Conv2D, MaxPooling2D
+from tensorflow.keras.layers import Input, Dense, Dropout, Flatten
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
@@ -50,8 +50,8 @@ x = Conv2D(128, (3, 3), activation='relu')(x)
 x = MaxPooling2D((2, 2))(x)
 x = Flatten()(x)
 
-# Load Vision Transformer model from TensorFlow Hub
-vit_model_url = "https://tfhub.dev/google/vit_large_patch32_384/1"  # Updated ViT model URL
+# Load Vision Transformer model from TensorFlow Hub (updated model URL)
+vit_model_url = "https://tfhub.dev/google/vit_small_patch16_224/1"  # New ViT model URL
 vit_layer = hub.KerasLayer(vit_model_url, trainable=False, name="vit_layer")
 
 # CNN features concatenated with ViT
@@ -78,7 +78,6 @@ callbacks = [
 ]
 
 # ########################## Model Training ##########################
-# Assuming X_data is of shape (num_samples, 224, 224, 3) and pre-extracted features are of shape (num_samples, 25088)
 X_train_cnn = np.array([np.reshape(x, (224, 224, 3)) for x in X_train])  # Assuming raw images for CNN
 X_test_cnn = np.array([np.reshape(x, (224, 224, 3)) for x in X_test])  # Assuming raw images for CNN
 
