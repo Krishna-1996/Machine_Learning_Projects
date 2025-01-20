@@ -51,7 +51,7 @@ x = MaxPooling2D((2, 2))(x)
 x = Flatten()(x)
 
 # Load Vision Transformer model from TensorFlow Hub
-vit_model_url = "https://tfhub.dev/sayakpaul/vit_b16_fe/1"
+vit_model_url = "https://tfhub.dev/google/vit_base_patch16_224/1"  # Updated ViT model URL
 vit_layer = hub.KerasLayer(vit_model_url, trainable=False, name="vit_layer")
 
 # CNN features concatenated with ViT
