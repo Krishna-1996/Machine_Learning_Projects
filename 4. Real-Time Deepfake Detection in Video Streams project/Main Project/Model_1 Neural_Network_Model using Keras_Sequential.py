@@ -35,6 +35,7 @@ X_train, X_test, y_train, y_test = train_test_split(X_data, y_data, test_size=0.
 y_train = to_categorical(y_train, 2)
 y_test = to_categorical(y_test, 2)
 
+
 # Model
 model = Sequential([
     Input(shape=(X_train.shape[1],)),

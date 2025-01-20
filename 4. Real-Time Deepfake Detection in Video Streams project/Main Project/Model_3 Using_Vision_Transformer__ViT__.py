@@ -1,8 +1,6 @@
 import os
 import numpy as np
 import pandas as pd
-import tensorflow as tf
-import tensorflow_hub as hub
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense, Dropout
 from tensorflow.keras.optimizers import Adam
@@ -36,42 +34,14 @@ X_train, X_test, y_train, y_test = train_test_split(X_data, y_data, test_size=0.
 y_train = to_categorical(y_train, 2)
 y_test = to_categorical(y_test, 2)
 
-# Ensure input shape compatibility
-input_shape = (224, 224, 3)  # Vision Transformer requires 224x224x3 input images
+# ####################### Fully Connected Neural Network Model #######################
 
-# Adjust features to match ViT input shape
-from tensorflow.image import resize
-
-def resize_data(data, target_shape):
-    # Ensure data has 4 dimensions (num_samples, height, width, channels)
-    if len(data.shape) == 4:
-        resized_data = np.array([resize(img, target_shape[:2]).numpy() for img in data])
-    elif len(data.shape) == 3:  # Add channel dimension if missing
-        resized_data = np.array([resize(np.expand_dims(img, axis=-1), target_shape[:2]).numpy() for img in data])
-    else:
-        raise ValueError("Input data must have 3 or 4 dimensions.")
-    return resized_data
-
-# Reshape and normalize input data
-try:
-    X_train = resize_data(X_train, input_shape)
-    X_test = resize_data(X_test, input_shape)
-except ValueError as e:
-    print(f"Error during resizing: {e}")
-    exit()
-
-X_train = X_train / 255.0
-X_test = X_test / 255.0
-
-# ####################### Transfer Learning with Vision Transformer #######################
-# Load Vision Transformer model from TensorFlow Hub
-vit_model_url = "https://tfhub.dev/sayakpaul/vit_b16_fe/1"
-vit_layer = hub.KerasLayer(vit_model_url, trainable=False, name="vit_layer")
+# Adjust input shape for pre-extracted features (flattened)
+input_shape = (25088,)  # Shape of pre-extracted features
 
 # Define the model using Dense layers
 input_layer = Input(shape=input_shape)
-x = vit_layer(input_layer)
-x = Dense(512, activation='relu')(x)
+x = Dense(512, activation='relu')(input_layer)
 x = Dropout(0.5)(x)  # Dropout to reduce overfitting
 x = Dense(2, activation='softmax')(x)  # Softmax for binary classification (real or fake)
 
@@ -93,7 +63,7 @@ callbacks = [
 history = model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_test, y_test), callbacks=callbacks)
 
 # ########################## Save the Model ##########################
-model_save_path = os.path.join(base_dir, 'Model_ViT_Transfer_Learning.h5')
+model_save_path = os.path.join(base_dir, 'Model_Fully_Connected_Feature_Extractor.h5')
 model.save(model_save_path)
 print(f"Model saved at: {model_save_path}")
 

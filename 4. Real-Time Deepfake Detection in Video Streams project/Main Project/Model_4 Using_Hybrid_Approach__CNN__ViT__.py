@@ -1,45 +1,123 @@
-from tensorflow.keras.layers import Conv2D, Flatten, Reshape, GlobalAveragePooling1D
+import os
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+import tensorflow_hub as hub
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Dense, Dropout, Flatten, Conv2D, MaxPooling2D
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, confusion_matrix
+from tensorflow.keras.utils import to_categorical
+import matplotlib.pyplot as plt
 
-def build_hybrid_model(input_shape):
-    inputs = Input(shape=input_shape)
-    
-    # CNN Feature Extractor
-    x = Reshape((input_shape[0], input_shape[1], 1))(inputs)  # Reshape for convolution
-    x = Conv2D(32, kernel_size=(3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(64, kernel_size=(3, 3), activation='relu', padding='same')(x)
-    x = Flatten()(x)  # Flatten for transformer
-    
-    # Vision Transformer Layer
-    patch_size = 16
-    num_patches = input_shape[0] // patch_size
-    x = Dense(128, activation='relu')(x)  # Patch embedding
-    position_embeddings = Dense(128, activation='relu')(tf.range(num_patches, dtype=tf.float32))
-    x = x + position_embeddings
+# Paths
+base_dir = r"D:\MSc. Project DeepFake Detection Datasets\Celeb-DF-v1"
+Updated_processed_data_dir = os.path.join(base_dir, "Updated_processed_data")
 
-    for _ in range(4):  # 4 transformer layers
-        x1 = LayerNormalization()(x)
-        attention_output = tf.keras.layers.MultiHeadAttention(num_heads=4, key_dim=128)(x1, x1)
-        x2 = Dropout(0.1)(attention_output + x)
-        x3 = LayerNormalization()(x2)
-        x = Dense(128, activation='relu')(x3)
+# Load pre-extracted features and labels
+X_data = []
+y_data = []
 
-    x = GlobalAveragePooling1D()(x)
-    outputs = Dense(2, activation='softmax')(x)
+df = pd.read_csv(os.path.join(base_dir, "Video_Label_and_Dataset_List.csv"))
+for idx, row in df.iterrows():
+    feature_file = os.path.join(Updated_processed_data_dir, f'features_{idx}.npy')
+    if os.path.exists(feature_file):
+        features = np.load(feature_file)
+        X_data.append(features)
+        y_data.append(row['Label'])
 
-    model = Model(inputs, outputs)
-    return model
+X_data = np.array(X_data)
+y_data = np.array([1 if label == 'fake' else 0 for label in y_data])
 
-hybrid_model = build_hybrid_model((X_train.shape[1],))
-hybrid_model.compile(optimizer=Adam(learning_rate=0.0005), loss='categorical_crossentropy', metrics=['accuracy'])
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X_data, y_data, test_size=0.2, random_state=42)
+y_train = to_categorical(y_train, 2)
+y_test = to_categorical(y_test, 2)
 
-# Train Hybrid Model
-history_hybrid = hybrid_model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_test, y_test), callbacks=callbacks)
+# ####################### Hybrid CNN + ViT Model #######################
+# Adjust input shape for pre-extracted features (flattened)
+input_shape = (25088,)  # Shape of pre-extracted features (flattened)
 
-# Save Hybrid Model
-hybrid_model_path = os.path.join(base_dir, 'Model_4 Using_Hybrid_Approach__CNN__ViT__.h5')
-hybrid_model.save(hybrid_model_path)
-print(f"Hybrid model saved at: {hybrid_model_path}")
+# Define the CNN model for feature extraction
+cnn_input = Input(shape=(224, 224, 3))
+x = Conv2D(32, (3, 3), activation='relu')(cnn_input)
+x = MaxPooling2D((2, 2))(x)
+x = Conv2D(64, (3, 3), activation='relu')(x)
+x = MaxPooling2D((2, 2))(x)
+x = Conv2D(128, (3, 3), activation='relu')(x)
+x = MaxPooling2D((2, 2))(x)
+x = Flatten()(x)
 
-# Evaluate and plot
-metrics = hybrid_model.evaluate(X_test, y_test)
-print(f"Test Accuracy (Hybrid): {metrics[1] * 100:.2f}%")
+# Load Vision Transformer model from TensorFlow Hub
+vit_model_url = "https://tfhub.dev/sayakpaul/vit_b16_fe/1"
+vit_layer = hub.KerasLayer(vit_model_url, trainable=False, name="vit_layer")
+
+# CNN features concatenated with ViT
+vit_input = Input(shape=(25088,))  # For hybrid approach
+cnn_vit_combined = tf.concat([x, vit_input], axis=-1)  # Concatenate CNN features and ViT features
+
+# Add dense layers after combining
+x = Dense(512, activation='relu')(cnn_vit_combined)
+x = Dropout(0.5)(x)  # Dropout to reduce overfitting
+x = Dense(2, activation='softmax')(x)  # Softmax for binary classification (real or fake)
+
+# Define the model
+model = Model(inputs=[cnn_input, vit_input], outputs=x)
+
+# Compile the model
+model.compile(optimizer=Adam(learning_rate=0.0001),
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
+
+# Callbacks for early stopping and learning rate reduction
+callbacks = [
+    EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True),
+    ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3)
+]
+
+# ########################## Model Training ##########################
+# Assuming X_data is of shape (num_samples, 224, 224, 3) and pre-extracted features are of shape (num_samples, 25088)
+X_train_cnn = np.array([np.reshape(x, (224, 224, 3)) for x in X_train])  # Assuming raw images for CNN
+X_test_cnn = np.array([np.reshape(x, (224, 224, 3)) for x in X_test])  # Assuming raw images for CNN
+
+# Train the model
+history = model.fit([X_train_cnn, X_train], y_train, epochs=50, batch_size=32, validation_data=([X_test_cnn, X_test], y_test), callbacks=callbacks)
+
+# ########################## Save the Model ##########################
+model_save_path = os.path.join(base_dir, 'Model_Hybrid_CNN_ViT.h5')
+model.save(model_save_path)
+print(f"Model saved at: {model_save_path}")
+
+# ########################## Evaluate the Model ##########################
+metrics = model.evaluate([X_test_cnn, X_test], y_test)
+print(f"Test Accuracy: {metrics[1] * 100:.2f}%")
+
+# ########################## Metrics and Reporting ##########################
+predictions = np.argmax(model.predict([X_test_cnn, X_test]), axis=1)
+true_labels = np.argmax(y_test, axis=1)
+
+print("Classification Report:")
+print(classification_report(true_labels, predictions, target_names=['Real', 'Fake']))
+
+cm = confusion_matrix(true_labels, predictions)
+print("Confusion Matrix:")
+print(cm)
+
+# ########################## Plot Training History ##########################
+plt.figure(figsize=(12, 6))
+
+plt.subplot(1, 2, 1)
+plt.plot(history.history['accuracy'], label='Train Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.title('Accuracy')
+plt.legend()
+
+plt.subplot(1, 2, 2)
+plt.plot(history.history['loss'], label='Train Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.title('Loss')
+plt.legend()
+
+plt.show()
