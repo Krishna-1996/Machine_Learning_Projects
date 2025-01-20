@@ -4,7 +4,7 @@ import pandas as pd
 import tensorflow as tf
 import tensorflow_hub as hub
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Dense, Dropout, Flatten
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
