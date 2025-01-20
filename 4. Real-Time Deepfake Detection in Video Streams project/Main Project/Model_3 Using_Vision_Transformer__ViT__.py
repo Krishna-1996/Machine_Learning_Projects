@@ -43,12 +43,23 @@ input_shape = (224, 224, 3)  # Vision Transformer requires 224x224x3 input image
 from tensorflow.image import resize
 
 def resize_data(data, target_shape):
-    resized_data = np.array([resize(img, target_shape[:2]).numpy() for img in data])
+    # Ensure data has 4 dimensions (num_samples, height, width, channels)
+    if len(data.shape) == 4:
+        resized_data = np.array([resize(img, target_shape[:2]).numpy() for img in data])
+    elif len(data.shape) == 3:  # Add channel dimension if missing
+        resized_data = np.array([resize(np.expand_dims(img, axis=-1), target_shape[:2]).numpy() for img in data])
+    else:
+        raise ValueError("Input data must have 3 or 4 dimensions.")
     return resized_data
 
 # Reshape and normalize input data
-X_train = resize_data(X_train, input_shape)
-X_test = resize_data(X_test, input_shape)
+try:
+    X_train = resize_data(X_train, input_shape)
+    X_test = resize_data(X_test, input_shape)
+except ValueError as e:
+    print(f"Error during resizing: {e}")
+    exit()
+
 X_train = X_train / 255.0
 X_test = X_test / 255.0
 
