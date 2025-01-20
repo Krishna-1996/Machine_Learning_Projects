@@ -1,5 +1,3 @@
-
-# %%
 import os
 import numpy as np
 import pandas as pd
@@ -14,17 +12,14 @@ from sklearn.metrics import classification_report, confusion_matrix
 from tensorflow.keras.utils import to_categorical
 import matplotlib.pyplot as plt
 
-# %%
 # Paths
 base_dir = r"D:\MSc. Project DeepFake Detection Datasets\Celeb-DF-v1"
 Updated_processed_data_dir = os.path.join(base_dir, "Updated_processed_data")
 
-# %%
 # Load pre-extracted features and labels
 X_data = []
 y_data = []
 
-# %%
 df = pd.read_csv(os.path.join(base_dir, "Video_Label_and_Dataset_List.csv"))
 for idx, row in df.iterrows():
     feature_file = os.path.join(Updated_processed_data_dir, f'features_{idx}.npy')
@@ -33,11 +28,9 @@ for idx, row in df.iterrows():
         X_data.append(features)
         y_data.append(row['Label'])
 
-# %%
 X_data = np.array(X_data)
 y_data = np.array([1 if label == 'fake' else 0 for label in y_data])
 
-# %%
 # Train-test split
 X_train, X_test, y_train, y_test = train_test_split(X_data, y_data, test_size=0.2, random_state=42)
 y_train = to_categorical(y_train, 2)
@@ -45,10 +38,20 @@ y_test = to_categorical(y_test, 2)
 
 # Ensure input shape compatibility
 input_shape = (224, 224, 3)  # Vision Transformer requires 224x224x3 input images
-X_train = np.reshape(X_train, (-1, *input_shape))
-X_test = np.reshape(X_test, (-1, *input_shape))
 
-# %%
+# Adjust features to match ViT input shape
+from tensorflow.image import resize
+
+def resize_data(data, target_shape):
+    resized_data = np.array([resize(img, target_shape[:2]).numpy() for img in data])
+    return resized_data
+
+# Reshape and normalize input data
+X_train = resize_data(X_train, input_shape)
+X_test = resize_data(X_test, input_shape)
+X_train = X_train / 255.0
+X_test = X_test / 255.0
+
 # ####################### Transfer Learning with Vision Transformer #######################
 # Load Vision Transformer model from TensorFlow Hub
 vit_model_url = "https://tfhub.dev/sayakpaul/vit_b16_fe/1"
@@ -61,7 +64,6 @@ x = Dense(512, activation='relu')(x)
 x = Dropout(0.5)(x)  # Dropout to reduce overfitting
 x = Dense(2, activation='softmax')(x)  # Softmax for binary classification (real or fake)
 
-# %%
 # Define the model
 model = Model(inputs=input_layer, outputs=x)
 
@@ -79,13 +81,11 @@ callbacks = [
 # Train the model
 history = model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_test, y_test), callbacks=callbacks)
 
-# %%
 # ########################## Save the Model ##########################
 model_save_path = os.path.join(base_dir, 'Model_ViT_Transfer_Learning.h5')
 model.save(model_save_path)
 print(f"Model saved at: {model_save_path}")
 
-# %%
 # ########################## Evaluate the Model ##########################
 metrics = model.evaluate(X_test, y_test)
 print(f"Test Accuracy: {metrics[1] * 100:.2f}%")
@@ -101,7 +101,6 @@ cm = confusion_matrix(true_labels, predictions)
 print("Confusion Matrix:")
 print(cm)
 
-# %%
 # ########################## Plot Training History ##########################
 plt.figure(figsize=(12, 6))
 
