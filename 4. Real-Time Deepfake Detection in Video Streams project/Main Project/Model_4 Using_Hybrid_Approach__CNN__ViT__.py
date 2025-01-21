@@ -85,7 +85,7 @@ X_test_cnn = np.array([np.reshape(x, (224, 224, 3)) for x in X_test])  # Assumin
 history = model.fit([X_train_cnn, X_train], y_train, epochs=50, batch_size=32, validation_data=([X_test_cnn, X_test], y_test), callbacks=callbacks)
 
 # ########################## Save the Model ##########################
-model_save_path = os.path.join(base_dir, 'Model_Hybrid_CNN_ViT.h5')
+model_save_path = os.path.join(base_dir, 'Model_4 Using_Hybrid_Approach__CNN__ViT__.h5')
 model.save(model_save_path)
 print(f"Model saved at: {model_save_path}")
 
