@@ -55,15 +55,15 @@ model.compile(optimizer=Adam(learning_rate=0.0001),
 
 # Callbacks for early stopping and learning rate reduction
 callbacks = [
-    EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True),
-    ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3)
+    EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True),
+    ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=7)
 ]
 
 # Train the model
 history = model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_test, y_test), callbacks=callbacks)
 
 # ########################## Save the Model ##########################
-model_save_path = os.path.join(base_dir, 'Model_Fully_Connected_Feature_Extractor.h5')
+model_save_path = os.path.join(base_dir, 'Model_3 Using_Vision_Transformer__ViT__.h5')
 model.save(model_save_path)
 print(f"Model saved at: {model_save_path}")
 
