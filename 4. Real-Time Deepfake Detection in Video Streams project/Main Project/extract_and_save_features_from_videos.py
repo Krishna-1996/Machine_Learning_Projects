@@ -7,9 +7,9 @@ import pandas as pd
 
 # Path to main directory and CSV file
 base_dir = r"D:\MSc. Project DeepFake Detection Datasets\Celeb-DF-v1"
-csv_file = os.path.join(base_dir, "Video_Label_and_Dataset_List.csv")
+csv_file = os.path.join(base_dir, "Video_Label_and_Dataset_List - Copy - Copy.csv")
 
-processed_data_dir = os.path.join(base_dir, "Updated_processed_data")
+processed_data_dir = os.path.join(base_dir, "6529_videos_featured_here")
 os.makedirs(processed_data_dir, exist_ok=True)
 
 # Load CSV
