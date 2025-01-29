@@ -13,13 +13,13 @@ import matplotlib.pyplot as plt
 
 # Paths
 base_dir = r"D:\MSc. Project DeepFake Detection Datasets\Celeb-DF-v1"
-Updated_processed_data_dir = os.path.join(base_dir, "Updated_processed_data")
+Updated_processed_data_dir = os.path.join(base_dir, "6529_videos_featured_here")
 
 # Load pre-extracted features and labels
 X_data = []
 y_data = []
 
-df = pd.read_csv(os.path.join(base_dir, "Video_Label_and_Dataset_List.csv"))
+df = pd.read_csv(os.path.join(base_dir, "Video_Label_and_Dataset_List - Copy - Copy.csv"))
 for idx, row in df.iterrows():
     feature_file = os.path.join(Updated_processed_data_dir, f'features_{idx}.npy')
     if os.path.exists(feature_file):
@@ -54,7 +54,7 @@ callbacks = [
 history = model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_test, y_test), callbacks=callbacks)
 # #########################################
 # Save the model after training
-model_save_path = os.path.join(base_dir, 'Model_1 Neural_Network_Model using Keras_Sequential.h5')
+model_save_path = os.path.join(base_dir, 'Model_1 Full_Dataset_6529_Videos Neural_Network_Model using Keras_Sequential.h5')
 model.save(model_save_path)
 print(f"Model saved at: {model_save_path}")
 
