@@ -13,7 +13,7 @@ from tensorflow.keras.applications import ResNet50
 
 # Paths
 base_dir = r"D:\MSc. Project DeepFake Detection Datasets\Celeb-DF-v1"
-Updated_processed_data_dir = os.path.join(base_dir, "Updated_processed_data")
+Updated_processed_data_dir = os.path.join(base_dir, "6529_videos_featured_here")
 
 # Load pre-extracted features and labels
 X_data = []
