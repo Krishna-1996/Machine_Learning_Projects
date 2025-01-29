@@ -68,7 +68,7 @@ callbacks = [
 history = model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_test, y_test), callbacks=callbacks)
 
 # ########################## Save the Model ##########################
-model_save_path = os.path.join(base_dir, 'Model_2 ResNet50_Transfer_Learning.h5')
+model_save_path = os.path.join(base_dir, 'Model_2 Full_Dataset_6529_Videos ResNet50_Transfer_Learning.h5')
 model.save(model_save_path)
 print(f"Model saved at: {model_save_path}")
 
