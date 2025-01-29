@@ -70,11 +70,19 @@ def upload_file():
 
             # Show result
             result = "Fake" if prediction_class == 1 else "Real"
-            return render_template('result.html', result=result, authenticity=authenticity)
+            
+            # Provide the path to the video for rendering in the result page
+            video_url = url_for('uploaded_file', filename=filename)
+            return render_template('result.html', result=result, authenticity=authenticity, video_url=video_url)
         else:
             return 'Error: No frames extracted from video'
     
     return 'Invalid file format'
+
+# Route to serve uploaded video files
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
     # Make sure upload folder exists
