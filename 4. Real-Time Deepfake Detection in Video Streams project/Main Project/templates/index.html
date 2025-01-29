@@ -59,18 +59,6 @@
             padding: 10px;
         }
 
-        .video-container {
-            margin-top: 20px;
-            display: none; /* Hide the video player by default */
-            text-align: center;
-        }
-
-        video {
-            width: 100%;
-            height: auto;
-            border-radius: 10px;
-        }
-
         @media (max-width: 600px) {
             .container {
                 padding: 20px;
@@ -86,43 +74,13 @@
 
     <div class="container">
         <h1>DeepFake Video Detection</h1>
-        <p>Upload a video to check if it's real or fake. Preview the video before uploading!</p>
+        <p>Upload a video to check if it's real or fake. We use advanced AI to analyze the video!</p>
         
         <form action="/upload" method="POST" enctype="multipart/form-data">
-            <input type="file" name="file" accept="video/*" required id="videoInput">
+            <input type="file" name="file" accept="video/*" required>
             <button class="upload-btn" type="submit">Upload and Check</button>
         </form>
-
-        <!-- Video preview section -->
-        <div class="video-container" id="videoPreviewContainer">
-            <h3>Video Preview</h3>
-            <video id="videoPreview" controls>
-                <source id="videoSource" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-        </div>
     </div>
-
-    <script>
-        // Get elements
-        const videoInput = document.getElementById('videoInput');
-        const videoPreviewContainer = document.getElementById('videoPreviewContainer');
-        const videoPreview = document.getElementById('videoPreview');
-        const videoSource = document.getElementById('videoSource');
-
-        // Event listener for video file selection
-        videoInput.addEventListener('change', function (event) {
-            const file = event.target.files[0];
-            if (file && file.type.startsWith('video/')) {
-                const fileURL = URL.createObjectURL(file);
-                videoSource.src = fileURL;
-                videoPreview.load();
-                videoPreviewContainer.style.display = 'block';  // Show the video preview
-            } else {
-                videoPreviewContainer.style.display = 'none';  // Hide the video preview if no file is selected
-            }
-        });
-    </script>
 
 </body>
 </html>
