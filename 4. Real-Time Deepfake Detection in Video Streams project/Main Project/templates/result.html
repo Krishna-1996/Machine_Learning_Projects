@@ -47,6 +47,12 @@
             margin-top: 15px;
         }
 
+        .video-name {
+            font-size: 18px;
+            color: #333;
+            margin-top: 10px;
+        }
+
         a {
             margin-top: 20px;
             font-size: 16px;
@@ -80,6 +86,7 @@
         <h1>Video Prediction Result</h1>
         <p>Here's the analysis for the video you uploaded:</p>
 
+        <p class="video-name">Video Name: <strong>{{ video_name }}</strong></p>
         <p class="result-text">Result: <strong>{{ result }}</strong></p>
         <p class="authenticity">Authenticity: {{ authenticity }}%</p>
 

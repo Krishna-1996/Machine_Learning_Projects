@@ -17,7 +17,7 @@ ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Load pre-trained model
-model_path = 'D:/MSc. Project DeepFake Detection Datasets/Celeb-DF-v1/Model_1 Full_Dataset_6529_Videos Neural_Network_Model using Keras_Sequential.h5'
+model_path = 'D:/MSc. Project DeepFake Detection Datasets/Celeb-DF-v1/Model_2 ResNet50_Transfer_Learning.h5'
 model = load_model(model_path)
 
 # Load VGG16 model for feature extraction
@@ -70,11 +70,15 @@ def upload_file():
 
             # Show result
             result = "Fake" if prediction_class == 1 else "Real"
-            return render_template('result.html', result=result, authenticity=authenticity)
+
+            # Pass the video name along with the result and authenticity
+            return render_template('result.html', result=result, authenticity=authenticity, video_name=filename)
+
         else:
             return 'Error: No frames extracted from video'
     
     return 'Invalid file format'
+
 
 if __name__ == '__main__':
     # Make sure upload folder exists
