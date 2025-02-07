@@ -20,15 +20,15 @@ def clean_column_data(column):
         'Y3': 'Grade 3', 'year3': 'Grade 3', 'grade 3': 'Grade 3',
         'Y4': 'Grade 4', 'year3': 'Grade 4', 'grade 4': 'Grade 4',
         'Y5': 'Grade 5', 'year5': 'Grade 5', 'grade 5': 'Grade 5',
-        'Y6': 'Grade 6', 'year6': 'Grade 6', 'grade 6': 'Grade 6',
-        'Y7': 'Grade 7', 'year7': 'Grade 7', 'grade 7': 'Grade 7',
-        'Y8': 'Grade 8', 'year8': 'Grade 8', 'grade 8': 'Grade 8',
+        'Y6': 'Grade 6', 'year6': 'Grade 6', 'grade 6': 'Grade 6', 'Grade 6 ': 'Grade 6',
+        'Y7': 'Grade 7', 'year7': 'Grade 7', 'grade 7': 'Grade 7', 'Grade 7 ': 'Grade 7',
+        'Y8': 'Grade 8', 'year8': 'Grade 8', 'grade 8': 'Grade 8', 'Grade 8 ': 'Grade 8',
         'Y9': 'Grade 9', 'year9': 'Grade 9', 'grade 9': 'Grade 9',
         'Y10': 'Grade 10', 'year10': 'Grade 10', 'grade 10': 'Grade 10',
         'Y11': 'Grade 11', 'year11': 'Grade 11', 'grade 11': 'Grade 11',
-        'Y2': 'Grade 12', 'year12': 'Grade 12', 'grade 12': 'Grade 12',
+        'Y12': 'Grade 12', 'year12': 'Grade 12', 'grade 12': 'Grade 12',
         'Y13': 'Grade 13', 'year13': 'Grade 13', 'grade 13': 'Grade 13',
-        
+           
         
         # Add more replacements as necessary for other columns
     }, regex=True)
