@@ -53,8 +53,8 @@ df['Year_of_Admission'] = df['Year_of_Admission'].replace({'School 2 Current Stu
 null_counts = df.isnull().sum()
 
 # Print the count of null values per feature
-print("Null values in each feature before handling:")
-print(null_counts)
+# print("Null values in each feature before handling:")
+# print(null_counts)
 
 # Handle null values
 for col in df.columns:
@@ -72,8 +72,8 @@ for col in df.columns:
 null_counts_after = df.isnull().sum()
 
 # Print the count of null values after handling
-print("\nNull values in each feature after handling:")
-print(null_counts_after)
+# print("\nNull values in each feature after handling:")
+# print(null_counts_after)
 
 print(df.columns)
 
@@ -94,9 +94,9 @@ previous_year_mapping = {
 }
 
 # Apply the mapping to the necessary columns
-df['Current_Year_17_18'] = df['Current_Year_17_18'].map(year_mapping)
-df['Proposed_Year_Grade_18_19'] = df['Proposed_Year_Grade_18_19'].map(year_mapping)
-df['Previous_year_Grade'] = df['Previous_year_Grade'].map(previous_year_mapping)
+df['Current_Year_1718'] = df['Current_Year_1718'].map(year_mapping)
+df['Proposed_YearGrade_1819'] = df['Proposed_YearGrade_1819'].map(year_mapping)
+df['Previous_yearGrade'] = df['Previous_yearGrade'].map(previous_year_mapping)
 
 # Step 7: Save the cleaned and encoded dataframe to a new CSV file
 output_file_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\Cleaned_Student_Level_Prediction_Encoded.csv'
@@ -104,16 +104,16 @@ df.to_csv(output_file_path, index=False)
 
 # Step 8: Save the mapping table in a separate sheet (using Excel writer)
 mapping_data = {
-    "Column Name": ['Current_Year_17_18', 'Proposed_Year_Grade_18_19', 'Previous_year_Grade'],
+    "Column Name": ['Current_Year_1718', 'Proposed_YearGrade_1819', 'Previous_yearGrade'],
     "Category": [
-        'KG1, KG2, FS1, FS2, Grade 1 to Grade 13',
-        'KG2, Grade 1 to Grade 13',
+        'KG1, KG2, FS1, FS2, Grade 1, Grade 2, Grade 3, Grade 4, Grade 5, Grade 6, Grade 7, Grade 8, Grade 9, Grade 10, Grade 11, Grade 12,Grade 13',
+        'KG1, KG2, FS1, FS2, Grade 1, Grade 2, Grade 3, Grade 4, Grade 5, Grade 6, Grade 7, Grade 8, Grade 9, Grade 10, Grade 11, Grade 12,Grade 13',
         'Grade System, Year System'
     ],
     "Mapped Value": [
-        '14=KG1, 15=KG2, 16=FS1, 17=FS2, 1=Grade 1, 2=Grade 2, ..., 13=Grade 13',
-        '14=KG2, 1=Grade 1, ..., 13=Grade 13',
-        '0=Grade System, 1=Year System'
+        '14=KG1, 15=KG2, 16=FS1, 17=FS2, 1=Grade 1, 2=Grade 2, 3=Grade 3, 4=Grade 4, 5=Grade 5, 6=Grade 6, 7=Grade 7, 8=Grade 8, 9=Grade 9, 10=Grade 10, 11=Grade 11, 12=Grade 12, 13=Grade 13',
+        '14=KG1, 15=KG2, 16=FS1, 17=FS2, 1=Grade 1, 2=Grade 2, 3=Grade 3, 4=Grade 4, 5=Grade 5, 6=Grade 6, 7=Grade 7, 8=Grade 8, 9=Grade 9, 10=Grade 10, 11=Grade 11, 12=Grade 12, 13=Grade 13',
+        '0=Grade System, 1=Year System'3
     ]
 }
 
@@ -124,5 +124,5 @@ mapping_df = pd.DataFrame(mapping_data)
 with pd.ExcelWriter(output_file_path.replace('.csv', '.xlsx')) as writer:
     df.to_excel(writer, sheet_name='Data')
     mapping_df.to_excel(writer, sheet_name='Mappings')
-
+print(df.head)
 print(f"Cleaning, encoding, and saving the dataset complete. The cleaned and encoded dataset is saved to: {output_file_path.replace('.csv', '.xlsx')}")
