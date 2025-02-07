@@ -113,7 +113,7 @@ mapping_data = {
     "Mapped Value": [
         '14=KG1, 15=KG2, 16=FS1, 17=FS2, 1=Grade 1, 2=Grade 2, 3=Grade 3, 4=Grade 4, 5=Grade 5, 6=Grade 6, 7=Grade 7, 8=Grade 8, 9=Grade 9, 10=Grade 10, 11=Grade 11, 12=Grade 12, 13=Grade 13',
         '14=KG1, 15=KG2, 16=FS1, 17=FS2, 1=Grade 1, 2=Grade 2, 3=Grade 3, 4=Grade 4, 5=Grade 5, 6=Grade 6, 7=Grade 7, 8=Grade 8, 9=Grade 9, 10=Grade 10, 11=Grade 11, 12=Grade 12, 13=Grade 13',
-        '0=Grade System, 1=Year System'3
+        '0=Grade System, 1=Year System'
     ]
 }
 
@@ -124,5 +124,9 @@ mapping_df = pd.DataFrame(mapping_data)
 with pd.ExcelWriter(output_file_path.replace('.csv', '.xlsx')) as writer:
     df.to_excel(writer, sheet_name='Data')
     mapping_df.to_excel(writer, sheet_name='Mappings')
-print(df.head)
+
 print(f"Cleaning, encoding, and saving the dataset complete. The cleaned and encoded dataset is saved to: {output_file_path.replace('.csv', '.xlsx')}")
+# Load the dataset
+file_path = 'D:/Machine_Learning_Projects/5. Student Level Prediction Using Machine Learning/Cleaned_Student_Level_Prediction.csv'
+df2 = pd.read_csv(file_path)
+print(df2.head)
