@@ -29,7 +29,7 @@ def clean_column_data(column):
         'Y11': 'Grade 11', 'year11': 'Grade 11', 'grade 11': 'Grade 11',
         'Y12': 'Grade 12', 'year12': 'Grade 12', 'grade 12': 'Grade 12',
         'Y13': 'Grade 13', 'year13': 'Grade 13', 'grade 13': 'Grade 13',
-           
+        'Year System' : 'Year System', 'Year System ' : 'Year System',           
         
         # Add more replacements as necessary for other columns
     }, regex=True)
