@@ -1,5 +1,5 @@
 # %%
-# Step 1: Load and Clean Data
+# Step 1 Load and Clean Data
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
