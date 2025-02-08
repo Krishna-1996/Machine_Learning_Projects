@@ -58,7 +58,8 @@ for col in df.columns:
             mean_value = df[col].mean()  # Get the mean value
             df[col].fillna(mean_value, inplace=True)
 
-# Step 2: Encode Categorical Data to Numerical
+# %%
+# Step 3: Encode Categorical Data to Numerical
 categorical_columns = df.select_dtypes(include=['object']).columns
 label_encoders = {}
 
@@ -67,7 +68,7 @@ for col in categorical_columns:
     df[col] = le.fit_transform(df[col])  # Convert categorical to numerical
     label_encoders[col] = le  # Save the encoder for future reference
 
-# Save the preprocessed data and mappings
+# 3.1 Save the preprocessed data and mappings
 output_file_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\Preprocessed_Student_Level_Prediction.xlsx'
 mapping_data = []
 
@@ -77,7 +78,7 @@ for col, le in label_encoders.items():
 
 mapping_df = pd.DataFrame(mapping_data)
 
-# Write the cleaned data and mapping data to an Excel file
+# 3.2 Write the cleaned data and mapping data to an Excel file
 with pd.ExcelWriter(output_file_path) as writer:
     df.to_excel(writer, sheet_name='Data', index=False)
     mapping_df.to_excel(writer, sheet_name='Mappings')
@@ -85,7 +86,7 @@ with pd.ExcelWriter(output_file_path) as writer:
 print(f"Preprocessing complete. Dataset saved to: {output_file_path}")
 
 # %%
-# Step 3: Feature Engineering and Class Assignment
+# Step 4: Feature Engineering and Class Assignment
 # Load the preprocessed dataset
 df = pd.read_excel(output_file_path, sheet_name='Data')
 
