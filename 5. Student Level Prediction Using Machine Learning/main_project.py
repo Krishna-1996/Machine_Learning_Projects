@@ -169,12 +169,9 @@ models = {
 # 6.2 Stratified K-Fold cross-validation setup
 kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
-# 6.3 Initialize result dictionary
-results = {model_name: {'Accuracy': [], 'F1-Score': [], 'Precision': [], 'Recall': []} for model_name in models}
 
-# 6.4 Initialize result dictionary to track best confusion matrix for each model
-best_confusion_matrices = {}
-best_model_metrics = {model_name: {'Accuracy': 0, 'F1-Score': 0, 'Precision': 0, 'Recall': 0} for model_name in models}
+# 6.3 Initialize result dictionary to track metrics for each model
+results = {model_name: {'Accuracy': [], 'F1-Score': [], 'Precision': [], 'Recall': []} for model_name in models}
 
 # 6.4 Loop through each model and perform K-Fold Cross-Validation
 for model_name, model in models.items():
@@ -197,16 +194,36 @@ for model_name, model in models.items():
         recall = recall_score(y_test, y_pred, average='weighted', zero_division=1)
         f1 = f1_score(y_test, y_pred, average='weighted', zero_division=1)
         
-        # 6.4.5 Store the results for the current fold (only if it's the best fold)
+        # 6.4.5 Store the results for the current fold
+        results[model_name]['Accuracy'].append(accuracy)
+        results[model_name]['F1-Score'].append(f1)
+        results[model_name]['Precision'].append(precision)
+        results[model_name]['Recall'].append(recall)
+        
+        # 6.4.6 Store the best confusion matrix for each model
         if accuracy > best_accuracy:
             best_accuracy = accuracy
             best_cm = confusion_matrix(y_test, y_pred)
-            best_model_metrics[model_name] = {'Accuracy': accuracy, 'F1-Score': f1, 'Precision': precision, 'Recall': recall}
     
     # Store the best confusion matrix for each model
     best_confusion_matrices[model_name] = best_cm
 
-# 6.5 Now, plot the best confusion matrices in a 3x3 grid
+# 6.5 Calculate the average results for each model
+results_df = pd.DataFrame({
+    model_name: {
+        'Accuracy': np.mean(result['Accuracy']),
+        'F1-Score': np.mean(result['F1-Score']),
+        'Precision': np.mean(result['Precision']),
+        'Recall': np.mean(result['Recall'])
+    }
+    for model_name, result in results.items()
+}).T
+
+# 6.6 Display the results table
+print("K-Fold Cross-Validation Results")
+print(results_df)
+
+# 6.7 Now, plot the best confusion matrices in a 3x3 grid
 fig, axes = plt.subplots(3, 3, figsize=(18, 15))
 
 # List of models to plot
@@ -222,10 +239,12 @@ for i, (model_name, cm) in enumerate(best_confusion_matrices.items()):
                 yticklabels=['High average', 'Medium average', 'Low average'], 
                 ax=axes[row, col])
     
-    axes[row, col].set_title(f'{model_name} - Accuracy: {best_model_metrics[model_name]["Accuracy"]:.2f}')
+    axes[row, col].set_title(f'{model_name} - Accuracy: {np.mean(results[model_name]["Accuracy"]):.2f}')
     axes[row, col].set_xlabel('Predicted')
     axes[row, col].set_ylabel('Actual')
 
 # Adjust layout and show the plot
 plt.tight_layout()
 plt.show()
+
+# %%
