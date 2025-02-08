@@ -132,7 +132,7 @@ with pd.ExcelWriter(output_file_path.replace('.csv', '.xlsx')) as writer:
 
 print(f"Cleaning, encoding, and saving the dataset complete. The cleaned and encoded dataset is saved to: {output_file_path.replace('.csv', '.xlsx')}")
 # Load the dataset
-file_path = 'D:/Machine_Learning_Projects/5. Student Level Prediction Using Machine Learning/Cleaned_Student_Level_Prediction.csv'
-df2 = pd.read_csv(file_path)
+# file_path = 'D:/Machine_Learning_Projects/5. Student Level Prediction Using Machine Learning/Cleaned_Student_Level_Prediction.csv'
+# df2 = pd.read_csv(file_path)
 print(df[['Current_Year_1718', 'Proposed_YearGrade_1819', 'Previous_yearGrade']].head(10))
 print(df2.head)
