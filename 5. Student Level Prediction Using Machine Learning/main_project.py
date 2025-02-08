@@ -111,9 +111,27 @@ df['class'] = df.apply(assign_class, axis=1)
 # 4.3 Define input features (X) and target (y)
 X = df.drop(columns=['class', 'average'])
 y = df['class']
-
 # %%
-# Step 5: Model Definition and K-Fold Cross-Validation
+# Step 5: Correlation Heatmap for Selected Features
+selected_columns = [
+    'Gender', 'Age_as_of_Academic_Year_1718', 'Current_Year_1718', 
+    'Proposed_YearGrade_1819', 'Year_of_Admission', 'Previous_Curriculum_17182', 
+    'Current_School', 'Current_Curriculum', 'Previous_yearGrade'
+]
+
+# 5.1 Subset the dataframe to include only the selected columns
+selected_features = df[selected_columns]
+
+# 5.2 Compute the correlation matrix for the selected features
+correlation_matrix_selected = selected_features.corr()
+
+# 5.3 Plot the correlation heatmap
+plt.figure(figsize=(12, 10))
+sns.heatmap(correlation_matrix_selected, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5)
+plt.title('Correlation Heatmap of Selected Features')
+plt.show()
+# %%
+# Step 6: Model Definition and K-Fold Cross-Validation
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 import seaborn as sns
@@ -127,7 +145,7 @@ from sklearn.neural_network import MLPClassifier
 import xgboost as xgb
 from sklearn.metrics import confusion_matrix
 
-# 5.1 Define the models to be evaluated
+# 6.1 Define the models to be evaluated
 models = {
     'Random Forest': RandomForestClassifier(n_estimators=100, random_state=42),
     'ANN (MLP)': MLPClassifier(hidden_layer_sizes=(50,), max_iter=1000, random_state=42),
@@ -147,38 +165,38 @@ models = {
                                                       ('knn', KNeighborsClassifier(n_neighbors=5))], voting='hard')
 }
 
-# 5.2 Stratified K-Fold cross-validation setup
+# 6.2 Stratified K-Fold cross-validation setup
 kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
-# 5.3 Initialize result dictionary
+# 6.3 Initialize result dictionary
 results = {model_name: {'Accuracy': [], 'F1-Score': [], 'Precision': [], 'Recall': []} for model_name in models}
 
-# 5.4 Loop through each model and perform K-Fold Cross-Validation
+# 6.4 Loop through each model and perform K-Fold Cross-Validation
 for model_name, model in models.items():
     for fold_num, (train_idx, test_idx) in enumerate(kfold.split(X, y), 1):
-        # 5.4.1 Split data based on the current fold
+        # 6.4.1 Split data based on the current fold
         X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
         y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
         
-        # 5.4.2 Train the model
+        # 6.4.2 Train the model
         model.fit(X_train, y_train)
         
-        # 5.4.3 Make predictions
+        # 6.4.3 Make predictions
         y_pred = model.predict(X_test)
         
-        # 5.4.4 Calculate metrics
+        # 6.4.4 Calculate metrics
         accuracy = accuracy_score(y_test, y_pred)
         precision = precision_score(y_test, y_pred, average='weighted', zero_division=1)
         recall = recall_score(y_test, y_pred, average='weighted', zero_division=1)
         f1 = f1_score(y_test, y_pred, average='weighted', zero_division=1)
         
-        # Store the results for the current fold
+        # 6.4.5 Store the results for the current fold
         results[model_name]['Accuracy'].append(accuracy)
         results[model_name]['F1-Score'].append(f1)
         results[model_name]['Precision'].append(precision)
         results[model_name]['Recall'].append(recall)
         
-        # Plot confusion matrix
+        # 6.4.6 Plot confusion matrix
         cm = confusion_matrix(y_test, y_pred)
         plt.figure(figsize=(6, 5))
         sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False, 
@@ -189,7 +207,7 @@ for model_name, model in models.items():
         plt.ylabel('Actual')
         plt.show()
 
-# Convert results to DataFrame for easier comparison
+# 6.5 Convert results to DataFrame for easier comparison
 results_df = pd.DataFrame({
     model_name: {
         'Accuracy': np.mean(result['Accuracy']),
@@ -200,26 +218,8 @@ results_df = pd.DataFrame({
     for model_name, result in results.items()
 }).T
 
-# Display the results
+# 6.6 Display the results
 print("K-Fold Cross-Validation Results")
 print(results_df)
 
-# %%
-# Step 5: Correlation Heatmap for Selected Features
-selected_columns = [
-    'Gender', 'Age_as_of_Academic_Year_1718', 'Current_Year_1718', 
-    'Proposed_YearGrade_1819', 'Year_of_Admission', 'Previous_Curriculum_17182', 
-    'Current_School', 'Current_Curriculum', 'Previous_yearGrade'
-]
 
-# Subset the dataframe to include only the selected columns
-selected_features = df[selected_columns]
-
-# Compute the correlation matrix for the selected features
-correlation_matrix_selected = selected_features.corr()
-
-# Plot the correlation heatmap
-plt.figure(figsize=(12, 10))
-sns.heatmap(correlation_matrix_selected, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5)
-plt.title('Correlation Heatmap of Selected Features')
-plt.show()
