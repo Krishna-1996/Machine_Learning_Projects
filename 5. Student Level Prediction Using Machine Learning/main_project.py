@@ -150,23 +150,23 @@ models = {
 # 5.2 Stratified K-Fold cross-validation setup
 kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
-# Initialize result dictionary
+# 5.3 Initialize result dictionary
 results = {model_name: {'Accuracy': [], 'F1-Score': [], 'Precision': [], 'Recall': []} for model_name in models}
 
-# Loop through each model and perform K-Fold Cross-Validation
+# 5.4 Loop through each model and perform K-Fold Cross-Validation
 for model_name, model in models.items():
     for fold_num, (train_idx, test_idx) in enumerate(kfold.split(X, y), 1):
-        # Split data based on the current fold
+        # 5.4.1 Split data based on the current fold
         X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
         y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
         
-        # Train the model
+        # 5.4.2 Train the model
         model.fit(X_train, y_train)
         
-        # Make predictions
+        # 5.4.3 Make predictions
         y_pred = model.predict(X_test)
         
-        # Calculate metrics
+        # 5.4.4 Calculate metrics
         accuracy = accuracy_score(y_test, y_pred)
         precision = precision_score(y_test, y_pred, average='weighted', zero_division=1)
         recall = recall_score(y_test, y_pred, average='weighted', zero_division=1)
