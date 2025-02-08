@@ -47,7 +47,8 @@ df = df[df['Previous_Curriculum_17182'].isin(valid_curricula)]
 df['Year_of_Admission'] = df['Year_of_Admission'].replace({'School 1 Current Student':'Current Student'})
 df['Year_of_Admission'] = df['Year_of_Admission'].replace({'School 2 Current Student':'Current Student'})
 
-# Handle missing values: fill categorical with mode, numerical with mean
+# %%
+# Step 2: Handle missing values: fill categorical with mode, numerical with mean
 for col in df.columns:
     if df[col].isnull().sum() > 0:  # If there are null values in the column
         if df[col].dtype == 'object':  # For categorical columns (strings)
