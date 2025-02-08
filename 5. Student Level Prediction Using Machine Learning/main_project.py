@@ -113,6 +113,7 @@ X = df.drop(columns=['class', 'average'])
 y = df['class']
 # %%
 # Step 5: Correlation Heatmap for Selected Features
+import matplotlib.pyplot as plt
 selected_columns = [
     'Gender', 'Age_as_of_Academic_Year_1718', 'Current_Year_1718', 
     'Proposed_YearGrade_1819', 'Year_of_Admission', 'Previous_Curriculum_17182', 
@@ -135,7 +136,7 @@ plt.show()
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 import seaborn as sns
-import matplotlib.pyplot as plt
+
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, StackingClassifier, ExtraTreesClassifier, VotingClassifier
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
