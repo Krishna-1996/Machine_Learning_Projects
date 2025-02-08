@@ -87,7 +87,7 @@ print(f"Preprocessing complete. Dataset saved to: {output_file_path}")
 
 # %%
 # Step 4: Feature Engineering and Class Assignment
-# Load the preprocessed dataset
+# 4.1 Load the preprocessed dataset
 df = pd.read_excel(output_file_path, sheet_name='Data')
 
 # Calculate the average score for the relevant subjects
@@ -97,7 +97,7 @@ columns_to_avg = ['Mathexam', 'Scienceexam_', 'Englishexam_', 'Math191_', 'Scien
                   'Math203_', 'Science203_', 'English203_']
 df['average'] = df[columns_to_avg].mean(axis=1)
 
-# Assign class based on the average score
+# 4.2 Assign class based on the average score
 def assign_class(row):
     if row['average'] >= 85:
         return 0  # High average
@@ -108,7 +108,7 @@ def assign_class(row):
 
 df['class'] = df.apply(assign_class, axis=1)
 
-# Define input features (X) and target (y)
+# 4.3 Define input features (X) and target (y)
 X = df.drop(columns=['class', 'average'])
 y = df['class']
 
