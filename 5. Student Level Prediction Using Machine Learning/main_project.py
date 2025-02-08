@@ -113,7 +113,7 @@ X = df.drop(columns=['class', 'average'])
 y = df['class']
 
 # %%
-# Step 4: Model Definition and K-Fold Cross-Validation
+# Step 5: Model Definition and K-Fold Cross-Validation
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 import seaborn as sns
@@ -127,7 +127,7 @@ from sklearn.neural_network import MLPClassifier
 import xgboost as xgb
 from sklearn.metrics import confusion_matrix
 
-# Define the models to be evaluated
+# 5.1 Define the models to be evaluated
 models = {
     'Random Forest': RandomForestClassifier(n_estimators=100, random_state=42),
     'ANN (MLP)': MLPClassifier(hidden_layer_sizes=(50,), max_iter=1000, random_state=42),
@@ -147,7 +147,7 @@ models = {
                                                       ('knn', KNeighborsClassifier(n_neighbors=5))], voting='hard')
 }
 
-# Stratified K-Fold cross-validation setup
+# 5.2 Stratified K-Fold cross-validation setup
 kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
 # Initialize result dictionary
