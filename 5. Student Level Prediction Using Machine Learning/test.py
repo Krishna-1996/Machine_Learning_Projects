@@ -122,7 +122,7 @@ print(results_df)
 
 # %% Step 8: Plot the confusion matrices for each model in a 3x3 grid
 # Plot all 9 confusion matrices (one for each model) in a 3x3 grid
-fig, axes = plt.subplots(3, 3, figsize=(15, 12))
+fig, axes = plt.subplots(3, 3, figsize=(20, 15))
 axes = axes.flatten()
 
 for i, (model_name, result) in enumerate(results.items()):
@@ -138,28 +138,6 @@ for i, (model_name, result) in enumerate(results.items()):
 plt.tight_layout()
 plt.show()
 
-# %% Step 9: Scatter plots for model evaluation metrics
-# Plot scatter plots comparing Accuracy against F1-Score, Precision, and Recall
-fig, axes = plt.subplots(1, 3, figsize=(18, 6))
 
-# Accuracy vs F1-Score
-axes[0].scatter(results_df['Accuracy'], results_df['F1-Score'], color='blue')
-axes[0].set_title('Accuracy vs F1-Score')
-axes[0].set_xlabel('Accuracy')
-axes[0].set_ylabel('F1-Score')
 
-# Accuracy vs Precision
-axes[1].scatter(results_df['Accuracy'], results_df['Precision'], color='green')
-axes[1].set_title('Accuracy vs Precision')
-axes[1].set_xlabel('Accuracy')
-axes[1].set_ylabel('Precision')
-
-# Accuracy vs Recall
-axes[2].scatter(results_df['Accuracy'], results_df['Recall'], color='red')
-axes[2].set_title('Accuracy vs Recall')
-axes[2].set_xlabel('Accuracy')
-axes[2].set_ylabel('Recall')
-
-plt.tight_layout()
-plt.show()
-
+# %%
