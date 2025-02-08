@@ -356,3 +356,5 @@ for model_name, model in best_models.items():
 print("\nAUC Scores for each model:")
 for model_name, auc_score in roc_auc_scores.items():
     print(f"{model_name}: AUC = {auc_score:.2f}")
+
+# %%
