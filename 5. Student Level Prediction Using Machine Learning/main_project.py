@@ -34,16 +34,16 @@ def clean_column_data(column):
     }, regex=True)
     return column
 
-# Apply the cleaning function to all categorical columns
+# 1.4 Apply the cleaning function to all categorical columns
 for col in df.columns:
     if df[col].dtype == 'object':  # Only clean non-numeric columns
         df[col] = clean_column_data(df[col])
 
-# Filter rows based on curriculum (only American and British)
+# 1.5 Filter rows based on curriculum (only American and British)
 valid_curricula = ['American', 'British']
 df = df[df['Previous_Curriculum_17182'].isin(valid_curricula)]
 
-# Modify 'Year_of_Admission' based on 'Current_School' column
+# 1.6 Modify 'Year_of_Admission' based on 'Current_School' column
 df['Year_of_Admission'] = df['Year_of_Admission'].replace({'School 1 Current Student':'Current Student'})
 df['Year_of_Admission'] = df['Year_of_Admission'].replace({'School 2 Current Student':'Current Student'})
 
