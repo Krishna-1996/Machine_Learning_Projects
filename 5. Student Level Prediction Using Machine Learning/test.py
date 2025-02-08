@@ -226,60 +226,133 @@ print("K-Fold Cross-Validation Results")
 print(results_df)
 
 # %% 
-# Step 7: Hyperparameter Tuning with GridSearchCV (For selected models)
+# Step 7: Hyperparameter Tuning with GridSearchCV for selected models
 from sklearn.model_selection import GridSearchCV
 
-# 7.1 Define the parameter grid for hyperparameter tuning (using a few selected models for illustration)
-param_grid_rf = {'n_estimators': [50, 100, 200], 'max_depth': [None, 10, 20, 30]}
-param_grid_svm = {'C': [0.1, 1, 10], 'kernel': ['linear', 'rbf']}
-param_grid_knn = {'n_neighbors': [3, 5, 7, 10]}
-
-# 7.2 Initialize GridSearchCV for selected models
-grid_search_rf = GridSearchCV(RandomForestClassifier(random_state=42), param_grid_rf, cv=3, scoring='accuracy', n_jobs=-1)
-grid_search_svm = GridSearchCV(SVC(random_state=42), param_grid_svm, cv=3, scoring='accuracy', n_jobs=-1)
-grid_search_knn = GridSearchCV(KNeighborsClassifier(), param_grid_knn, cv=3, scoring='accuracy', n_jobs=-1)
-
-# 7.3 Fit the models using GridSearchCV
+# Hyperparameter tuning for Random Forest, SVM, KNN, and ANN (MLP)
+# Random Forest
+rf_model = RandomForestClassifier(random_state=42)
+param_grid_rf = {
+    'n_estimators': [50, 100, 150],
+    'max_depth': [None, 10, 20],
+    'min_samples_split': [2, 5],
+}
+grid_search_rf = GridSearchCV(estimator=rf_model, param_grid=param_grid_rf, cv=5, n_jobs=-1, verbose=2)
 grid_search_rf.fit(X, y)
+print(f"Best Hyperparameters for Random Forest: {grid_search_rf.best_params_}")
+
+# SVM
+svm_model = SVC(probability=True, random_state=42)  # Enable probability estimates
+param_grid_svm = {
+    'C': [0.1, 1, 10],
+    'kernel': ['linear', 'rbf'],
+    'gamma': ['scale', 'auto']
+}
+grid_search_svm = GridSearchCV(estimator=svm_model, param_grid=param_grid_svm, cv=5, n_jobs=-1, verbose=2)
 grid_search_svm.fit(X, y)
+print(f"Best Hyperparameters for SVM: {grid_search_svm.best_params_}")
+
+# KNN
+knn_model = KNeighborsClassifier()
+param_grid_knn = {
+    'n_neighbors': [3, 5, 7, 10],
+    'weights': ['uniform', 'distance'],
+}
+grid_search_knn = GridSearchCV(estimator=knn_model, param_grid=param_grid_knn, cv=5, n_jobs=-1, verbose=2)
 grid_search_knn.fit(X, y)
+print(f"Best Hyperparameters for KNN: {grid_search_knn.best_params_}")
 
-# 7.4 Compare results from GridSearchCV with baseline models
-best_rf = grid_search_rf.best_estimator_
-best_svm = grid_search_svm.best_estimator_
-best_knn = grid_search_knn.best_estimator_
+# MLP (ANN)
+mlp_model = MLPClassifier(max_iter=1000, random_state=42)
+param_grid_mlp = {
+    'hidden_layer_sizes': [(50,), (100,), (50, 50)],
+    'activation': ['relu', 'tanh'],
+    'solver': ['adam', 'sgd'],
+    'alpha': [0.0001, 0.001],
+    'learning_rate': ['constant', 'adaptive']
+}
+grid_search_mlp = GridSearchCV(estimator=mlp_model, param_grid=param_grid_mlp, cv=5, n_jobs=-1, verbose=2)
+grid_search_mlp.fit(X, y)
+print(f"Best Hyperparameters for MLP (ANN): {grid_search_mlp.best_params_}")
 
-print("Best Random Forest Params:", grid_search_rf.best_params_)
-print("Best SVM Params:", grid_search_svm.best_params_)
-print("Best KNN Params:", grid_search_knn.best_params_)
+# %% 
+# Step 8: Comparison of Accuracy and Other Metrics for Models after Hyperparameter Tuning
+best_models = {
+    'Random Forest': grid_search_rf.best_estimator_,
+    'SVM': grid_search_svm.best_estimator_,
+    'KNN': grid_search_knn.best_estimator_,
+    'ANN (MLP)': grid_search_mlp.best_estimator_
+}
 
-# %%
-# Step 8: Final Model Evaluation: AUC, ROC Curve, and Confusion Matrix
-from sklearn.metrics import roc_auc_score, roc_curve
+# Initialize results storage for comparison
+comparison_results = {}
 
-# 8.1 Evaluate the best model (for illustration: Random Forest with best params)
-best_rf.fit(X, y)
-y_pred_rf = best_rf.predict(X)
-y_prob_rf = best_rf.predict_proba(X)[:, 1]  # Probability estimates for ROC curve
+for model_name, model in best_models.items():
+    model.fit(X, y)
+    y_pred = model.predict(X)
+    accuracy = accuracy_score(y, y_pred)
+    precision = precision_score(y, y_pred, average='weighted', zero_division=1)
+    recall = recall_score(y, y_pred, average='weighted', zero_division=1)
+    f1 = f1_score(y, y_pred, average='weighted', zero_division=1)
+    
+    comparison_results[model_name] = {
+        'Accuracy': accuracy,
+        'F1-Score': f1,
+        'Precision': precision,
+        'Recall': recall
+    }
 
-# 8.2 Plot ROC Curve
-fpr, tpr, _ = roc_curve(y, y_prob_rf)
-roc_auc = roc_auc_score(y, y_prob_rf)
+# Display the comparison table
+comparison_df = pd.DataFrame(comparison_results).T
+print("Comparison of Models after Hyperparameter Tuning")
+print(comparison_df)
 
-plt.figure(figsize=(8, 6))
-plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (area = {roc_auc:.2f})')
-plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
-plt.xlim([0.0, 1.0])
-plt.ylim([0.0, 1.05])
+# %% 
+# Step 9: Final Model Evaluation: AUC, ROC Curve, and Confusion Matrix
+
+from sklearn.metrics import roc_auc_score, roc_curve, confusion_matrix
+import matplotlib.pyplot as plt
+
+# Initialize the ROC Curve and AUC scores
+roc_auc_scores = {}
+
+# Plot ROC Curves for each model
+plt.figure(figsize=(10, 8))
+
+for model_name, model in best_models.items():
+    model.fit(X, y)
+    y_pred_prob = model.predict_proba(X)  # Get probabilities for all classes
+    auc_score = roc_auc_score(y, y_pred_prob, multi_class='ovr', average='weighted')  # AUC for multiclass
+    roc_auc_scores[model_name] = auc_score
+    
+    # Plot ROC curve for each model (One-vs-Rest approach)
+    for i in range(y_pred_prob.shape[1]):
+        fpr, tpr, _ = roc_curve(y == i, y_pred_prob[:, i])  # One-vs-Rest ROC
+        plt.plot(fpr, tpr, label=f'{model_name} - Class {i} (AUC = {auc_score:.2f})')
+
+plt.plot([0, 1], [0, 1], 'k--')  # Random classifier line
+plt.title('Receiver Operating Characteristic (ROC) Curve')
 plt.xlabel('False Positive Rate')
 plt.ylabel('True Positive Rate')
-plt.title('Receiver Operating Characteristic (ROC)')
 plt.legend(loc='lower right')
 plt.show()
 
-# 8.3 Confusion Matrix for Random Forest
-print("Confusion Matrix for Random Forest")
-print(confusion_matrix(y, y_pred_rf))
+# Confusion Matrix for each model
+for model_name, model in best_models.items():
+    model.fit(X, y)
+    y_pred = model.predict(X)
+    cm = confusion_matrix(y, y_pred)
+    print(f"Confusion Matrix for {model_name}:\n{cm}\n")
+    
+    # Optionally, plot the confusion matrix
+    plt.figure(figsize=(6, 5))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=model.classes_, yticklabels=model.classes_)
+    plt.title(f'Confusion Matrix - {model_name}')
+    plt.xlabel('Predicted Labels')
+    plt.ylabel('True Labels')
+    plt.show()
 
-
-# %%
+# Print AUC scores for comparison
+print("\nAUC Scores for each model:")
+for model_name, auc_score in roc_auc_scores.items():
+    print(f"{model_name}: AUC = {auc_score:.2f}")
