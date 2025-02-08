@@ -102,7 +102,7 @@ for col, le in label_encoders.items():
 mapping_df = pd.DataFrame(mapping_data)
 
 # Save the updated dataset and mappings
-output_file_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\Preprocessed_Student_Level_Prediction.xlsx'
+output_file_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\Preprocessed_Student_Level_Prediction1.xlsx'
 with pd.ExcelWriter(output_file_path) as writer:
     df.to_excel(writer, sheet_name='Data', index=False)
     mapping_df.to_excel(writer, sheet_name='Mappings')
