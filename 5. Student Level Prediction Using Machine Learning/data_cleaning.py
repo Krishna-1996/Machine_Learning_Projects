@@ -104,7 +104,7 @@ df['Proposed_YearGrade_1819'].fillna(-1, inplace=True)
 df['Previous_yearGrade'].fillna(-1, inplace=True)
 
 # Step 7: Save the cleaned and encoded dataframe to a new CSV file
-output_file_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\Cleaned_Student_Level_Prediction_Encoded.csv'
+output_file_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\Preprocessed_Student_Level_Prediction.csv'
 df.to_csv(output_file_path, index=False)
 
 # Step 8: Save the mapping table in a separate sheet (using Excel writer)
@@ -131,8 +131,4 @@ with pd.ExcelWriter(output_file_path.replace('.csv', '.xlsx')) as writer:
     mapping_df.to_excel(writer, sheet_name='Mappings')
 
 print(f"Cleaning, encoding, and saving the dataset complete. The cleaned and encoded dataset is saved to: {output_file_path.replace('.csv', '.xlsx')}")
-# Load the dataset
-# file_path = 'D:/Machine_Learning_Projects/5. Student Level Prediction Using Machine Learning/Cleaned_Student_Level_Prediction.csv'
-# df2 = pd.read_csv(file_path)
-# print(df2.head)
-print(df[['Current_Year_1718', 'Proposed_YearGrade_1819', 'Previous_yearGrade']].head(10))
+
