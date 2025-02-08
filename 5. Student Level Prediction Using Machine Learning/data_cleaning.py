@@ -93,10 +93,15 @@ previous_year_mapping = {
     'Year System': 1
 }
 
-# Apply the mapping to the necessary columns
-df['Current_Year_1718'] = df['Current_Year_1718'].map(year_mapping)
-df['Proposed_YearGrade_1819'] = df['Proposed_YearGrade_1819'].map(year_mapping)
-df['Previous_yearGrade'] = df['Previous_yearGrade'].map(previous_year_mapping)
+# Ensure categorical values are stripped of spaces before mapping
+df['Current_Year_1718'] = df['Current_Year_1718'].str.strip().map(year_mapping)
+df['Proposed_YearGrade_1819'] = df['Proposed_YearGrade_1819'].str.strip().map(year_mapping)
+df['Previous_yearGrade'] = df['Previous_yearGrade'].str.strip().map(previous_year_mapping)
+
+# Fill any unmapped values with a default value (e.g., -1 for unknown categories)
+df['Current_Year_1718'].fillna(-1, inplace=True)
+df['Proposed_YearGrade_1819'].fillna(-1, inplace=True)
+df['Previous_yearGrade'].fillna(-1, inplace=True)
 
 # Step 7: Save the cleaned and encoded dataframe to a new CSV file
 output_file_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\Cleaned_Student_Level_Prediction_Encoded.csv'
@@ -129,4 +134,5 @@ print(f"Cleaning, encoding, and saving the dataset complete. The cleaned and enc
 # Load the dataset
 file_path = 'D:/Machine_Learning_Projects/5. Student Level Prediction Using Machine Learning/Cleaned_Student_Level_Prediction.csv'
 df2 = pd.read_csv(file_path)
+print(df[['Current_Year_1718', 'Proposed_YearGrade_1819', 'Previous_yearGrade']].head(10))
 print(df2.head)
