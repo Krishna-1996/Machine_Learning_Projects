@@ -3,16 +3,16 @@
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-# Load the dataset
+# 1.1 Load the dataset
 file_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\Student Level Prediction Using Machine Learning.csv'
 df = pd.read_csv(file_path)
 
-# Clean column names: remove leading/trailing spaces, replace spaces with underscores, remove non-alphanumeric characters
+# 1.2 Clean column names: remove leading/trailing spaces, replace spaces with underscores, remove non-alphanumeric characters
 df.columns = df.columns.str.strip()  # Remove leading/trailing spaces from column names
 df.columns = df.columns.str.replace(r'\s+', '_', regex=True)  # Replace spaces with underscores
 df.columns = df.columns.str.replace(r'[^a-zA-Z0-9_]', '', regex=True)  # Remove non-alphanumeric characters
 
-# Clean unique data: Standardize categories and remove extra spaces
+# 1.3 Clean unique data: Standardize categories and remove extra spaces
 def clean_column_data(column):
     column = column.str.strip()  # Remove leading/trailing spaces
     column = column.replace({
