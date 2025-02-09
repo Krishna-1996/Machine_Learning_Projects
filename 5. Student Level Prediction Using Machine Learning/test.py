@@ -1,4 +1,4 @@
-# %% 
+# %%
 # Step 1: Load and Clean Data
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
@@ -47,7 +47,7 @@ df = df[df['Previous_Curriculum_17182'].isin(valid_curricula)]
 df['Year_of_Admission'] = df['Year_of_Admission'].replace({'School 1 Current Student':'Current Student'})
 df['Year_of_Admission'] = df['Year_of_Admission'].replace({'School 2 Current Student':'Current Student'})
 
-# %% 
+# %%
 # Step 2: Handle missing values: fill categorical with mode, numerical with mean
 for col in df.columns:
     if df[col].isnull().sum() > 0:  # If there are null values in the column
@@ -58,7 +58,7 @@ for col in df.columns:
             mean_value = df[col].mean()  # Get the mean value
             df[col].fillna(mean_value, inplace=True)
 
-# %% 
+# %%
 # Step 3: Encode Categorical Data to Numerical
 categorical_columns = df.select_dtypes(include=['object']).columns
 label_encoders = {}
@@ -85,7 +85,7 @@ with pd.ExcelWriter(output_file_path) as writer:
 
 print(f"Preprocessing complete. Dataset saved to: {output_file_path}")
 
-# %% 
+# %%
 # Step 4: Feature Engineering and Class Assignment
 # 4.1 Load the preprocessed dataset
 df = pd.read_excel(output_file_path, sheet_name='Data')
@@ -99,12 +99,10 @@ df['average'] = df[columns_to_avg].mean(axis=1)
 
 # 4.2 Assign class based on the average score
 def assign_class(row):
-    if row['average'] >= 85:
-        return 0  # High average
-    elif 75 <= row['average'] < 85:
-        return 1  # Medium average
+    if row['average'] >= 75:
+        return 0  # Above 75
     else:
-        return 2  # Low average
+        return 1  # Below 75
 
 df['class'] = df.apply(assign_class, axis=1)
 
@@ -112,10 +110,11 @@ df['class'] = df.apply(assign_class, axis=1)
 X = df.drop(columns=['class', 'average'])
 y = df['class']
 
-# %% 
+# %%
 # Step 5: Correlation Heatmap for Selected Features
 import matplotlib.pyplot as plt
 import seaborn as sns
+
 selected_columns = [
     'Gender', 'Age_as_of_Academic_Year_1718', 'Current_Year_1718', 
     'Proposed_YearGrade_1819', 'Year_of_Admission', 'Previous_Curriculum_17182', 
@@ -134,7 +133,7 @@ sns.heatmap(correlation_matrix_selected, annot=True, cmap='coolwarm', fmt='.2f',
 plt.title('Correlation Heatmap of Selected Features')
 plt.show()
 
-# %% 
+# %%
 # Step 6: Model Definition and K-Fold Cross-Validation
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
@@ -190,171 +189,40 @@ for model_name, model in models.items():
         # 6.3.3 Make predictions
         y_pred = model.predict(X_test)
         
-        # 6.3.4 Calculate metrics
+        # 6.3.4 Calculate the evaluation metrics
         accuracy = accuracy_score(y_test, y_pred)
-        precision = precision_score(y_test, y_pred, average='weighted', zero_division=1)
-        recall = recall_score(y_test, y_pred, average='weighted', zero_division=1)
-        f1 = f1_score(y_test, y_pred, average='weighted', zero_division=1)
+        f1 = f1_score(y_test, y_pred)
+        precision = precision_score(y_test, y_pred)
+        recall = recall_score(y_test, y_pred)
         
-        # 6.3.5 Store the results for the current fold
+        # Store the metrics for each fold
         results[model_name]['Accuracy'].append(accuracy)
         results[model_name]['F1-Score'].append(f1)
         results[model_name]['Precision'].append(precision)
         results[model_name]['Recall'].append(recall)
         
-        # 6.3.6 Store the best confusion matrix for each model
+        # 6.3.5 If this fold has the best accuracy, store the confusion matrix
         if accuracy > best_accuracy:
             best_accuracy = accuracy
             best_cm = confusion_matrix(y_test, y_pred)
     
-    # Store the best confusion matrix for each model
+    # Store the confusion matrix for the best fold of each model
     best_confusion_matrices[model_name] = best_cm
 
-# 6.4 Calculate the average results for each model
-results_df = pd.DataFrame({
-    model_name: {
-        'Accuracy': np.mean(result['Accuracy']),
-        'F1-Score': np.mean(result['F1-Score']),
-        'Precision': np.mean(result['Precision']),
-        'Recall': np.mean(result['Recall'])
-    }
-    for model_name, result in results.items()
-}).T
-
-# 6.5 Display the results table
-print("K-Fold Cross-Validation Results")
-print(results_df)
-
-# %% 
-# Step 7: Hyperparameter Tuning with GridSearchCV for selected models
-from sklearn.model_selection import GridSearchCV
-
-# Hyperparameter tuning for Random Forest, SVM, KNN, and ANN (MLP)
-# Random Forest
-rf_model = RandomForestClassifier(random_state=42)
-param_grid_rf = {
-    'n_estimators': [50, 100, 150],
-    'max_depth': [None, 10, 20],
-    'min_samples_split': [2, 5],
-}
-grid_search_rf = GridSearchCV(estimator=rf_model, param_grid=param_grid_rf, cv=5, n_jobs=-1, verbose=2)
-grid_search_rf.fit(X, y)
-print(f"Best Hyperparameters for Random Forest: {grid_search_rf.best_params_}")
-
-# SVM
-svm_model = SVC(probability=True, random_state=42)  # Enable probability estimates
-param_grid_svm = {
-    'C': [0.1, 1, 10],
-    'kernel': ['linear', 'rbf'],
-    'gamma': ['scale', 'auto']
-}
-grid_search_svm = GridSearchCV(estimator=svm_model, param_grid=param_grid_svm, cv=5, n_jobs=-1, verbose=2)
-grid_search_svm.fit(X, y)
-print(f"Best Hyperparameters for SVM: {grid_search_svm.best_params_}")
-
-# KNN
-knn_model = KNeighborsClassifier()
-param_grid_knn = {
-    'n_neighbors': [3, 5, 7, 10],
-    'weights': ['uniform', 'distance'],
-}
-grid_search_knn = GridSearchCV(estimator=knn_model, param_grid=param_grid_knn, cv=5, n_jobs=-1, verbose=2)
-grid_search_knn.fit(X, y)
-print(f"Best Hyperparameters for KNN: {grid_search_knn.best_params_}")
-
-# MLP (ANN)
-mlp_model = MLPClassifier(max_iter=1000, random_state=42)
-param_grid_mlp = {
-    'hidden_layer_sizes': [(50,), (100,), (50, 50)],
-    'activation': ['relu', 'tanh'],
-    'solver': ['adam', 'sgd'],
-    'alpha': [0.0001, 0.001],
-    'learning_rate': ['constant', 'adaptive']
-}
-grid_search_mlp = GridSearchCV(estimator=mlp_model, param_grid=param_grid_mlp, cv=5, n_jobs=-1, verbose=2)
-grid_search_mlp.fit(X, y)
-print(f"Best Hyperparameters for MLP (ANN): {grid_search_mlp.best_params_}")
-
-# %% 
-# Step 8: Comparison of Accuracy and Other Metrics for Models after Hyperparameter Tuning
-best_models = {
-    'Random Forest': grid_search_rf.best_estimator_,
-    'SVM': grid_search_svm.best_estimator_,
-    'KNN': grid_search_knn.best_estimator_,
-    'ANN (MLP)': grid_search_mlp.best_estimator_
-}
-
-# Initialize results storage for comparison
-comparison_results = {}
-
-for model_name, model in best_models.items():
-    model.fit(X, y)
-    y_pred = model.predict(X)
-    accuracy = accuracy_score(y, y_pred)
-    precision = precision_score(y, y_pred, average='weighted', zero_division=1)
-    recall = recall_score(y, y_pred, average='weighted', zero_division=1)
-    f1 = f1_score(y, y_pred, average='weighted', zero_division=1)
-    
-    comparison_results[model_name] = {
-        'Accuracy': accuracy,
-        'F1-Score': f1,
-        'Precision': precision,
-        'Recall': recall
-    }
-
-# Display the comparison table
-comparison_df = pd.DataFrame(comparison_results).T
-print("Comparison of Models after Hyperparameter Tuning")
-print(comparison_df)
-
-# %% 
-# Step 9: Final Model Evaluation: AUC, ROC Curve, and Confusion Matrix
-
-from sklearn.metrics import roc_auc_score, roc_curve, confusion_matrix
-import matplotlib.pyplot as plt
-
-# Initialize the ROC Curve and AUC scores
-roc_auc_scores = {}
-
-# Plot ROC Curves for each model
-plt.figure(figsize=(10, 8))
-
-for model_name, model in best_models.items():
-    model.fit(X, y)
-    y_pred_prob = model.predict_proba(X)  # Get probabilities for all classes
-    auc_score = roc_auc_score(y, y_pred_prob, multi_class='ovr', average='weighted')  # AUC for multiclass
-    roc_auc_scores[model_name] = auc_score
-    
-    # Plot ROC curve for each model (One-vs-Rest approach)
-    for i in range(y_pred_prob.shape[1]):
-        fpr, tpr, _ = roc_curve(y == i, y_pred_prob[:, i])  # One-vs-Rest ROC
-        plt.plot(fpr, tpr, label=f'{model_name} - Class {i} (AUC = {auc_score:.2f})')
-
-plt.plot([0, 1], [0, 1], 'k--')  # Random classifier line
-plt.title('Receiver Operating Characteristic (ROC) Curve')
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.legend(loc='lower right')
-plt.show()
-
-# Confusion Matrix for each model
-for model_name, model in best_models.items():
-    model.fit(X, y)
-    y_pred = model.predict(X)
-    cm = confusion_matrix(y, y_pred)
-    print(f"Confusion Matrix for {model_name}:\n{cm}\n")
-    
-    # Optionally, plot the confusion matrix
-    plt.figure(figsize=(6, 5))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=model.classes_, yticklabels=model.classes_)
-    plt.title(f'Confusion Matrix - {model_name}')
-    plt.xlabel('Predicted Labels')
-    plt.ylabel('True Labels')
-    plt.show()
-
-# Print AUC scores for comparison
-print("\nAUC Scores for each model:")
-for model_name, auc_score in roc_auc_scores.items():
-    print(f"{model_name}: AUC = {auc_score:.2f}")
-
 # %%
+# Step 7: Display Results
+# 7.1 Display the evaluation metrics for each model
+for model_name, metrics in results.items():
+    print(f"{model_name}:")
+    print(f"  Accuracy: {np.mean(metrics['Accuracy']):.4f}")
+    print(f"  F1-Score: {np.mean(metrics['F1-Score']):.4f}")
+    print(f"  Precision: {np.mean(metrics['Precision']):.4f}")
+    print(f"  Recall: {np.mean(metrics['Recall']):.4f}")
+    print()
+
+# 7.2 Display confusion matrices for each model
+for model_name, cm in best_confusion_matrices.items():
+    print(f"{model_name} Confusion Matrix:")
+    print(cm)
+    print()
+
