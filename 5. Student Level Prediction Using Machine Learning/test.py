@@ -151,7 +151,7 @@ models = {
     'Voting Classifier': VotingClassifier(estimators=[('rfc', RandomForestClassifier(n_estimators=100, random_state=42)),
                                                       ('ann', MLPClassifier(hidden_layer_sizes=(50,), max_iter=1000, random_state=42)),
                                                       ('svm', SVC(kernel='linear', random_state=42, probability=True)),
-                                                      ('knn', KNeighborsClassifier(n_neighbors=5))], voting='hard')
+                                                      ('knn', KNeighborsClassifier(n_neighbors=5))], voting='soft')  # Changed to 'soft'
 }
 
 # Initialize result dictionary and confusion matrix storage
@@ -179,41 +179,79 @@ for model_name, model in models.items():
         
         # 6.3.3 Make predictions
         y_pred = model.predict(X_test)
-        y_prob = model.predict_proba(X_test)[:, 1]  # Get probabilities for ROC curve
+        
+        # Check if the model has the 'predict_proba' method (for ROC curve)
+        if hasattr(model, 'predict_proba'):
+            y_prob = model.predict_proba(X_test)[:, 1]  # Get probabilities for ROC curve
+        else:
+            y_prob = None  # Set to None if the model doesn't support probabilities
         
         # 6.3.4 Calculate the evaluation metrics
         accuracy = accuracy_score(y_test, y_pred)
         f1 = f1_score(y_test, y_pred)
         precision = precision_score(y_test, y_pred)
         recall = recall_score(y_test, y_pred)
-        roc_auc = roc_auc_score(y_test, y_prob)
+        roc_auc = roc_auc_score(y_test, y_prob) if y_prob is not None else None
         
         # Store the metrics for each fold
         results[model_name]['Accuracy'].append(accuracy)
         results[model_name]['F1-Score'].append(f1)
         results[model_name]['Precision'].append(precision)
         results[model_name]['Recall'].append(recall)
-        results[model_name]['ROC AUC'].append(roc_auc)
+        if roc_auc is not None:
+            results[model_name]['ROC AUC'].append(roc_auc)
         
         # 6.3.5 If this fold has the best accuracy, store the confusion matrix
         if accuracy > best_accuracy:
             best_accuracy = accuracy
             best_cm = confusion_matrix(y_test, y_pred)
         
-        # Compute ROC curve
-        fpr, tpr, _ = roc_curve(y_test, y_prob)
-        tprs.append(np.interp(mean_fpr, fpr, tpr))
+        # Compute ROC curve if available
+        if y_prob is not None:
+            fpr, tpr, _ = roc_curve(y_test, y_prob)
+            tprs.append(np.interp(mean_fpr, fpr, tpr))
     
     # Store the confusion matrix for the best fold of each model
     best_confusion_matrices[model_name] = best_cm
     
     # Calculate mean ROC curve
-    mean_tpr = np.mean(tprs, axis=0)
-    roc_curves[model_name] = (mean_fpr, mean_tpr)
+    if tprs:
+        mean_tpr = np.mean(tprs, axis=0)
+        roc_curves[model_name] = (mean_fpr, mean_tpr)
 
 # %%
 # Step 7: Display results in tabular form
 import pandas as pd
+
+# Convert results dictionary into DataFrame
+metrics_df = pd.DataFrame(results)
+
+# Show the results in tabular format
+print("\nEvaluation Metrics for All Models:")
+print(metrics_df)
+
+# %%
+# Step 8: Plot ROC curves for each model
+plt.figure(figsize=(10, 8))
+for model_name, (fpr, tpr) in roc_curves.items():
+    plt.plot(fpr, tpr, label=f"{model_name} (AUC = {roc_auc_score(y_test, model.predict_proba(X_test)[:, 1]):.2f})")
+
+plt.plot([0, 1], [0, 1], linestyle='--', color='gray', label='Random Classifier')
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic (ROC) Curve')
+plt.legend(loc='lower right')
+plt.show()
+
+# %%
+# Step 9: Confusion Matrices for All Models
+for model_name, cm in best_confusion_matrices.items():
+    plt.figure(figsize=(6, 5))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Predicted Negative', 'Predicted Positive'], yticklabels=['True Negative', 'True Positive'])
+    plt.title(f"Confusion Matrix for {model_name}")
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.show()
 
 # Convert results dictionary into DataFrame
 metrics_df = pd.DataFrame(results)
