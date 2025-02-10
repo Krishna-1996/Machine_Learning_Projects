@@ -63,12 +63,15 @@ for col in df.columns:
 categorical_columns = df.select_dtypes(include=['object']).columns
 label_encoders = {}
 
+# 3.1 Remove rows where 'Year_of_Admission' contains "New Admission 18/19"
+df = df[df['Year_of_Admission'] != 'New Admission 18/19']
+
 for col in categorical_columns:
     le = LabelEncoder()
     df[col] = le.fit_transform(df[col])  # Convert categorical to numerical
     label_encoders[col] = le  # Save the encoder for future reference
 
-# 3.1 Save the preprocessed data and mappings
+# 3.2 Save the preprocessed data and mappings
 output_file_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\Preprocessed_Student_Level_Prediction.xlsx'
 mapping_data = []
 
@@ -78,7 +81,7 @@ for col, le in label_encoders.items():
 
 mapping_df = pd.DataFrame(mapping_data)
 
-# 3.2 Write the cleaned data and mapping data to an Excel file
+# 3.3 Write the cleaned data and mapping data to an Excel file
 with pd.ExcelWriter(output_file_path) as writer:
     df.to_excel(writer, sheet_name='Data', index=False)
     mapping_df.to_excel(writer, sheet_name='Mappings')
