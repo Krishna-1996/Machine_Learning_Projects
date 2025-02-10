@@ -223,12 +223,30 @@ for model_name, model in models.items():
 # Step 7: Display results in tabular form
 import pandas as pd
 
-# Convert results dictionary into DataFrame
-metrics_df = pd.DataFrame(results)
+# Compute average values for each model across all folds
+average_results = {
+    model_name: {
+        'Accuracy': np.mean(results[model_name]['Accuracy']),
+        'F1-Score': np.mean(results[model_name]['F1-Score']),
+        'Precision': np.mean(results[model_name]['Precision']),
+        'Recall': np.mean(results[model_name]['Recall']),
+        'ROC AUC': np.mean(results[model_name]['ROC AUC']) if len(results[model_name]['ROC AUC']) > 0 else None
+    }
+    for model_name in models
+}
+
+# Convert average results into a DataFrame
+metrics_df = pd.DataFrame(average_results).T  # Transpose the results to have models as rows
+metrics_df = metrics_df.round(3)  # Round to 3 decimal places for better readability
 
 # Show the results in tabular format
-print("\nEvaluation Metrics for All Models:")
+print("\nEvaluation Metrics for All Models (Average across all folds):")
 print(metrics_df)
+
+# Optionally, display the table in a more formatted manner
+import tabulate
+print("\nFormatted Table:")
+print(tabulate(metrics_df, headers='keys', tablefmt='pretty'))
 
 # %%
 # Step 8: Plot ROC curves for each model
