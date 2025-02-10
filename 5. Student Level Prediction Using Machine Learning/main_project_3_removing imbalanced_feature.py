@@ -71,6 +71,8 @@ for col in categorical_columns:
     df[col] = le.fit_transform(df[col])  # Convert categorical to numerical
     label_encoders[col] = le  # Save the encoder for future reference
 
+# Now just drop the column Year_of_Admission.
+df.drop(columns=['Year_of_Admission'], inplace=True)
 # 3.2 Save the preprocessed data and mappings
 output_file_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\Preprocessed_Student_Level_Prediction.xlsx'
 mapping_data = []
