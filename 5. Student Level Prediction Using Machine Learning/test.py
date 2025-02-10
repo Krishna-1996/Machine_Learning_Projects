@@ -99,14 +99,18 @@ df['average'] = df[columns_to_avg].mean(axis=1)
 
 # 4.2 Assign class based on the average score
 def assign_class(row):
-    if row['average'] >= 75:
-        return 0  # Above 75
+    if row['average'] >= 79.9999:
+        return 0  # Above 79.9999
     else:
-        return 1  # Below 75
+        return 1  # Below 80
 
 df['class'] = df.apply(assign_class, axis=1)
+# 4.3 Save the dataset with the average and class columns to CSV
+df.to_csv('final_dataset_file.csv', index=False)
 
-# 4.3 Define input features (X) and target (y)
+print("Dataset saved to final_dataset_file.csv")
+
+# 4.4 Define input features (X) and target (y)
 X = df.drop(columns=['class', 'average'])
 y = df['class']
 
@@ -118,7 +122,18 @@ feature_imbalance = {col: df[col].value_counts(normalize=True) for col in X.colu
 imbalance_df = pd.DataFrame(feature_imbalance)
 print("Feature Imbalance (Tabular View):")
 print(imbalance_df)
+# %%
+# Step 5: Check Imbalance in Features
+feature_imbalance = {col: df[col].value_counts(normalize=True) for col in X.columns}
 
+# Create a DataFrame to show imbalance in tabular form
+imbalance_df = pd.DataFrame(feature_imbalance)
+
+# Save the imbalance DataFrame to an Excel file
+imbalance_output_file_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\Feature_Imbalance_Results.xlsx'
+imbalance_df.to_excel(imbalance_output_file_path, index=True)
+
+print(f"Feature imbalance results saved to: {imbalance_output_file_path}")
 # %%
 # Step 6: Model Definition and K-Fold Cross-Validation
 from sklearn.model_selection import StratifiedKFold
@@ -246,7 +261,7 @@ print(metrics_df)
 # Optionally, display the table in a more formatted manner
 
 print("\nFormatted Table:")
-print(tabulate(metrics_df, headers='keys', tablefmt='pretty'))
+# print(tabulate(metrics_df, headers='keys', tablefmt='pretty'))
 
 # %%
 # Step 8: Plot ROC curves for each model
@@ -269,40 +284,31 @@ plt.show()
 
 # %%
 # Step 9: Confusion Matrices for All Models
-for model_name, cm in best_confusion_matrices.items():
-    plt.figure(figsize=(6, 5))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Predicted Negative', 'Predicted Positive'], yticklabels=['True Negative', 'True Positive'])
-    plt.title(f"Confusion Matrix for {model_name}")
-    plt.xlabel('Predicted')
-    plt.ylabel('True')
-    plt.show()
+# Create a 3x3 grid of subplots
+fig, axes = plt.subplots(3, 3, figsize=(15, 15))
 
-# Convert results dictionary into DataFrame
+# Flatten the axes array to make indexing easier
+axes = axes.flatten()
+# Loop through all the models and plot each confusion matrix
+for i, (model_name, cm) in enumerate(best_confusion_matrices.items()):
+    ax = axes[i]
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax, xticklabels=['Predicted Negative', 'Predicted Positive'], yticklabels=['True Negative', 'True Positive'])
+    ax.set_title(f"Confusion Matrix for {model_name}")
+    ax.set_xlabel('Predicted')
+    ax.set_ylabel('True')
+
+# Adjust layout to prevent overlapping labels
+plt.tight_layout()
+
+# Show the combined plot
+plt.show()
+
+# Convert results dictionary into DataFrame (for display)
 metrics_df = pd.DataFrame(results)
 
 # Show the results in tabular format
 print("\nEvaluation Metrics for All Models:")
 print(metrics_df)
 
-# %%
-# Step 8: Plot ROC curves for each model
-plt.figure(figsize=(10, 8))
-for model_name, (fpr, tpr) in roc_curves.items():
-    plt.plot(fpr, tpr, label=f"{model_name} (AUC = {roc_auc_score(y_test, model.predict_proba(X_test)[:, 1]):.2f})")
-
-plt.plot([0, 1], [0, 1], linestyle='--', color='gray', label='Random Classifier')
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('Receiver Operating Characteristic (ROC) Curve')
-plt.legend(loc='lower right')
-plt.show()
 
 # %%
-# Step 9: Confusion Matrices for All Models
-for model_name, cm in best_confusion_matrices.items():
-    plt.figure(figsize=(6, 5))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Predicted Negative', 'Predicted Positive'], yticklabels=['True Negative', 'True Positive'])
-    plt.title(f"Confusion Matrix for {model_name}")
-    plt.xlabel('Predicted')
-    plt.ylabel('True')
-    plt.show()
