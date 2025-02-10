@@ -111,32 +111,19 @@ X = df.drop(columns=['class', 'average'])
 y = df['class']
 
 # %%
-# Step 5: Correlation Heatmap for Selected Features
-import matplotlib.pyplot as plt
-import seaborn as sns
+# Step 5: Check Imbalance in Features
+feature_imbalance = {col: df[col].value_counts(normalize=True) for col in X.columns}
 
-selected_columns = [
-    'Gender', 'Age_as_of_Academic_Year_1718', 'Current_Year_1718', 
-    'Proposed_YearGrade_1819', 'Year_of_Admission', 'Previous_Curriculum_17182', 
-    'Current_School', 'Current_Curriculum', 'Previous_yearGrade'
-]
-
-# 5.1 Subset the dataframe to include only the selected columns
-selected_features = df[selected_columns]
-
-# 5.2 Compute the correlation matrix for the selected features
-correlation_matrix_selected = selected_features.corr()
-
-# 5.3 Plot the correlation heatmap
-plt.figure(figsize=(12, 10))
-sns.heatmap(correlation_matrix_selected, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5)
-plt.title('Correlation Heatmap of Selected Features')
-plt.show()
+# Print imbalance information
+for col, value_counts in feature_imbalance.items():
+    print(f"Feature: {col}")
+    print(value_counts)
+    print()
 
 # %%
 # Step 6: Model Definition and K-Fold Cross-Validation
 from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, roc_auc_score, roc_curve, confusion_matrix
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, StackingClassifier, ExtraTreesClassifier, VotingClassifier
 from sklearn.svm import SVC
 import numpy as np
@@ -145,7 +132,8 @@ from sklearn.naive_bayes import BernoulliNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
 import xgboost as xgb
-from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # 6.1 Define the models to be evaluated
 models = {
@@ -168,8 +156,9 @@ models = {
 }
 
 # Initialize result dictionary and confusion matrix storage
-results = {model_name: {'Accuracy': [], 'F1-Score': [], 'Precision': [], 'Recall': []} for model_name in models}
+results = {model_name: {'Accuracy': [], 'F1-Score': [], 'Precision': [], 'Recall': [], 'ROC AUC': []} for model_name in models}
 best_confusion_matrices = {}  # Initialize dictionary for confusion matrices
+roc_curves = {}
 
 # 6.2 Stratified K-Fold cross-validation setup
 kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
@@ -178,6 +167,9 @@ kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 for model_name, model in models.items():
     best_accuracy = -1  # To track the best accuracy of each model
     best_cm = None  # To store the confusion matrix of the best fold
+    mean_fpr = np.linspace(0, 1, 100)
+    tprs = []
+    
     for fold_num, (train_idx, test_idx) in enumerate(kfold.split(X, y), 1):
         # 6.3.1 Split data based on the current fold
         X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
@@ -188,26 +180,34 @@ for model_name, model in models.items():
         
         # 6.3.3 Make predictions
         y_pred = model.predict(X_test)
+        y_prob = model.predict_proba(X_test)[:, 1]  # Get probabilities for ROC curve
         
         # 6.3.4 Calculate the evaluation metrics
         accuracy = accuracy_score(y_test, y_pred)
         f1 = f1_score(y_test, y_pred)
         precision = precision_score(y_test, y_pred)
         recall = recall_score(y_test, y_pred)
+        roc_auc = roc_auc_score(y_test, y_prob)
         
         # Store the metrics for each fold
         results[model_name]['Accuracy'].append(accuracy)
         results[model_name]['F1-Score'].append(f1)
         results[model_name]['Precision'].append(precision)
         results[model_name]['Recall'].append(recall)
+        results[model_name]['ROC AUC'].append(roc_auc)
         
         # 6.3.5 If this fold has the best accuracy, store the confusion matrix
         if accuracy > best_accuracy:
             best_accuracy = accuracy
             best_cm = confusion_matrix(y_test, y_pred)
+        
+        # Compute ROC curve
+        fpr, tpr, _ = roc_curve(y_test, y_prob)
+        tprs.append(np.interp(mean_fpr, fpr, tpr))
     
     # Store the confusion matrix for the best fold of each model
     best_confusion_matrices[model_name] = best_cm
+    roc_curves[model_name] = (mean_fpr, np.mean(tprs, axis=0))  # Average ROC curve
 
 # %%
 # Step 7: Display Results
@@ -218,11 +218,31 @@ for model_name, metrics in results.items():
     print(f"  F1-Score: {np.mean(metrics['F1-Score']):.4f}")
     print(f"  Precision: {np.mean(metrics['Precision']):.4f}")
     print(f"  Recall: {np.mean(metrics['Recall']):.4f}")
+    print(f"  ROC AUC: {np.mean(metrics['ROC AUC']):.4f}")
     print()
 
-# 7.2 Display confusion matrices for each model
-for model_name, cm in best_confusion_matrices.items():
-    print(f"{model_name} Confusion Matrix:")
-    print(cm)
-    print()
+# 7.2 Plot ROC Curves
+plt.figure(figsize=(10, 8))
+for model_name, (mean_fpr, mean_tpr) in roc_curves.items():
+    plt.plot(mean_fpr, mean_tpr, label=f'{model_name} (AUC = {np.mean(results[model_name]["ROC AUC"]):.2f})')
+
+plt.plot([0, 1], [0, 1], 'k--', label='Random chance')
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic (ROC) Curve')
+plt.legend(loc='lower right')
+plt.show()
+
+# 7.3 Display confusion matrices for all models in one image (3x3 grid)
+fig, axes = plt.subplots(3, 3, figsize=(15, 15))
+
+for i, (model_name, cm) in enumerate(best_confusion_matrices.items()):
+    ax = axes[i // 3, i % 3]
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
+    ax.set_title(f'{model_name} Confusion Matrix')
+    ax.set_xlabel('Predicted')
+    ax.set_ylabel('True')
+
+plt.tight_layout()
+plt.show()
 
