@@ -114,11 +114,10 @@ y = df['class']
 # Step 5: Check Imbalance in Features
 feature_imbalance = {col: df[col].value_counts(normalize=True) for col in X.columns}
 
-# Print imbalance information
-for col, value_counts in feature_imbalance.items():
-    print(f"Feature: {col}")
-    print(value_counts)
-    print()
+# Create a DataFrame to show imbalance in tabular form
+imbalance_df = pd.DataFrame(feature_imbalance)
+print("Feature Imbalance (Tabular View):")
+print(imbalance_df)
 
 # %%
 # Step 6: Model Definition and K-Fold Cross-Validation
@@ -139,7 +138,7 @@ import seaborn as sns
 models = {
     'Random Forest': RandomForestClassifier(n_estimators=100, random_state=42),
     'ANN (MLP)': MLPClassifier(hidden_layer_sizes=(50,), max_iter=1000, random_state=42),
-    'SVM': SVC(kernel='linear', random_state=42),
+    'SVM': SVC(kernel='linear', random_state=42, probability=True),  # Fixed: Added probability=True
     'KNN': KNeighborsClassifier(n_neighbors=5),
     'Bernoulli Naive Bayes': BernoulliNB(),
     'AdaBoost': AdaBoostClassifier(random_state=42),
@@ -151,7 +150,7 @@ models = {
                                   final_estimator=LogisticRegression()),
     'Voting Classifier': VotingClassifier(estimators=[('rfc', RandomForestClassifier(n_estimators=100, random_state=42)),
                                                       ('ann', MLPClassifier(hidden_layer_sizes=(50,), max_iter=1000, random_state=42)),
-                                                      ('svm', SVC(kernel='linear', random_state=42)),
+                                                      ('svm', SVC(kernel='linear', random_state=42, probability=True)),
                                                       ('knn', KNeighborsClassifier(n_neighbors=5))], voting='hard')
 }
 
@@ -207,42 +206,41 @@ for model_name, model in models.items():
     
     # Store the confusion matrix for the best fold of each model
     best_confusion_matrices[model_name] = best_cm
-    roc_curves[model_name] = (mean_fpr, np.mean(tprs, axis=0))  # Average ROC curve
+    
+    # Calculate mean ROC curve
+    mean_tpr = np.mean(tprs, axis=0)
+    roc_curves[model_name] = (mean_fpr, mean_tpr)
 
 # %%
-# Step 7: Display Results
-# 7.1 Display the evaluation metrics for each model
-for model_name, metrics in results.items():
-    print(f"{model_name}:")
-    print(f"  Accuracy: {np.mean(metrics['Accuracy']):.4f}")
-    print(f"  F1-Score: {np.mean(metrics['F1-Score']):.4f}")
-    print(f"  Precision: {np.mean(metrics['Precision']):.4f}")
-    print(f"  Recall: {np.mean(metrics['Recall']):.4f}")
-    print(f"  ROC AUC: {np.mean(metrics['ROC AUC']):.4f}")
-    print()
+# Step 7: Display results in tabular form
+import pandas as pd
 
-# 7.2 Plot ROC Curves
+# Convert results dictionary into DataFrame
+metrics_df = pd.DataFrame(results)
+
+# Show the results in tabular format
+print("\nEvaluation Metrics for All Models:")
+print(metrics_df)
+
+# %%
+# Step 8: Plot ROC curves for each model
 plt.figure(figsize=(10, 8))
-for model_name, (mean_fpr, mean_tpr) in roc_curves.items():
-    plt.plot(mean_fpr, mean_tpr, label=f'{model_name} (AUC = {np.mean(results[model_name]["ROC AUC"]):.2f})')
+for model_name, (fpr, tpr) in roc_curves.items():
+    plt.plot(fpr, tpr, label=f"{model_name} (AUC = {roc_auc_score(y_test, model.predict_proba(X_test)[:, 1]):.2f})")
 
-plt.plot([0, 1], [0, 1], 'k--', label='Random chance')
+plt.plot([0, 1], [0, 1], linestyle='--', color='gray', label='Random Classifier')
 plt.xlabel('False Positive Rate')
 plt.ylabel('True Positive Rate')
 plt.title('Receiver Operating Characteristic (ROC) Curve')
 plt.legend(loc='lower right')
 plt.show()
 
-# 7.3 Display confusion matrices for all models in one image (3x3 grid)
-fig, axes = plt.subplots(3, 3, figsize=(15, 15))
-
-for i, (model_name, cm) in enumerate(best_confusion_matrices.items()):
-    ax = axes[i // 3, i % 3]
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
-    ax.set_title(f'{model_name} Confusion Matrix')
-    ax.set_xlabel('Predicted')
-    ax.set_ylabel('True')
-
-plt.tight_layout()
-plt.show()
-
+# %%
+# Step 9: Confusion Matrices for All Models
+for model_name, cm in best_confusion_matrices.items():
+    plt.figure(figsize=(6, 5))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Predicted Negative', 'Predicted Positive'], yticklabels=['True Negative', 'True Positive'])
+    plt.title(f"Confusion Matrix for {model_name}")
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.show()
