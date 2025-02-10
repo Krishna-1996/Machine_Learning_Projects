@@ -126,8 +126,7 @@ feature_imbalance = {col: df[col].value_counts(normalize=True) for col in X.colu
 # Create a DataFrame to show imbalance in tabular form
 imbalance_df = pd.DataFrame(feature_imbalance)
 print("Feature Imbalance (Tabular View):")
-print(imbalance_df)
-# %%
+
 # Step 5: Check Imbalance in Features
 feature_imbalance = {col: df[col].value_counts(normalize=True) for col in X.columns}
 
