@@ -244,12 +244,18 @@ print("\nEvaluation Metrics for All Models (Average across all folds):")
 print(metrics_df)
 
 # Optionally, display the table in a more formatted manner
-import tabulate
+
 print("\nFormatted Table:")
 print(tabulate(metrics_df, headers='keys', tablefmt='pretty'))
 
 # %%
 # Step 8: Plot ROC curves for each model
+print("Class distribution in training data:")
+print(y_train.value_counts())
+
+print("Class distribution in test data:")
+print(y_test.value_counts())
+
 plt.figure(figsize=(10, 8))
 for model_name, (fpr, tpr) in roc_curves.items():
     plt.plot(fpr, tpr, label=f"{model_name} (AUC = {roc_auc_score(y_test, model.predict_proba(X_test)[:, 1]):.2f})")
