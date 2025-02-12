@@ -96,6 +96,7 @@ def A_star_search(maze_obj, start=None, goal=None):
 if __name__ == '__main__':
     m = maze(50, 100)  # Maze size 50x100
     m.CreateMaze(loadMaze='D:/Masters Projects/Master-In-AI/Foundation of Artificial Intelligence/Project 3 ICA//maze_with_obstacles.csv')  # Load maze from CSV
+    # D:/Machine_Learning_Projects/3. Efficient_Maze_Pathfinding_Under_Obstacles/maze_csvs
     goal_position = (1, 1)  # Set the goal position
     exploration_order, visited_cells, path_to_goal = A_star_search(m, goal=goal_position)
     
