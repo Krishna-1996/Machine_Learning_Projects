@@ -109,7 +109,7 @@ class MazeSolverApp(tk.Tk):
         goal_position = goal_positions[goal_choice]  # Get the selected goal position from the dictionary
 
         # Path to the selected obstacle CSV file
-        csv_file_path = os.path.join("D:/Machine_Learning_Projects/4. Efficient_Maze_Pathfinding_Under_Obstacles/maze_csvs", obstacle_files[obstacle_percentage])
+        csv_file_path = os.path.join("D:/Machine_Learning_Projects/3. Efficient_Maze_Pathfinding_Under_Obstacles/maze_csvs", obstacle_files[obstacle_percentage])
 
         try:
             # Load the maze
