@@ -36,7 +36,8 @@ def clean_column_data(column):
 
 # 1.4 Apply the cleaning function to all categorical columns
 for col in df.columns:
-    if df[col].dtype == 'object':  # Only clean non-numeric columns
+    if df[col].dtype == 'object':  # Only clean non-numeric c'
+        olumns
         df[col] = clean_column_data(df[col])
 
 # 1.5 Filter rows based on curriculum (only American and British)
