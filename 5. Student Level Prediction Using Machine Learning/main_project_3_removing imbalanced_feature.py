@@ -366,7 +366,7 @@ for model_name, cm in best_confusion_matrices.items():
     })
 
 # Create a DataFrame to show confusion matrix results
-cm_df = pd.DataFrame(cm_data))
+cm_df = pd.DataFrame(cm_data)
 
 # Show confusion matrix in tabular form
 print("\nConfusion Matrices (Tabular View):")
