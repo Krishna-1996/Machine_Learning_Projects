@@ -30,7 +30,7 @@ def clean_column_data(column):
         'Y12': 'Grade 12', 'year12': 'Grade 12', 'grade 12': 'Grade 12',
         'Y13': 'Grade 13', 'year13': 'Grade 13', 'grade 13': 'Grade 13',
         'Year System' : 'Year System', 'Year System ' : 'Year System',
-        'Grade System' : 'Grade Sy stem', 'Grade system' : 'Grade System',
+        'Grade System' : 'Grade System', 'Grade system' : 'Grade System',
     }, regex=True)
     return column
 
