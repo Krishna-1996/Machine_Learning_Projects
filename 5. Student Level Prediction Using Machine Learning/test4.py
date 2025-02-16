@@ -117,7 +117,10 @@ df.to_csv('final_dataset_file.csv', index=False)
 print("Dataset saved to final_dataset_file.csv")
 
 # 4.4 Define input features (X) and target (y)
-X = df.drop(columns=['class', 'average', columns_to_avg])
+X = df.drop(columns=['class', 'average', 'Mathexam', 'Scienceexam_', 'Englishexam_', 'Math191_', 'Science191_', 'English191_',
+                  'Math192_', 'Science192_', 'English192_', 'Math193_', 'Science193_', 'English193_',
+                  'Math201_', 'Science201_', 'English201_', 'Math202_', 'Science202_', 'English202_',
+                  'Math203_', 'Science203_', 'English203_'])
 y = df['class']
 print("this is x features: ",X)
 print("this is y features: ",y)
