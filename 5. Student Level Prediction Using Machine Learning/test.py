@@ -331,8 +331,6 @@ for model_name, cm in best_confusion_matrices.items():
     plt.show()  # Display the confusion matrix for the current model
 
 # %%
-# Calculate the correlation matrix for all features and target variable 'class'
-import os
 import pandas as pd
 
 # Calculate the correlation matrix for all features and target variable 'class'
@@ -347,40 +345,7 @@ correlation_table = pd.DataFrame(target_correlation).reset_index()
 # Rename columns for clarity
 correlation_table.columns = ['Feature', 'Correlation_with_class']
 
-# Add a column with explanations based on the correlation value
-def get_correlation_explanation(correlation_value):
-    if correlation_value == 1:
-        return "Perfect positive correlation: As one increases, the other increases in exact proportion."
-    elif correlation_value == -1:
-        return "Perfect negative correlation: As one increases, the other decreases in exact proportion."
-    elif correlation_value > 0.7:
-        return "Strong positive correlation: A strong relationship where both increase or decrease together."
-    elif correlation_value > 0.3:
-        return "Moderate positive correlation: A moderate relationship where both tend to increase together."
-    elif correlation_value < -0.7:
-        return "Strong negative correlation: A strong relationship where one increases while the other decreases."
-    elif correlation_value < -0.3:
-        return "Moderate negative correlation: A moderate relationship where one increases while the other decreases."
-    else:
-        return "Weak or no correlation: Little to no linear relationship between the feature and the target."
-
-# Apply the explanation function to the correlation values
-correlation_table['Explanation'] = correlation_table['Correlation_with_class'].apply(get_correlation_explanation)
-
-# Directory path to save the CSV file
-directory_path = r'D:/Machine_Learning_Projects/5. Student Level Prediction Using Machine Learning/'
-
-# Check if the directory exists, and create it if it doesn't
-if not os.path.exists(directory_path):
-    os.makedirs(directory_path)
-
-# Output file path
-output_file_path = os.path.join(directory_path, 'Correlation_with_class.csv')
-
-# Save the results to a CSV file
-correlation_table.to_csv(output_file_path, index=False)
-
-print(f"Correlation results with explanations saved to: {output_file_path}")
-
+# Display the table
+print(correlation_table)
 
 # %%
