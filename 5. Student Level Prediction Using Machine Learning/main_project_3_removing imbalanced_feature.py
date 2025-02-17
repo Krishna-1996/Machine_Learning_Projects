@@ -314,3 +314,74 @@ metrics_df = pd.DataFrame(results)
 print("\nEvaluation Metrics for All Models:")
 print(metrics_df)
 
+
+# %%
+# Step 2: Plot confusion matrices for each model separately
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Loop through all the models and plot each confusion matrix separately
+for model_name, cm in best_confusion_matrices.items():
+    plt.figure(figsize=(6, 5))  # Adjust the size of the figure for each confusion matrix
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Predicted Negative', 'Predicted Positive'], 
+                yticklabels=['True Negative', 'True Positive'])
+    plt.title(f"Confusion Matrix for {model_name}")
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.show()  # Display the confusion matrix for the current model
+
+# %%
+# from scipy.stats import chi2_contingency
+
+from scipy.stats import chi2_contingency
+import pandas as pd
+
+def chi_square_correlation(df, target_column):
+    # Store results of the Chi-Square test
+    correlation_results = []
+
+    # Ensure the target column exists in the dataframe
+    if target_column not in df.columns:
+        print(f"Error: Target column '{target_column}' is not in the dataframe.")
+        return pd.DataFrame()
+
+    # Iterate through each categorical column
+    for col in df.select_dtypes(include=['object']).columns:
+        if col != target_column:  # Skip the target column itself
+            print(f"Processing: {col}")  # Debug print to see which column is being processed
+            
+            # Create a contingency table
+            contingency_table = pd.crosstab(df[col], df[target_column])
+            print(f"Contingency Table for {col}:\n{contingency_table}\n")  # Debug print for contingency table
+
+            # Check if the contingency table has enough data for the Chi-Square test
+            if contingency_table.shape[0] > 1 and contingency_table.shape[1] > 1:
+                # Perform Chi-Square test
+                chi2, p_value, _, _ = chi2_contingency(contingency_table)
+                # Store results in the list
+                correlation_results.append({
+                    'Feature': col,
+                    'Chi-Square Statistic': chi2,
+                    'p-value': p_value
+                })
+            else:
+                print(f"Warning: Contingency table for {col} doesn't have enough categories.")
+
+    # Convert results into a DataFrame for easy viewing
+    if correlation_results:
+        correlation_df = pd.DataFrame(correlation_results)
+        # Ensure 'p-value' column exists and then add the 'Significant' column
+        correlation_df['Significant'] = correlation_df['p-value'] < 0.05  # Mark if p-value is less than 0.05
+        return correlation_df
+    else:
+        print("No valid results for Chi-Square test.")
+        return pd.DataFrame()
+
+# Apply the function
+correlation_df = chi_square_correlation(df, 'class')
+print("\nCorrelation between categorical features and target (Chi-Square Test Results):")
+print(correlation_df)
+
+
+
+# %%
