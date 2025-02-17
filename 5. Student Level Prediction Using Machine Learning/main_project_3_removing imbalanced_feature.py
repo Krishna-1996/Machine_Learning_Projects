@@ -384,3 +384,32 @@ print(f"Correlation results with explanations saved to: {output_file_path}")
 
 
 # %%
+import pandas as pd
+
+# Extract FP, FN, TP, TN from confusion matrices
+confusion_values = []
+
+for model_name, cm in best_confusion_matrices.items():
+    # The confusion matrix format is:
+    # [[TN, FP],
+    #  [FN, TP]]
+    
+    TN, FP, FN, TP = cm.ravel()  # Flatten the confusion matrix to get the values
+    confusion_values.append({
+        "Model Name": model_name,
+        "FP": FP,
+        "FN": FN,
+        "TP": TP,
+        "TN": TN
+    })
+
+# Convert the list of dictionaries into a DataFrame
+confusion_df = pd.DataFrame(confusion_values)
+
+# Save the confusion matrix values to a CSV file
+output_file_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\Model_Confusion_Values.csv'
+confusion_df.to_csv(output_file_path, index=False)
+
+print(f"Confusion matrix values saved to: {output_file_path}")
+
+# %%
