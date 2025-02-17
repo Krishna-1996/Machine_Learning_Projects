@@ -384,3 +384,29 @@ print(f"Correlation results with explanations saved to: {output_file_path}")
 
 
 # %%
+# Step 10: Integrating LIME for Model Interpretation
+from lime.lime_tabular import LimeTabularExplainer
+import numpy as np
+
+# Step 10.1: Initialize the LIME Explainer for tabular data
+explainer = LimeTabularExplainer(
+    training_data=X.values,  # The training data
+    feature_names=X.columns,  # The feature names
+    class_names=['Class 0', 'Class 1'],  # The target class names
+    mode='classification'  # We are performing classification
+)
+
+# Step 10.2: Choose a model (let's take Random Forest as an example)
+model = models['AdaBoost']
+
+# Step 10.3: Choose an instance to explain (for example, the first test sample)
+instance_idx = 0
+instance = X.iloc[instance_idx]
+
+# Step 10.4: Get explanation for the instance
+explanation = explainer.explain_instance(instance.values, model.predict_proba)
+
+# Step 10.5: Display the explanation
+explanation.show_in_notebook(show_table=True, show_all=False)  # Display in a Jupyter notebook
+
+# %%
