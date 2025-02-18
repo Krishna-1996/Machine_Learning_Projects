@@ -147,7 +147,7 @@ print(f"Feature imbalance results saved to: {imbalance_output_file_path}")
 # %% Step 2: Create Deep Learning Model
 def create_deep_learning_model(input_dim):
     model = keras.Sequential([
-        layers.InputLayer(input_dim=input_dim),  # Input layer
+        layers.InputLayer(input_shape=(input_dim,)),  # Input layer
         layers.Dense(128, activation='relu'),  # Hidden layer 1
         layers.Dropout(0.3),  # Dropout for regularization
         layers.Dense(64, activation='relu'),  # Hidden layer 2
@@ -161,6 +161,7 @@ def create_deep_learning_model(input_dim):
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     
     return model
+
 
 # %% Step 3: Train the Deep Learning Model using K-Fold Cross Validation
 X = df.drop(columns=['class', 'average']).values
