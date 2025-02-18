@@ -90,7 +90,7 @@ for col in categorical_columns:
 # Now just drop the column Year_of_Admission.
 df.drop(columns=['Year_of_Admission'], inplace=True)
 # 3.2 Save the preprocessed data and mappings
-output_file_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\Preprocessed_Student_Level_Prediction.xlsx'
+output_file_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\Deep_Learning_Preprocessed_Student_Level_Prediction.xlsx'
 mapping_data = []
 
 for col, le in label_encoders.items():
@@ -127,7 +127,7 @@ def assign_class(row):
 
 df['class'] = df.apply(assign_class, axis=1)
 # 4.3 Save the dataset with the average and class columns to CSV
-df.to_csv('final_dataset_file.csv', index=False)
+df.to_csv('Deep_Learning_final_dataset_file.csv', index=False)
 
 print("Dataset saved to final_dataset_file.csv")
 
@@ -150,7 +150,7 @@ feature_imbalance = {col: df[col].value_counts(normalize=True) for col in X.colu
 imbalance_df = pd.DataFrame(feature_imbalance)
 
 # Save the imbalance DataFrame to an Excel file
-imbalance_output_file_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\Feature_Imbalance_Results.xlsx'
+imbalance_output_file_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\Deep_Learning_Feature_Imbalance_Results.xlsx'
 imbalance_df.to_excel(imbalance_output_file_path, index=True)
 
 print(f"Feature imbalance results saved to: {imbalance_output_file_path}")
