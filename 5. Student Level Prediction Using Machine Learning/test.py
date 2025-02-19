@@ -15,17 +15,8 @@ missing_values = missing_values[missing_values['Missing Values'] > 0]
 print(missing_values)
 
 
-for col in df.columns:
-    if df[col].isnull().sum() > 0:  # If there are null values in the column
-        if df[col].dtype == 'object':  # For categorical columns (strings)
-            mode_value = df[col].mode()[0]  # Get the most frequent value
-            df[col].fillna(mode_value, inplace=True)
-        else:  # For numerical columns
-            mean_value = df[col].mean()  # Get the mean value
-            df[col].fillna(mean_value, inplace=True)
 
 
 
 
 
-            
