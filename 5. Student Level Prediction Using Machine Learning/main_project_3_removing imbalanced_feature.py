@@ -119,6 +119,20 @@ print("Dataset saved to final_dataset_file.csv")
 X = df.drop(columns=['class', 'average'])
 y = df['class']
 
+# Step 4.5: Plot the Correlation Heatmap to see feature dependencies
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# 4.5.1 Calculate the correlation matrix
+correlation_matrix = df.corr()
+
+# 4.5.2 Plot the heatmap
+plt.figure(figsize=(12, 10))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5)
+plt.title('Correlation Heatmap of Features', fontsize=16)
+plt.tight_layout()
+plt.show()
+
 # %%
 # Step 5: Check Imbalance in Features
 feature_imbalance = {col: df[col].value_counts(normalize=True) for col in X.columns}
