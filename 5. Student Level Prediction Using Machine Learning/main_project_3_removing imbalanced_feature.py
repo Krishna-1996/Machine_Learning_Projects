@@ -127,7 +127,7 @@ import matplotlib.pyplot as plt
 correlation_matrix = df.corr()
 
 # 4.5.2 Plot the heatmap
-plt.figure(figsize=(24, 30))
+plt.figure(figsize=(30, 25))
 sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5)
 plt.title('Correlation Heatmap of Features', fontsize=16)
 plt.tight_layout()
