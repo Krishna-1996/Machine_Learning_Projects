@@ -427,3 +427,33 @@ confusion_df.to_csv(output_file_path, index=False)
 print(f"Confusion matrix values saved to: {output_file_path}")
 
 # %%
+# Step 9: Plot ROC curves for each model separately
+import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve, roc_auc_score
+
+# Loop through each model and plot its ROC curve
+for model_name, model in models.items():
+    # Check if the model has the 'predict_proba' method to compute the probabilities
+    if hasattr(model, 'predict_proba'):
+        # Get the predicted probabilities for the positive class
+        y_prob = model.predict_proba(X_test)[:, 1]
+        
+        # Calculate ROC curve
+        fpr, tpr, thresholds = roc_curve(y_test, y_prob)
+        
+        # Calculate ROC AUC score
+        auc_score = roc_auc_score(y_test, y_prob)
+        
+        # Plot the ROC curve for each model
+        plt.figure(figsize=(8, 6))
+        plt.plot(fpr, tpr, label=f'ROC Curve (AUC = {auc_score:.2f})')
+        plt.plot([0, 1], [0, 1], linestyle='--', color='gray', label='Random Classifier')
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title(f'ROC Curve for {model_name}')
+        plt.legend(loc='lower right')
+        plt.show()  # Display the ROC curve for the current model
+    else:
+        print(f"Model {model_name} does not support ROC curve (no 'predict_proba' method).")
+
+# %%
