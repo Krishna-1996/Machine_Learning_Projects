@@ -458,7 +458,7 @@ for model_name, model in models.items():
 
 # %%
 '''
-DL models:
+DL models 
 Feedforward Neural Network (FNN)
 Convolutional Neural Network (CNN)
 Recurrent Neural Network (RNN) or LSTM
