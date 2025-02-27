@@ -19,7 +19,7 @@ from scipy import stats
 import lime
 from lime.lime_tabular import LimeTabularExplainer
 import shap
-from sklearn.inspection import plot_partial_dependence
+from sklearn.inspection import PartialDependenceDisplay
 
 # %%
 # Step 2: Load the Breast Cancer Dataset
