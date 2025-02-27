@@ -180,3 +180,5 @@ for model_name, model in models.items():
     print(f"\nClassification Report for {model_name}:")
     y_pred = model.predict(X_test)
     print(classification_report(y_test, y_pred))
+
+# %%
