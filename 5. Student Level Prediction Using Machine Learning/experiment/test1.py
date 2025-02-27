@@ -16,7 +16,7 @@ from sklearn.preprocessing import LabelEncoder
 
 # %%
 # Step 2: Load the Iris Dataset
-iris = datasets.load_iris()
+iris = datasets.load_breast_cancer()
 X = iris.data
 y = iris.target
 
