@@ -135,7 +135,7 @@ X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_scaled, test_siz
 # Step 9: Initialize and Train Models
 models = {
     "Random Forest": RandomForestClassifier(),
-    "Support Vector Classifier": SVC(),
+    "Support Vector Classifier": SVC(probability=True),
     "Decision Tree": DecisionTreeClassifier(),
     "Logistic Regression": LogisticRegression(),
     "K-Nearest Neighbors": KNeighborsClassifier()
