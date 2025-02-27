@@ -217,7 +217,19 @@ for model_name, model in models.items():
     
     # Save explanation to results
     lime_results.append([model_name, explanation.as_list()])
+    
+    # Now SHAP: Handle models based on whether they are tree-based or not
+    if isinstance(model, (RandomForestClassifier, DecisionTreeClassifier)):  # For tree-based models
+        explainer_shap = shap.TreeExplainer(model)
+    else:  # For non-tree-based models
+        explainer_shap = shap.KernelExplainer(model.predict_proba, X_train)  # Use KernelExplainer for non-tree models
+    
+    shap_values = explainer_shap.shap_values(X_test)
+    
+    # Save explanation to results
+    shap_results.append([model_name, shap_values[1]])
 
+# %%
 # Step 16: SHAP (Shapley Additive Explanations)
 for model_name, model in models.items():
     model.fit(X_train, y_train)
@@ -229,6 +241,7 @@ for model_name, model in models.items():
     shap_results.append([model_name, shap_values[1]])
 
 
+# %%
 # Step 17: Partial Dependence Plots (PDPs)
 for model_name, model in models.items():
     model.fit(X_train, y_train)
