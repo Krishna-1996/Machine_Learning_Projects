@@ -14,7 +14,8 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.preprocessing import LabelEncoder
 
 # Load Iris dataset
-iris = datasets.load_iris()
+# iris = datasets.load_iris()
+iris = datasets.load_breast_cancer()
 X = iris.data
 y = iris.target
 
