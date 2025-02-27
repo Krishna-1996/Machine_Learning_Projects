@@ -189,3 +189,72 @@ for model_name, model in models.items():
     print(classification_report(y_test, y_pred))
 
 # %%
+# Step 14: Store Results for XAI Techniques
+# Initialize dictionaries to store XAI results for each model
+lime_results = []
+shap_results = []
+pdp_results = []
+
+# %%
+# Step 15: LIME (Local Interpretable Model-Agnostic Explanations)
+for model_name, model in models.items():
+    model.fit(X_train, y_train)
+    
+    # Initialize the LIME explainer
+    explainer = LimeTabularExplainer(
+        training_data=X_train,
+        feature_names=df_imputed.drop(columns=['target']).columns,
+        class_names=['Malignant', 'Benign'],
+        mode='classification',
+        discretize_continuous=True
+    )
+    
+    # Pick an instance from the test set
+    instance = X_test[1]
+    
+    # Explain the model's prediction for this instance
+    explanation = explainer.explain_instance(instance, model.predict_proba)
+    
+    # Save explanation to results
+    lime_results.append([model_name, explanation.as_list()])
+
+# Step 16: SHAP (Shapley Additive Explanations)
+for model_name, model in models.items():
+    model.fit(X_train, y_train)
+    
+    explainer_shap = shap.TreeExplainer(model)  # SHAP is often used for tree models
+    shap_values = explainer_shap.shap_values(X_test)
+    
+    # Save explanation to results
+    shap_results.append([model_name, shap_values[1]])
+
+
+# Step 17: Partial Dependence Plots (PDPs)
+for model_name, model in models.items():
+    model.fit(X_train, y_train)
+    
+    features_to_plot = [0, 1, 2, 3]  # Example features
+    fig, ax = plt.subplots(figsize=(10, 6))
+    plot_partial_dependence(model, X_train, features_to_plot,
+                            feature_names=df_imputed.drop(columns=['target']).columns,
+                            ax=ax, grid_resolution=50)
+    pdp_results.append([model_name, ax])
+
+# %%
+# Step 18: Store Results in CSV
+# Convert results to DataFrames
+lime_df = pd.DataFrame(lime_results, columns=["Model", "LIME Explanation"])
+shap_df = pd.DataFrame(shap_results, columns=["Model", "SHAP Values"])
+pdp_df = pd.DataFrame(pdp_results, columns=["Model", "PDP Plot"])
+
+# Combine results into one DataFrame for comparison
+final_results_df = pd.concat([lime_df, shap_df, pdp_df], axis=1)
+
+# Save results to CSV (including a final comparison sheet)
+with pd.ExcelWriter('XAI_Results.xlsx') as writer:
+    lime_df.to_excel(writer, sheet_name='LIME Results')
+    shap_df.to_excel(writer, sheet_name='SHAP Results')
+    pdp_df.to_excel(writer, sheet_name='PDP Results')
+    final_results_df.to_excel(writer, sheet_name='Final Comparison')
+
+print("Results saved to XAI_Results.xlsx")
