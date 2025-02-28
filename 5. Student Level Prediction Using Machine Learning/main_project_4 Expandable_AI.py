@@ -123,3 +123,5 @@ user_input = int(input("Enter the UserID of the instance to explain: ")) - 1
 # Get explanation for that instance
 explanation = explainer.explain_instance(X_test.values[user_input], model.predict)
 explanation.show_in_notebook()
+
+# %%
