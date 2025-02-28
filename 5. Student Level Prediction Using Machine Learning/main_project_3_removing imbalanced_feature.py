@@ -457,10 +457,5 @@ for model_name, model in models.items():
         print(f"Model {model_name} does not support ROC curve (no 'predict_proba' method).")
 
 # %%
-'''
-DL models for next step:
-Feedforward Neural Network (FNN)
-Convolutional Neural Network (CNN)
-Recurrent Neural Network (RNN) or LSTM
-'''
+
 # %%
