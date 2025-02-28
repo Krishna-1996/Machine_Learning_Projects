@@ -284,3 +284,17 @@ for model_name, explanation in lime_results:
     plt.show()
 
 # %%
+# Step 20: Visualize SHAP Results
+for model_name, shap_values in shap_results:
+    # SHAP Summary Plot for the model
+    plt.figure(figsize=(10, 6))
+    shap.summary_plot(shap_values, X_test, feature_names=df_imputed.drop(columns=['target']).columns)
+    plt.title(f"SHAP Summary Plot for {model_name}")
+    plt.show()
+    
+    # If you'd like to generate individual force plots for a specific prediction (e.g., first instance in X_test):
+    shap.initjs()  # Initializes JS visualization (useful for interactive force plots)
+    shap.force_plot(shap_values[0][0], X_test[0], feature_names=df_imputed.drop(columns=['target']).columns)
+    plt.show()
+
+# %%
