@@ -52,3 +52,5 @@ explanation.show_in_notebook(show_table=True, show_all=False)
 # Alternative: Visualizing the explanation as a bar chart
 fig = explanation.as_pyplot_figure()
 plt.show()
+
+# %%
