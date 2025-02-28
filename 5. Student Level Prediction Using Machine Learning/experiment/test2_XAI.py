@@ -1,4 +1,4 @@
-# %%
+# %% 
 # Step 1: Import Necessary Libraries
 import numpy as np
 import pandas as pd
@@ -21,7 +21,7 @@ from lime.lime_tabular import LimeTabularExplainer
 import shap
 from sklearn.inspection import PartialDependenceDisplay
 
-# %%
+# %% 
 # Step 2: Load the Breast Cancer Dataset
 # Load the dataset from sklearn
 cancer = datasets.load_breast_cancer()
@@ -32,8 +32,7 @@ y = cancer.target
 df = pd.DataFrame(X, columns=cancer.feature_names)
 df['target'] = y
 
-
-# %%
+# %% 
 # Step 3: Data Exploration
 
 # Check for missing values
@@ -48,7 +47,7 @@ sns.heatmap(df.corr(), annot=True, fmt=".2f", cmap='coolwarm', linewidths=0.5)
 plt.title('Correlation Heatmap')
 plt.show()
 
-# %%
+# %% 
 # Step 4: Outlier Detection and Treatment
 
 # 4.1: Visualizing Outliers using Boxplots
@@ -73,7 +72,7 @@ for feature, count in zip(df_features.columns, outliers_count):
 # 4.3: Remove Outliers (optional)
 df_no_outliers = df[~(outliers.any(axis=1))]
 
-# %%
+# %% 
 # Step 5: Check for Class Imbalance
 class_counts = df['target'].value_counts()
 print("\nClass Distribution:\n", class_counts)
@@ -100,7 +99,7 @@ if class_counts[0] > class_counts[1]:
 else:
     df_balanced = df
 
-# %%
+# %% 
 # Step 6: Check for Noise
 # Noise can be detected using methods like variance threshold or correlation-based filtering.
 
@@ -114,7 +113,7 @@ X_filtered = selector.fit_transform(df_balanced.drop(columns=['target']))
 features_selected = df_balanced.drop(columns=['target']).columns[selector.get_support()]
 print("\nFeatures selected after variance thresholding:", features_selected)
 
-# %%
+# %% 
 # Step 7: Preprocessing - Handle Missing Values and Standardize Features
 
 # 7.1: Impute missing values (if any)
@@ -127,11 +126,11 @@ scaler = StandardScaler()
 X_scaled = scaler.fit_transform(df_imputed.drop(columns=['target']))
 y_scaled = df_imputed['target']
 
-# %%
+# %% 
 # Step 8: Split Data into Training and Testing Sets
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_scaled, test_size=0.3, random_state=42)
 
-# %%
+# %% 
 # Step 9: Initialize and Train Models
 models = {
     "Random Forest": RandomForestClassifier(),
@@ -144,7 +143,6 @@ models = {
 # Train and evaluate each model (use previously processed data)
 results = []
 
-
 # Train and Evaluate each model
 for model_name, model in models.items():
     model.fit(X_train, y_train)
@@ -153,21 +151,40 @@ for model_name, model in models.items():
     cm = confusion_matrix(y_test, y_pred)
     results.append([model_name, accuracy, cm])
 
-# %%
+    # Step 14: LIME Explanations (Add this section)
+    explainer = LimeTabularExplainer(
+        training_data=X_train,  # Training data
+        feature_names=df_balanced.drop(columns=['target']).columns,  # Feature names
+        class_names=['Malignant', 'Benign'],  # Class names for classification
+        discretize_continuous=True  # Discretize continuous features for better explanation
+    )
+    
+    # Choose a random instance from the test set to explain
+    idx = np.random.randint(0, len(X_test))
+    instance = X_test[idx].reshape(1, -1)  # Reshape to make it 2D (required by LIME)
+    
+    # Explain the prediction
+    explanation = explainer.explain_instance(instance[0], model.predict_proba)
+    
+    # Visualize the explanation
+    print(f"\nLIME Explanation for {model_name} on Instance {idx} (True Class: {y_test[idx]}):")
+    explanation.show_in_notebook(show_table=True, show_all=False)
+
+# %% 
 # Step 10: Display Results
 results_df = pd.DataFrame(results, columns=["Model", "Accuracy", "Confusion Matrix"])
 
 # Display accuracy comparison
 print(results_df)
 
-# %%
+# %% 
 # Step 11: Visualize Model Accuracy Comparison
 plt.figure(figsize=(10, 6))
 sns.barplot(x="Model", y="Accuracy", data=results_df)
 plt.title("Model Accuracy Comparison")
 plt.show()
 
-# %%
+# %% 
 # Step 12: Visualize Confusion Matrix for Each Model
 fig, axes = plt.subplots(2, 3, figsize=(15, 10))
 axes = axes.ravel()
@@ -181,11 +198,9 @@ for idx, (model_name, _, cm) in enumerate(results):
 plt.tight_layout()
 plt.show()
 
-# %%
+# %% 
 # Step 13: Classification Report for Each Model
 for model_name, model in models.items():
     print(f"\nClassification Report for {model_name}:")
     y_pred = model.predict(X_test)
     print(classification_report(y_test, y_pred))
-
-# %%
