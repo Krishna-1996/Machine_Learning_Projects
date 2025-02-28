@@ -1,56 +1,89 @@
 # %%
-# Step 0: import lib
-import numpy as np
+# Step 1: Preprocessing
+
 import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score
-import lime
-from lime.lime_tabular import LimeTabularExplainer
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import confusion_matrix
+import numpy as np
+import lime.lime_tabular
+from sklearn.preprocessing import StandardScaler
+
+# Load the dataset from the provided CSV file
+data_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\test_dataset_Loan_Prediction_by_me.csv'
+data = pd.read_csv(data_path)
+
+# Display the first few rows of the dataset to confirm it loaded correctly
+print(data.head())
+
+# Convert categorical variables to numeric using LabelEncoder
+label_encoders = {}
+for column in ['gender', 'income', 'expenses']:  # Assuming these columns are categorical
+    le = LabelEncoder()
+    data[column] = le.fit_transform(data[column])
+    label_encoders[column] = le
+
+# Normalize the data
+scaler = MinMaxScaler()
+data[['income', 'expenses']] = scaler.fit_transform(data[['income', 'expenses']])
 
 # %%
-# Step 1: Create a simple synthetic dataset
-X, y = make_classification(n_samples=50, n_features=5, n_classes=2, random_state=42)
-print("X",X)
-print("y",y)
-# %%
-# Step 2: Split dataset into training and testing sets
+# Step 2: Splitting the Data into Training and Testing
+
+# Features (X) and Target (y)
+X = data[['gender', 'income', 'expenses', 'married', 'loan']]
+y = data['loan']  # Assuming loan is the target variable
+
+# Split data into training and testing sets (80% train, 20% test)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # %%
-# Step 3: Train a simple model - Logistic Regression
-model = LogisticRegression()
+# Step 3: Model Training (Linear Regression)
+
+model = LinearRegression()
 model.fit(X_train, y_train)
 
 # %%
-# Step 4: Make predictions and evaluate model
+# Step 4: Evaluate the Model using Confusion Matrix
+
+# Make predictions
 y_pred = model.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
-print(f"Model Accuracy: {accuracy * 100:.2f}%")
+
+# Threshold predictions to 0 or 1 for confusion matrix
+y_pred_binary = np.where(y_pred > 0.5, 1, 0)
+
+# Confusion Matrix
+cm = confusion_matrix(y_test, y_pred_binary)
+print("Confusion Matrix:")
+print(cm)
 
 # %%
-# Step 5: Apply LIME to explain a prediction
-# Initialize LIME Explainer
-explainer = LimeTabularExplainer(X_train, training_labels=y_train, mode="classification", 
-                                 feature_names=[f'Feature{i+1}' for i in range(X_train.shape[1])])
+# Step 5: Generate Predictions & Save Results to CSV
+
+# Add predictions to the dataset
+data['predict_value'] = model.predict(X)
+data['True/False'] = np.where(data['loan'] == data['predict_value'], True, False)
+
+# Save the dataframe to CSV
+output_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\predictions_output.csv'
+data.to_csv(output_path, index=False)
+print(f"Predictions saved to: {output_path}")
 
 # %%
-# Select a test instance to explain
-instance_to_explain = X_test[0]
+# Step 6: LIME (Local Interpretable Model-Agnostic Explanations)
 
-# %%
-# Get explanation
-explanation = explainer.explain_instance(instance_to_explain, model.predict_proba)
+# LIME explainer setup
+explainer = lime.lime_tabular.LimeTabularExplainer(
+    training_data=X_train.values,
+    feature_names=X.columns,
+    class_names=['0', '1'],
+    mode='classification'
+)
 
-# %%
-# Step 6: Visualize the explanation
-explanation.show_in_notebook(show_table=True, show_all=False)
+# User input for which instance to explain
+user_input = int(input("Enter the UserID (1-40) of the instance to explain: ")) - 1
 
-# %%
-# Alternative: Visualizing the explanation as a bar chart
-fig = explanation.as_pyplot_figure()
-plt.show()
-
-# %%
+# Get explanation for that instance
+explanation = explainer.explain_instance(X_test.values[user_input], model.predict)
+explanation.show_in_notebook()
