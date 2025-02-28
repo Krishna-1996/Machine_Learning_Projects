@@ -8,22 +8,55 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import confusion_matrix
 import numpy as np
 import lime.lime_tabular
-from sklearn.preprocessing import StandardScaler
 
 # Load the dataset from the provided CSV file
 data_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\test_dataset_Loan_Prediction_by_me.csv'
 data = pd.read_csv(data_path)
 
-# Display the first few rows of the dataset to confirm it loaded correctly
+# Check the first few rows of the dataset
+print("Columns in the dataset:")
+print(data.columns)
 print(data.head())
 
-# Convert categorical variables to numeric using LabelEncoder
+# %%
+# Convert categorical variables to numeric using LabelEncoder (gender)
 label_encoders = {}
-for column in ['gender', 'income', 'expenses']:  # Assuming these columns are categorical
+for column in ['gender']:  # Only gender needs encoding
     le = LabelEncoder()
     data[column] = le.fit_transform(data[column])
     label_encoders[column] = le
 
+# %%
+# Convert 'income' and 'expenses' into numeric values (since they are categorical ranges)
+def income_to_numeric(income_range):
+    if '100-200' in income_range:
+        return 150
+    elif '300-400' in income_range:
+        return 350
+    elif '201-300' in income_range:
+        return 250
+    elif '20001-30000' in income_range:
+        return 25000
+    elif '10000-20000' in income_range:
+        return 15000
+    else:
+        return 0  # Default for missing or unknown ranges
+
+def expenses_to_numeric(expenses_range):
+    if '100-200' in expenses_range:
+        return 150
+    elif '300-400' in expenses_range:
+        return 350
+    elif '201-300' in expenses_range:
+        return 250
+    else:
+        return 0  # Default for missing or unknown ranges
+
+# Apply these functions to the respective columns
+data['income'] = data['income'].apply(income_to_numeric)
+data['expenses'] = data['expenses'].apply(expenses_to_numeric)
+
+# %%
 # Normalize the data
 scaler = MinMaxScaler()
 data[['income', 'expenses']] = scaler.fit_transform(data[['income', 'expenses']])
@@ -32,8 +65,8 @@ data[['income', 'expenses']] = scaler.fit_transform(data[['income', 'expenses']]
 # Step 2: Splitting the Data into Training and Testing
 
 # Features (X) and Target (y)
-X = data[['gender', 'income', 'expenses', 'married', 'loan']]
-y = data['loan']  # Assuming loan is the target variable
+X = data[['gender', 'income', 'expenses', 'married']]  # Assuming 'loan' is the target
+y = data['loan']  # 'loan' is the target variable
 
 # Split data into training and testing sets (80% train, 20% test)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -82,7 +115,7 @@ explainer = lime.lime_tabular.LimeTabularExplainer(
 )
 
 # User input for which instance to explain
-user_input = int(input("Enter the UserID (1-40) of the instance to explain: ")) - 1
+user_input = int(input("Enter the UserID of the instance to explain: ")) - 1
 
 # Get explanation for that instance
 explanation = explainer.explain_instance(X_test.values[user_input], model.predict)
