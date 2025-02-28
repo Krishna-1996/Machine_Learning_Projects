@@ -4,7 +4,8 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
-from sklearn.linear_model import LinearRegression
+from sklearn.svm import SVC  # Support Vector Machine
+from sklearn.tree import DecisionTreeClassifier  # Decision Tree Classifier
 from sklearn.metrics import confusion_matrix
 import numpy as np
 import lime.lime_tabular
@@ -72,9 +73,14 @@ y = data['loan']  # 'loan' is the target variable
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # %%
-# Step 3: Model Training (Linear Regression)
+# Step 3: Model Training (SVM or Decision Tree)
 
-model = LinearRegression()
+# You can switch between SVM and Decision Tree by commenting/uncommenting these lines
+
+# SVM Model
+model = SVC(kernel='linear', random_state=42)  # Linear kernel for SVM
+# model = DecisionTreeClassifier(random_state=42)  # Use this line if you want to switch to Decision Tree
+
 model.fit(X_train, y_train)
 
 # %%
@@ -83,11 +89,8 @@ model.fit(X_train, y_train)
 # Make predictions
 y_pred = model.predict(X_test)
 
-# Threshold predictions to 0 or 1 for confusion matrix
-y_pred_binary = np.where(y_pred > 0.5, 1, 0)
-
 # Confusion Matrix
-cm = confusion_matrix(y_test, y_pred_binary)
+cm = confusion_matrix(y_test, y_pred)
 print("Confusion Matrix:")
 print(cm)
 
@@ -120,5 +123,3 @@ user_input = int(input("Enter the UserID of the instance to explain: ")) - 1
 # Get explanation for that instance
 explanation = explainer.explain_instance(X_test.values[user_input], model.predict)
 explanation.show_in_notebook()
-
-# %%
