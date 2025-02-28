@@ -130,6 +130,10 @@ y_scaled = df_imputed['target']
 # Step 8: Split Data into Training and Testing Sets
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_scaled, test_size=0.3, random_state=42)
 
+# Reset the indices to avoid KeyError when selecting a random instance from the test set
+X_test = pd.DataFrame(X_test, columns=df_balanced.drop(columns=['target']).columns)  # Create DataFrame with proper column names
+y_test = pd.Series(y_test)  # Convert y_test back to a pandas Series (optional, depends on how it's used)
+
 # %% 
 # Step 9: Initialize and Train Models
 models = {
@@ -160,14 +164,14 @@ for model_name, model in models.items():
     )
     
     # Choose a random instance from the test set to explain
-    idx = np.random.randint(0, len(X_test))
-    instance = X_test[idx].reshape(1, -1)  # Reshape to make it 2D (required by LIME)
+    idx = np.random.randint(0, len(X_test))  # Random index
+    instance = X_test.iloc[idx].values.reshape(1, -1)  # Reshape to make it 2D (required by LIME)
     
     # Explain the prediction
     explanation = explainer.explain_instance(instance[0], model.predict_proba)
     
     # Visualize the explanation
-    print(f"\nLIME Explanation for {model_name} on Instance {idx} (True Class: {y_test[idx]}):")
+    print(f"\nLIME Explanation for {model_name} on Instance {idx} (True Class: {y_test.iloc[idx]}):")
     explanation.show_in_notebook(show_table=True, show_all=False)
 
 # %% 
@@ -176,6 +180,7 @@ results_df = pd.DataFrame(results, columns=["Model", "Accuracy", "Confusion Matr
 
 # Display accuracy comparison
 print(results_df)
+
 
 # %% 
 # Step 11: Visualize Model Accuracy Comparison
