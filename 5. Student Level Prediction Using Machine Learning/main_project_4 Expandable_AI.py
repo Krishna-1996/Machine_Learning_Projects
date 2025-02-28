@@ -457,5 +457,38 @@ for model_name, model in models.items():
         print(f"Model {model_name} does not support ROC curve (no 'predict_proba' method).")
 
 # %%
+# Step 5: Generate Predictions & Save Results to CSV
+# Assuming the model is trained and X_test is available
+
+# Add predictions to the dataset
+data = X_test.copy()  # Copy the test set to preserve it
+data['predict_value'] = model.predict(X_test)  # Assuming the model is already defined and trained
+data['True/False'] = np.where(y_test == data['predict_value'], True, False)  # Comparing with actual values
+
+# Save the dataframe to CSV
+output_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\predictions_output.csv'
+data.to_csv(output_path, index=False)
+print(f"Predictions saved to: {output_path}")
+
+# Step 6: LIME (Local Interpretable Model-Agnostic Explanations)
+import lime.lime_tabular
+
+# LIME explainer setup
+explainer = lime.lime_tabular.LimeTabularExplainer(
+    training_data=X_train.values,  # Training data for LIME
+    feature_names=X.columns,  # Feature names from training data
+    class_names=['0', '1'],  # Class labels for binary classification
+    mode='classification'  # Since it's classification problem
+)
+
+# User input for which instance to explain (Use the index of the test set)
+user_input = int(input("Enter the index (UserID) of the instance to explain: "))  # User input for test instance
+
+# Get explanation for that instance
+explanation = explainer.explain_instance(X_test.values[user_input], model.predict)
+
+# Display the explanation in notebook (or print the explanation if running in non-notebook environment)
+explanation.show_in_notebook()  # Use show_in_notebook() to display in a Jupyter notebook
+# For other environments, you might need another method to display the explanation
 
 # %%
