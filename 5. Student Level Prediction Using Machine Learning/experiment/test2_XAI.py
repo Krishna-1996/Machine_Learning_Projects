@@ -272,3 +272,15 @@ with pd.ExcelWriter('XAI_Results.xlsx') as writer:
 
 print("Results saved to XAI_Results.xlsx")
 # %%
+# Step 19: Visualize LIME Results
+for model_name, explanation in lime_results:
+    # Convert explanation to a DataFrame for easier plotting
+    explanation_df = pd.DataFrame(explanation, columns=["Feature", "Importance"])
+    
+    # Plot the LIME explanation as a bar chart
+    plt.figure(figsize=(10, 6))
+    sns.barplot(x="Importance", y="Feature", data=explanation_df, palette="viridis")
+    plt.title(f"LIME Explanation for {model_name}")
+    plt.show()
+
+# %%
