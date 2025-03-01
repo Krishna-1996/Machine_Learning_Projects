@@ -268,7 +268,7 @@ average_results = {
     for model_name in models
 }
 
-# Convert average results into a DataFrame
+# 7.2 Convert average results into a DataFrame
 metrics_df = pd.DataFrame(average_results).T  # Transpose the results to have models as rows
 metrics_df = metrics_df.round(3)  # Round to 3 decimal places for better readability
 
