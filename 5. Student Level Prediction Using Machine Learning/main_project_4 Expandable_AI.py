@@ -272,11 +272,11 @@ average_results = {
 metrics_df = pd.DataFrame(average_results).T  # Transpose the results to have models as rows
 metrics_df = metrics_df.round(3)  # Round to 3 decimal places for better readability
 
-# Show the results in tabular format
+# 7.3 Show the results in tabular format
 print("\nEvaluation Metrics for All Models (Average across all folds):")
 print(metrics_df)
 
-# Optionally, display the table in a more formatted manner
+# 7.4 Optionally, display the table in a more formatted manner
 
 print("\nFormatted Table:")
 # print(tabulate(metrics_df, headers='keys', tablefmt='pretty'))
