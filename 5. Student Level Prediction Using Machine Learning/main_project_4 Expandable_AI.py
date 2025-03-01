@@ -462,6 +462,7 @@ for model_name, model in models.items():
 
 # Add predictions to the dataset
 data = X_test.copy()  # Copy the test set to preserve it
+data['actual_value'] = (y_test) # The actual data value
 data['predict_value'] = model.predict(X_test)  # Assuming the model is already defined and trained
 data['True/False'] = np.where(y_test == data['predict_value'], True, False)  # Comparing with actual values
 
@@ -482,13 +483,35 @@ explainer = lime.lime_tabular.LimeTabularExplainer(
 )
 
 # User input for which instance to explain (Use the index of the test set)
-user_input = int(input("Enter the index (UserID) of the instance to explain: "))  # User input for test instance
+index_to_check = int(input("Enter the index of the instance to explain: "))-1  # User input for test instance
 
-# Get explanation for that instance
-explanation = explainer.explain_instance(X_test.values[user_input], model.predict_proba)
-
-# Display the explanation in notebook (or print the explanation if running in non-notebook environment)
-explanation.show_in_notebook()  # Use show_in_notebook() to display in a Jupyter notebook
-# For other environments, you might need another method to display the explanation
-
+# Ensure the index is within the range of the test data
+if 0 <= index_to_check < len(X_test):
+    instance = X_test.iloc[index_to_check]
+    actual_value = y_test.iloc[index_to_check]
+    
+    # Get the prediction for the instance
+    predicted_value = model.predict(instance.values.reshape(1, -1))[0]
+    
+    # Check if the prediction is correct or not
+    prediction_correct = "Correct" if actual_value == predicted_value else "Incorrect"
+    
+    # Display the chosen instance details
+    print(f"\nChosen Instance {index_to_check + 1}:")
+    print(f"Actual Value: {actual_value}")
+    print(f"Predicted Value: {predicted_value}")
+    print(f"Prediction: {prediction_correct}")
+    
+    # Explain the chosen instance using LIME
+    explanation = explainer.explain_instance(instance.values, model.predict_proba, num_features=10)
+    
+    # Get the LIME explanation in tabular format
+    explanation_df = pd.DataFrame(explanation.as_list(), columns=["Feature", "Importance"])
+    print("\nLIME Explanation (Tabular Form):")
+    print(explanation_df)
+    
+    # Plot the LIME explanation (color chart)
+    explanation.show_in_notebook(show_table=True, show_all=False)
+else:
+    print("Invalid index. Please enter a valid index from the test data.")
 # %%
