@@ -315,26 +315,26 @@ for i, (model_name, cm) in enumerate(best_confusion_matrices.items()):
     ax.set_xlabel('Predicted')
     ax.set_ylabel('True')
 
-# Adjust layout to prevent overlapping labels
+# 9.3Adjust layout to prevent overlapping labels
 plt.tight_layout()
 
-# Show the combined plot
+# 9.4 Show the combined plot
 plt.show()
 
-# Convert results dictionary into DataFrame (for display)
+# 9.5 Convert results dictionary into DataFrame (for display)
 metrics_df = pd.DataFrame(results)
 
-# Show the results in tabular format
+# 9.6 Show the results in tabular format
 print("\nEvaluation Metrics for All Models:")
 print(metrics_df)
 
 
 # %%
-# Step 2: Plot confusion matrices for each model separately
+# Step 10: Plot confusion matrices for each model separately
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-# Loop through all the models and plot each confusion matrix separately
+# 10.1 Loop through all the models and plot each confusion matrix separately
 for model_name, cm in best_confusion_matrices.items():
     plt.figure(figsize=(6, 5))  # Adjust the size of the figure for each confusion matrix
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Predicted Negative', 'Predicted Positive'], 
@@ -345,17 +345,17 @@ for model_name, cm in best_confusion_matrices.items():
     plt.show()  # Display the confusion matrix for the current model
 
 # %%
-# Calculate the correlation matrix for all features and target variable 'class'
+# Step 11: Calculate the correlation matrix for all features and target variable 'class'
 import os
 import pandas as pd
 
-# Calculate the correlation matrix for all features and target variable 'class'
+# 11.1 Calculate the correlation matrix for all features and target variable 'class'
 correlation_matrix = df.corr()
 
-# Get correlation with the target variable 'class'
+# 11.2 Get correlation with the target variable 'class'
 target_correlation = correlation_matrix['class'].sort_values(ascending=False)
 
-# Convert the correlation to a DataFrame for better presentation
+# 11.3 Convert the correlation to a DataFrame for better presentation
 correlation_table = pd.DataFrame(target_correlation).reset_index()
 
 # Rename columns for clarity
