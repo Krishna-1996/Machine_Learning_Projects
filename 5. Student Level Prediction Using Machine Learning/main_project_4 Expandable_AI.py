@@ -469,7 +469,7 @@ data['True/False'] = np.where(y_test == data['predict_value'], True, False)  # C
 output_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\predictions_output.csv'
 data.to_csv(output_path, index=False)
 print(f"Predictions saved to: {output_path}")
-
+# %%
 # Step 6: LIME (Local Interpretable Model-Agnostic Explanations)
 import lime.lime_tabular
 
