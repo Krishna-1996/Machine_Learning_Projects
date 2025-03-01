@@ -213,20 +213,20 @@ for model_name, model in models.items():
         # 6.3.3 Make predictions
         y_pred = model.predict(X_test)
         
-        # Check if the model has the 'predict_proba' method (for ROC curve)
+        # 6.3.4 Check if the model has the 'predict_proba' method (for ROC curve)
         if hasattr(model, 'predict_proba'):
             y_prob = model.predict_proba(X_test)[:, 1]  # Get probabilities for ROC curve
         else:
             y_prob = None  # Set to None if the model doesn't support probabilities
         
-        # 6.3.4 Calculate the evaluation metrics
+        # 6.3.5 Calculate the evaluation metrics
         accuracy = accuracy_score(y_test, y_pred)
         f1 = f1_score(y_test, y_pred)
         precision = precision_score(y_test, y_pred)
         recall = recall_score(y_test, y_pred)
         roc_auc = roc_auc_score(y_test, y_prob) if y_prob is not None else None
         
-        # Store the metrics for each fold
+        # 6.3.6 Store the metrics for each fold
         results[model_name]['Accuracy'].append(accuracy)
         results[model_name]['F1-Score'].append(f1)
         results[model_name]['Precision'].append(precision)
@@ -234,20 +234,20 @@ for model_name, model in models.items():
         if roc_auc is not None:
             results[model_name]['ROC AUC'].append(roc_auc)
         
-        # 6.3.5 If this fold has the best accuracy, store the confusion matrix
+        # 6.3.7 If this fold has the best accuracy, store the confusion matrix
         if accuracy > best_accuracy:
             best_accuracy = accuracy
             best_cm = confusion_matrix(y_test, y_pred)
         
-        # Compute ROC curve if available
+        # 6.3.8 Compute ROC curve if available
         if y_prob is not None:
             fpr, tpr, _ = roc_curve(y_test, y_prob)
             tprs.append(np.interp(mean_fpr, fpr, tpr))
     
-    # Store the confusion matrix for the best fold of each model
+    # 6.4 Store the confusion matrix for the best fold of each model
     best_confusion_matrices[model_name] = best_cm
     
-    # Calculate mean ROC curve
+    # 6.5 Calculate mean ROC curve
     if tprs:
         mean_tpr = np.mean(tprs, axis=0)
         roc_curves[model_name] = (mean_fpr, mean_tpr)
@@ -256,7 +256,7 @@ for model_name, model in models.items():
 # Step 7: Display results in tabular form
 import pandas as pd
 
-# Compute average values for each model across all folds
+# 7.1 Compute average values for each model across all folds
 average_results = {
     model_name: {
         'Accuracy': np.mean(results[model_name]['Accuracy']),
