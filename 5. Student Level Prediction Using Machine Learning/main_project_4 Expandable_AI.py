@@ -485,7 +485,7 @@ explainer = lime.lime_tabular.LimeTabularExplainer(
 user_input = int(input("Enter the index (UserID) of the instance to explain: "))  # User input for test instance
 
 # Get explanation for that instance
-explanation = explainer.explain_instance(X_test.values[user_input], model.predict)
+explanation = explainer.explain_instance(X_test.values[user_input], model.predict_proba)
 
 # Display the explanation in notebook (or print the explanation if running in non-notebook environment)
 explanation.show_in_notebook()  # Use show_in_notebook() to display in a Jupyter notebook
