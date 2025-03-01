@@ -305,9 +305,9 @@ plt.show()
 # Create a 3x3 grid of subplots
 fig, axes = plt.subplots(3, 3, figsize=(15, 15))
 
-# Flatten the axes array to make indexing easier
+# 9.1 Flatten the axes array to make indexing easier
 axes = axes.flatten()
-# Loop through all the models and plot each confusion matrix
+# 9.2 Loop through all the models and plot each confusion matrix
 for i, (model_name, cm) in enumerate(best_confusion_matrices.items()):
     ax = axes[i]
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax, xticklabels=['Predicted Negative', 'Predicted Positive'], yticklabels=['True Negative', 'True Positive'])
