@@ -396,8 +396,6 @@ correlation_table.to_csv(output_file_path, index=False)
 
 print(f"Correlation results with explanations saved to: {output_file_path}")
 
-
-
 import pandas as pd
 
 # Extract FP, FN, TP, TN from confusion matrices
@@ -427,7 +425,7 @@ confusion_df.to_csv(output_file_path, index=False)
 print(f"Confusion matrix values saved to: {output_file_path}")
 
 # %%
-# Step 9: Plot ROC curves for each model separately
+# Step 12: Plot ROC curves for each model separately
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, roc_auc_score
 
@@ -457,7 +455,7 @@ for model_name, model in models.items():
         print(f"Model {model_name} does not support ROC curve (no 'predict_proba' method).")
 
 # %%
-# Step 5: Generate Predictions & Save Results to CSV
+# Step 13: Generate Predictions & Save Results to CSV
 # Assuming the model is trained and X_test is available
 
 # Add predictions to the dataset
@@ -473,7 +471,7 @@ output_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using M
 data.to_csv(output_path, index=False)
 print(f"Predictions saved to: {output_path}")
 # %%
-# Step 6: LIME (Local Interpretable Model-Agnostic Explanations)
+# Step 14: LIME (Local Interpretable Model-Agnostic Explanations)
 import lime.lime_tabular
 from lime.lime_tabular import LimeTabularExplainer
 
