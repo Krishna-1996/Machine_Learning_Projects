@@ -481,7 +481,7 @@ explainer = lime.lime_tabular.LimeTabularExplainer(
     feature_names=X.columns,  # Feature names from training data
     class_names=['0', '1'],  # Class labels for binary classification
     mode='classification'  # Since it's classification problem
-    
+    editing
 )
 
 # User input for which instance to explain (Use the index of the test set)
