@@ -459,7 +459,7 @@ for model_name, model in models.items():
 # Assuming the model is trained and X_test is available
 
 svm = SVC(probability=True)
-xgb = xgb.XGBClassifier()
+xgb = XGBClassifier()
 rf = RandomForestClassifier()
 ada = AdaBoostClassifier()
 
