@@ -459,20 +459,20 @@ for model_name, model in models.items():
 # Assuming the model is trained and X_test is available
 
 svm = SVC(probability=True)
-xgb = xgb.XGBClassifier()
+xgb1 = xgb.XGBClassifier()
 rf = RandomForestClassifier()
 ada = AdaBoostClassifier()
 
 # Assuming `X_train` and `X_test` are your feature matrices, and `y_train` and `y_test` are the labels
 # Fit the models first
 svm.fit(X_train, y_train)
-xgb.fit(X_train, y_train)
+xgb1.fit(X_train, y_train)
 rf.fit(X_train, y_train)
 ada.fit(X_train, y_train)
 
 # Now let's predict for each model
 svm_preds = svm.predict(X_test)
-xgb_preds = xgb.predict(X_test)
+xgb_preds = xgb1.predict(X_test)
 rf_preds = rf.predict(X_test)
 ada_preds = ada.predict(X_test)
 
