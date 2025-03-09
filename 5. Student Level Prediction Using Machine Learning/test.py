@@ -458,18 +458,44 @@ for model_name, model in models.items():
 # Step 13: Generate Predictions & Save Results to CSV
 # Assuming the model is trained and X_test is available
 
-# Add predictions to the dataset
-data = X_test.copy()  # Copy the test set to preserve it
-data['actual_value'] = (y_test) # The actual data value
-data['predict_value'] = model.predict(X_test)  # Assuming the model is already defined and trained
-data['predict_value_SVM'] = models['SVM'].predict(X_test)
+svm = SVC(probability=True)
+xgb = XGBClassifier()
+rf = RandomForestClassifier()
+ada = AdaBoostClassifier()
 
-data['True/False'] = np.where(y_test == data['predict_value'], True, False)  # Comparing with actual values
+# Assuming `X_train` and `X_test` are your feature matrices, and `y_train` and `y_test` are the labels
+# Fit the models first
+svm.fit(X_train, y_train)
+xgb.fit(X_train, y_train)
+rf.fit(X_train, y_train)
+ada.fit(X_train, y_train)
 
+# Now let's predict for each model
+svm_preds = svm.predict(X_test)
+xgb_preds = xgb.predict(X_test)
+rf_preds = rf.predict(X_test)
+ada_preds = ada.predict(X_test)
+
+# Assuming the VotingClassifier is already initialized and fit (you can create this model from the previous setup)
+voting_clf = VotingClassifier(estimators=[('svm', svm), ('rf', rf), ('xgb', xgb), ('ada', ada)], voting='hard')
+voting_clf.fit(X_train, y_train)
+voting_preds = voting_clf.predict(X_test)
+
+# Create a DataFrame for the CSV with actual and predicted values for each model
+results = pd.DataFrame({
+    'Actual Value': y_test,
+    'Prediction Value (SVM)': svm_preds,
+    'Prediction Value (XGBoost)': xgb_preds,
+    'Prediction Value (AdaBoost)': ada_preds,
+    'Prediction Value (Random Forest)': rf_preds,
+    'Prediction Value (Voting Classifier)': voting_preds
+})
 # Save the dataframe to CSV
-output_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\predictions_output.csv'
-data.to_csv(output_path, index=False)
+output_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\predictions_output_for_all.csv'
+results.to_csv(output_path, index=False)
 print(f"Predictions saved to: {output_path}")
+
+
 # %%
 # Step 14: LIME (Local Interpretable Model-Agnostic Explanations)
 import lime.lime_tabular
@@ -481,39 +507,45 @@ explainer = lime.lime_tabular.LimeTabularExplainer(
     feature_names=X.columns,  # Feature names from training data
     class_names=['0', '1'],  # Class labels for binary classification
     mode='classification'  # Since it's classification problem
-    
 )
 
-# User input for which instance to explain (Use the index of the test set)
-index_to_check = int(input("Enter the index of the instance to explain: "))-1  # User input for test instance
+# Function to explain predictions from each model
+def explain_model_prediction(model, model_name):
+    index_to_check = int(input(f"Enter the index of the instance to explain for {model_name}: ")) - 1  # User input for test instance
+    
+    # Ensure the index is within the range of the test data
+    if 0 <= index_to_check < len(X_test):
+        instance = X_test.iloc[index_to_check]
+        actual_value = y_test.iloc[index_to_check]
+        
+        # Get the prediction for the instance
+        predicted_value = model.predict(instance.values.reshape(1, -1))[0]
+        
+        # Check if the prediction is correct or not
+        prediction_correct = "Correct" if actual_value == predicted_value else "Incorrect"
+        
+        # Display the chosen instance details
+        print(f"\nChosen Instance {index_to_check + 1}:")
+        print(f"Actual Value: {actual_value}")
+        print(f"Predicted Value: {predicted_value}")
+        print(f"Prediction: {prediction_correct}")
+        
+        # Explain the chosen instance using LIME
+        explanation = explainer.explain_instance(instance.values, model.predict_proba, num_features=10)
+        
+        # Get the LIME explanation in tabular format
+        explanation_df = pd.DataFrame(explanation.as_list(), columns=["Feature", "Importance"])
+        print("\nLIME Explanation (Tabular Form):")
+        print(explanation_df)
+        
+        # Plot the LIME explanation (color chart)
+        explanation.show_in_notebook(show_table=True, show_all=False)
+    else:
+        print("Invalid index. Please enter a valid index from the test data.")
 
-# Ensure the index is within the range of the test data
-if 0 <= index_to_check < len(X_test):
-    instance = X_test.iloc[index_to_check]
-    actual_value = y_test.iloc[index_to_check]
-    
-    # Get the prediction for the instance
-    predicted_value = model.predict(instance.values.reshape(1, -1))[0]
-    
-    # Check if the prediction is correct or not
-    prediction_correct = "Correct" if actual_value == predicted_value else "Incorrect"
-    
-    # Display the chosen instance details
-    print(f"\nChosen Instance {index_to_check + 1}:")
-    print(f"Actual Value: {actual_value}")
-    print(f"Predicted Value: {predicted_value}")
-    print(f"Prediction: {prediction_correct}")
-    
-    # Explain the chosen instance using LIME
-    explanation = explainer.explain_instance(instance.values, model.predict_proba, num_features=10)
-    
-    # Get the LIME explanation in tabular format
-    explanation_df = pd.DataFrame(explanation.as_list(), columns=["Feature", "Importance"])
-    print("\nLIME Explanation (Tabular Form):")
-    print(explanation_df)
-    
-    # Plot the LIME explanation (color chart)
-    explanation.show_in_notebook(show_table=True, show_all=False)
-else:
-    print("Invalid index. Please enter a valid index from the test data.")
-# %%
+# Explain the prediction for each model
+explain_model_prediction(svm, 'SVM')
+explain_model_prediction(xgb, 'XGBoost')
+explain_model_prediction(rf, 'Random Forest')
+explain_model_prediction(ada, 'AdaBoost')
+explain_model_prediction(voting_clf, 'Voting Classifier')
