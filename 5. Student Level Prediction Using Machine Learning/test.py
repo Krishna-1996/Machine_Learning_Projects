@@ -457,7 +457,7 @@ for model_name, model in models.items():
 # %%
 # Step 13: Generate Predictions & Save Results to CSV
 # Assuming the model is trained and X_test is available
-
+from xgboost import XGBClassifier
 svm = SVC(probability=True)
 xgb = XGBClassifier()
 rf = RandomForestClassifier()
