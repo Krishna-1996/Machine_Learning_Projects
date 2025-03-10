@@ -477,6 +477,7 @@ print(f"Predictions saved to: {output_path}")
 
 # %%
 # %% 
+# %% 
 # Step 14: LIME (Local Interpretable Model-Agnostic Explanations)
 import lime.lime_tabular
 from lime.lime_tabular import LimeTabularExplainer
@@ -535,5 +536,6 @@ if 0 <= index_to_check < len(X_test):
 
 else:
     print("Invalid index. Please enter a valid index from the test data.")
+
 
 # %%
