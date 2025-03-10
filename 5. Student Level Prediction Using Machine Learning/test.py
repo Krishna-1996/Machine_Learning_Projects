@@ -468,7 +468,7 @@ data['predict_value_AdaBoost'] = models['AdaBoost'].predict(X_test)
 data['predict_value_Random_Forest'] = models['Random Forest'].predict(X_test)
 data['predict_value_XGBoost'] = models['XGBoost'].predict(X_test)
 
-data['True/False'] = np.where(y_test == data['predict_value'], True, False)  # Comparing with actual values
+# data['True/False'] = np.where(y_test == data['predict_value'], True, False)  # Comparing with actual values
 
 # Save the dataframe to CSV
 output_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\predictions_output_test.csv'
