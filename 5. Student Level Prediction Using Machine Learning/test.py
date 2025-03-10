@@ -507,14 +507,17 @@ if 0 <= index_to_check < len(X_test):
     
     # Get the predictions for the instance using both models
     predicted_value_svm = models['SVM'].predict(instance.values.reshape(1, -1))[0]
-    predicted_value_rf = models['Voting Classifier'].predict(instance.values.reshape(1, -1))[0]
-    predicted_value_svm = models['SVM'].predict(instance.values.reshape(1, -1))[0]
+    predicted_value_vc = models['Voting Classifier'].predict(instance.values.reshape(1, -1))[0]
+    predicted_value_AdaBoost = models['AdaBoost'].predict(instance.values.reshape(1, -1))[0]
     predicted_value_rf = models['Random Forest'].predict(instance.values.reshape(1, -1))[0]
-    predicted_value_rf = models['Random Forest'].predict(instance.values.reshape(1, -1))[0]
+    predicted_value_XGBoost = models['XGBoost'].predict(instance.values.reshape(1, -1))[0]
     
     # Check if the predictions are correct or not
     prediction_correct_svm = "Correct" if actual_value == predicted_value_svm else "Incorrect"
     prediction_correct_rf = "Correct" if actual_value == predicted_value_rf else "Incorrect"
+    prediction_correct_rf = "Correct" if actual_value == predicted_value_rf else "Incorrect"
+    prediction_correct_rf = "Correct" if actual_value == predicted_value_rf else "Incorrect"
+    
     
     # Display the chosen instance details
     print(f"\nChosen Instance {index_to_check + 1}:")
