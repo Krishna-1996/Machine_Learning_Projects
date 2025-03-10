@@ -475,8 +475,7 @@ output_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using M
 data.to_csv(output_path, index=False)
 print(f"Predictions saved to: {output_path}")
 
-# %%
-# %% 
+
 # %% 
 # Step 14: LIME (Local Interpretable Model-Agnostic Explanations)
 import lime.lime_tabular
@@ -507,8 +506,8 @@ if 0 <= index_to_check < len(X_test):
     actual_value = y_test.iloc[index_to_check]
     
     # Get the predictions for the instance using both models
-    predicted_value_svm = svm_model.predict(instance.values.reshape(1, -1))[0]
-    predicted_value_rf = rf_model.predict(instance.values.reshape(1, -1))[0]
+    predicted_value_svm = models['SVM'].predict(instance.values.reshape(1, -1))[0]
+    predicted_value_rf = models['Random Forest'].predict(instance.values.reshape(1, -1))[0]
     
     # Check if the predictions are correct or not
     prediction_correct_svm = "Correct" if actual_value == predicted_value_svm else "Incorrect"
@@ -522,14 +521,14 @@ if 0 <= index_to_check < len(X_test):
     
     # Explain the chosen instance using LIME for SVM model
     print("\nLIME Explanation for SVM Model:")
-    explanation_svm = svm_explainer.explain_instance(instance.values, svm_model.predict_proba, num_features=10)
+    explanation_svm = svm_explainer.explain_instance(instance.values, models['SVM'].predict_proba, num_features=10)
     explanation_df_svm = pd.DataFrame(explanation_svm.as_list(), columns=["Feature", "Importance"])
     print(explanation_df_svm)
     explanation_svm.show_in_notebook(show_table=True, show_all=False)
     
     # Explain the chosen instance using LIME for Random Forest model
     print("\nLIME Explanation for Random Forest Model:")
-    explanation_rf = rf_explainer.explain_instance(instance.values, rf_model.predict_proba, num_features=10)
+    explanation_rf = rf_explainer.explain_instance(instance.values, models['Random Forest'].predict_proba, num_features=10)
     explanation_df_rf = pd.DataFrame(explanation_rf.as_list(), columns=["Feature", "Importance"])
     print(explanation_df_rf)
     explanation_rf.show_in_notebook(show_table=True, show_all=False)
