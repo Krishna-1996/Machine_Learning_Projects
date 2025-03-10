@@ -467,7 +467,7 @@ data['predict_value_SVM'] = models['SVM'].predict(X_test)
 data['True/False'] = np.where(y_test == data['predict_value'], True, False)  # Comparing with actual values
 
 # Save the dataframe to CSV
-output_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\predictions_output.csv'
+output_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\predictions_output_test.csv'
 data.to_csv(output_path, index=False)
 print(f"Predictions saved to: {output_path}")
 
