@@ -586,7 +586,7 @@ xgb_explainer = lime.lime_tabular.LimeTabularExplainer(
 )
 
 # User input for which instance to explain (Use the index of the test set)
-index_to_check = int(input("Enter the index of the instance to explain: ")) - 1  # User input for test instance
+index_to_check = int(input("Enter the index of the instance to explain: "))   # User input for test instance
 
 # Ensure the index is within the range of the test data
 if 0 <= index_to_check < len(X_test):
