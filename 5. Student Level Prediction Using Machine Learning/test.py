@@ -461,8 +461,9 @@ for model_name, model in models.items():
 # Add predictions to the dataset
 data = X_test.copy()  # Copy the test set to preserve it
 data['actual_value'] = (y_test) # The actual data value
-data['predict_value'] = model.predict(X_test)  # Assuming the model is already defined and trained
+# data['predict_value'] = model.predict(X_test)  # Assuming the model is already defined and trained
 data['predict_value_SVM'] = models['SVM'].predict(X_test)
+data['predict_value_Voting_Classifier'] = models['SVM'].predict(X_test)
 
 data['True/False'] = np.where(y_test == data['predict_value'], True, False)  # Comparing with actual values
 
