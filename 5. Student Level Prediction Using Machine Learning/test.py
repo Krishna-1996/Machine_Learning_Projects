@@ -508,6 +508,9 @@ if 0 <= index_to_check < len(X_test):
     # Get the predictions for the instance using both models
     predicted_value_svm = models['SVM'].predict(instance.values.reshape(1, -1))[0]
     predicted_value_rf = models['Random Forest'].predict(instance.values.reshape(1, -1))[0]
+    predicted_value_svm = models['SVM'].predict(instance.values.reshape(1, -1))[0]
+    predicted_value_rf = models['Random Forest'].predict(instance.values.reshape(1, -1))[0]
+    
     
     # Check if the predictions are correct or not
     prediction_correct_svm = "Correct" if actual_value == predicted_value_svm else "Incorrect"
