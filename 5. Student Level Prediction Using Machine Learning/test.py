@@ -475,74 +475,6 @@ output_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using M
 data.to_csv(output_path, index=False)
 print(f"Predictions saved to: {output_path}")
 
-
-# %% 
-# Step 14: LIME (Local Interpretable Model-Agnostic Explanations)
-import lime.lime_tabular
-from lime.lime_tabular import LimeTabularExplainer
-import pandas as pd
-
-# LIME explainer setup for both SVM and Random Forest models
-svm_explainer = lime.lime_tabular.LimeTabularExplainer(
-    training_data=X_train.values,  # Training data for LIME
-    feature_names=X.columns,  # Feature names from training data
-    class_names=['0', '1'],  # Class labels for binary classification
-    mode='classification'  # Since it's classification problem
-)
-
-rf_explainer = lime.lime_tabular.LimeTabularExplainer(
-    training_data=X_train.values,  # Training data for LIME
-    feature_names=X.columns,  # Feature names from training data
-    class_names=['0', '1'],  # Class labels for binary classification
-    mode='classification'  # Since it's classification problem
-)
-
-# User input for which instance to explain (Use the index of the test set)
-index_to_check = int(input("Enter the index of the instance to explain: ")) - 1  # User input for test instance
-
-# Ensure the index is within the range of the test data
-if 0 <= index_to_check < len(X_test):
-    instance = X_test.iloc[index_to_check]
-    actual_value = y_test.iloc[index_to_check]
-    
-    # Get the predictions for the instance using both models
-    predicted_value_svm = models['SVM'].predict(instance.values.reshape(1, -1))[0]
-    predicted_value_vc = models['Voting Classifier'].predict(instance.values.reshape(1, -1))[0]
-    predicted_value_AdaBoost = models['AdaBoost'].predict(instance.values.reshape(1, -1))[0]
-    predicted_value_rf = models['Random Forest'].predict(instance.values.reshape(1, -1))[0]
-    predicted_value_XGBoost = models['XGBoost'].predict(instance.values.reshape(1, -1))[0]
-    
-    # Check if the predictions are correct or not
-    prediction_correct_svm = "Correct" if actual_value == predicted_value_svm else "Incorrect"
-    prediction_correct_vc = "Correct" if actual_value == predicted_value_rf else "Incorrect"
-    prediction_correct_AdaBoost = "Correct" if actual_value == predicted_value_rf else "Incorrect"
-    prediction_correct_rf = "Correct" if actual_value == predicted_value_rf else "Incorrect"
-    prediction_correct_XGBoost = "Correct" if actual_value == predicted_value_rf else "Incorrect"
-    
-    # Display the chosen instance details
-    print(f"\nChosen Instance {index_to_check + 1}:")
-    print(f"Actual Value: {actual_value}")
-    print(f"SVM Predicted Value: {predicted_value_svm} ({prediction_correct_svm})")
-    print(f"Random Forest Predicted Value: {predicted_value_rf} ({prediction_correct_rf})")
-    
-    # Explain the chosen instance using LIME for SVM model
-    print("\nLIME Explanation for SVM Model:")
-    explanation_svm = svm_explainer.explain_instance(instance.values, models['SVM'].predict_proba, num_features=10)
-    explanation_df_svm = pd.DataFrame(explanation_svm.as_list(), columns=["Feature", "Importance"])
-    print(explanation_df_svm)
-    explanation_svm.show_in_notebook(show_table=True, show_all=False)
-    
-    # Explain the chosen instance using LIME for Random Forest model
-    print("\nLIME Explanation for Random Forest Model:")
-    explanation_rf = rf_explainer.explain_instance(instance.values, models['Random Forest'].predict_proba, num_features=10)
-    explanation_df_rf = pd.DataFrame(explanation_rf.as_list(), columns=["Feature", "Importance"])
-    print(explanation_df_rf)
-    explanation_rf.show_in_notebook(show_table=True, show_all=False)
-
-else:
-    print("Invalid index. Please enter a valid index from the test data.")
-
-
 # %%
 # Step 14: LIME (Local Interpretable Model-Agnostic Explanations)
 import lime.lime_tabular
@@ -586,7 +518,7 @@ xgb_explainer = lime.lime_tabular.LimeTabularExplainer(
 )
 
 # User input for which instance to explain (Use the index of the test set)
-index_to_check = int(input("Enter the index of the instance to explain: "))   # User input for test instance
+index_to_check = int(input("Enter the index of the instance to explain: ")) -2  # User input for test instance
 
 # Ensure the index is within the range of the test data
 if 0 <= index_to_check < len(X_test):
@@ -654,4 +586,3 @@ if 0 <= index_to_check < len(X_test):
 else:
     print("Invalid index. Please enter a valid index from the test data.")
 
-# %%
