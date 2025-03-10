@@ -460,72 +460,73 @@ for model_name, model in models.items():
 
 # Add predictions to the dataset
 data = X_test.copy()  # Copy the test set to preserve it
-data['actual_value'] = (y_test) # The actual data value
+data['Actual_Value'] = (y_test) # The actual data value
 # data['predict_value'] = model.predict(X_test)  # Assuming the model is already defined and trained
-data['predict_value_SVM'] = models['SVM'].predict(X_test)
-data['predict_value_Voting_Classifier'] = models['Voting Classifier'].predict(X_test)
-data['predict_value_AdaBoost'] = models['AdaBoost'].predict(X_test)
-data['predict_value_Random_Forest'] = models['Random Forest'].predict(X_test)
-data['predict_value_XGBoost'] = models['XGBoost'].predict(X_test)
+data['Predict_Value SVM'] = models['SVM'].predict(X_test)
+data['Predict_Value Voting_Classifier'] = models['Voting Classifier'].predict(X_test)
+data['Predict_Value AdaBoost'] = models['AdaBoost'].predict(X_test)
+data['Predict_Value Random_Forest'] = models['Random Forest'].predict(X_test)
+data['Predict_Value XGBoost'] = models['XGBoost'].predict(X_test)
 
 # data['True/False'] = np.where(y_test == data['predict_value'], True, False)  # Comparing with actual values
 
 # Save the dataframe to CSV
-output_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\predictions_output_test.csv'
+output_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\predictions_output.csv'
 data.to_csv(output_path, index=False)
 print(f"Predictions saved to: {output_path}")
 
 # %%
-# Step 14: LIME (Local Interpretable Model-Agnostic Explanations)
+# Step 14: LIME for instance with visualization.
+import matplotlib.pyplot as plt
 import lime.lime_tabular
 from lime.lime_tabular import LimeTabularExplainer
 import pandas as pd
 
 # LIME explainer setup for all models
 svm_explainer = lime.lime_tabular.LimeTabularExplainer(
-    training_data=X_train.values,  # Training data for LIME
-    feature_names=X.columns,  # Feature names from training data
-    class_names=['0', '1'],  # Class labels for binary classification
-    mode='classification'  # Since it's classification problem
+    training_data=X_train.values,
+    feature_names=X.columns,
+    class_names=['0', '1'],
+    mode='classification'
 )
 
 rf_explainer = lime.lime_tabular.LimeTabularExplainer(
-    training_data=X_train.values,  # Training data for LIME
-    feature_names=X.columns,  # Feature names from training data
-    class_names=['0', '1'],  # Class labels for binary classification
-    mode='classification'  # Since it's classification problem
+    training_data=X_train.values,
+    feature_names=X.columns,
+    class_names=['0', '1'],
+    mode='classification'
 )
 
 vc_explainer = lime.lime_tabular.LimeTabularExplainer(
-    training_data=X_train.values,  # Training data for LIME
-    feature_names=X.columns,  # Feature names from training data
-    class_names=['0', '1'],  # Class labels for binary classification
-    mode='classification'  # Since it's classification problem
+    training_data=X_train.values,
+    feature_names=X.columns,
+    class_names=['0', '1'],
+    mode='classification'
 )
 
 ada_explainer = lime.lime_tabular.LimeTabularExplainer(
-    training_data=X_train.values,  # Training data for LIME
-    feature_names=X.columns,  # Feature names from training data
-    class_names=['0', '1'],  # Class labels for binary classification
-    mode='classification'  # Since it's classification problem
+    training_data=X_train.values,
+    feature_names=X.columns,
+    class_names=['0', '1'],
+    mode='classification'
 )
 
 xgb_explainer = lime.lime_tabular.LimeTabularExplainer(
-    training_data=X_train.values,  # Training data for LIME
-    feature_names=X.columns,  # Feature names from training data
-    class_names=['0', '1'],  # Class labels for binary classification
-    mode='classification'  # Since it's classification problem
+    training_data=X_train.values,
+    feature_names=X.columns,
+    class_names=['0', '1'],
+    mode='classification'
 )
 
 # User input for which instance to explain (Use the index of the test set)
-index_to_check = int(input("Enter the index of the instance to explain: ")) -2  # User input for test instance
+index_to_check = int(input("Enter the index of the instance to explain: ")) - 2  # User input for test instance
 
 # Ensure the index is within the range of the test data
 if 0 <= index_to_check < len(X_test):
     instance = X_test.iloc[index_to_check]
     actual_value = y_test.iloc[index_to_check]
     
-    # Get the predictions for the instance using all models
+    # Get predictions for the instance using all models
     predicted_value_svm = models['SVM'].predict(instance.values.reshape(1, -1))[0]
     predicted_value_vc = models['Voting Classifier'].predict(instance.values.reshape(1, -1))[0]
     predicted_value_AdaBoost = models['AdaBoost'].predict(instance.values.reshape(1, -1))[0]
@@ -548,41 +549,26 @@ if 0 <= index_to_check < len(X_test):
     print(f"Random Forest Predicted Value: {predicted_value_rf} ({prediction_correct_rf})")
     print(f"XGBoost Predicted Value: {predicted_value_XGBoost} ({prediction_correct_XGBoost})")
     
-    # Explain the chosen instance using LIME for SVM model
-    print("\nLIME Explanation for SVM Model:")
-    explanation_svm = svm_explainer.explain_instance(instance.values, models['SVM'].predict_proba, num_features=10)
-    explanation_df_svm = pd.DataFrame(explanation_svm.as_list(), columns=["Feature", "Importance"])
-    print(explanation_df_svm)
-    explanation_svm.show_in_notebook(show_table=True, show_all=False)
+    # Create subplots for visual comparison
+    fig, axes = plt.subplots(2, 3, figsize=(18, 10))
     
-    # Explain the chosen instance using LIME for Random Forest model
-    print("\nLIME Explanation for Random Forest Model:")
-    explanation_rf = rf_explainer.explain_instance(instance.values, models['Random Forest'].predict_proba, num_features=10)
-    explanation_df_rf = pd.DataFrame(explanation_rf.as_list(), columns=["Feature", "Importance"])
-    print(explanation_df_rf)
-    explanation_rf.show_in_notebook(show_table=True, show_all=False)
+    # Get LIME explanations and display them on the subplots
+    explanations = {
+        'SVM': svm_explainer.explain_instance(instance.values, models['SVM'].predict_proba, num_features=10),
+        'Random Forest': rf_explainer.explain_instance(instance.values, models['Random Forest'].predict_proba, num_features=10),
+        'Voting Classifier': vc_explainer.explain_instance(instance.values, models['Voting Classifier'].predict_proba, num_features=10),
+        'AdaBoost': ada_explainer.explain_instance(instance.values, models['AdaBoost'].predict_proba, num_features=10),
+        'XGBoost': xgb_explainer.explain_instance(instance.values, models['XGBoost'].predict_proba, num_features=10)
+    }
     
-    # Explain the chosen instance using LIME for Voting Classifier model
-    print("\nLIME Explanation for Voting Classifier Model:")
-    explanation_vc = vc_explainer.explain_instance(instance.values, models['Voting Classifier'].predict_proba, num_features=10)
-    explanation_df_vc = pd.DataFrame(explanation_vc.as_list(), columns=["Feature", "Importance"])
-    print(explanation_df_vc)
-    explanation_vc.show_in_notebook(show_table=True, show_all=False)
+    # Iterate over explanations to plot them
+    for ax, (model_name, explanation) in zip(axes.flat, explanations.items()):
+        explanation.as_pyplot_figure(label=1).axes[0].set_title(f'{model_name} Explanation')
     
-    # Explain the chosen instance using LIME for AdaBoost model
-    print("\nLIME Explanation for AdaBoost Model:")
-    explanation_ada = ada_explainer.explain_instance(instance.values, models['AdaBoost'].predict_proba, num_features=10)
-    explanation_df_ada = pd.DataFrame(explanation_ada.as_list(), columns=["Feature", "Importance"])
-    print(explanation_df_ada)
-    explanation_ada.show_in_notebook(show_table=True, show_all=False)
-    
-    # Explain the chosen instance using LIME for XGBoost model
-    print("\nLIME Explanation for XGBoost Model:")
-    explanation_xgb = xgb_explainer.explain_instance(instance.values, models['XGBoost'].predict_proba, num_features=10)
-    explanation_df_xgb = pd.DataFrame(explanation_xgb.as_list(), columns=["Feature", "Importance"])
-    print(explanation_df_xgb)
-    explanation_xgb.show_in_notebook(show_table=True, show_all=False)
+    plt.tight_layout()  # Adjust layout for better spacing
+    plt.show()
 
 else:
     print("Invalid index. Please enter a valid index from the test data.")
 
+# %%
