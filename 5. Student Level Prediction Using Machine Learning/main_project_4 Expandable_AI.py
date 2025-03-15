@@ -572,3 +572,37 @@ else:
     print("Invalid index. Please enter a valid index from the test data.")
 
 # %%
+# Step 15: Display Numerical Feature Importance for Each Model using LIME
+# Extract and display numerical values for LIME feature importances for each model
+
+# Function to extract and display the feature importances
+def display_lime_feature_importances(explanations, model_name):
+    print(f"\nFeature importances for {model_name}:")
+    # Get feature weights (importances)
+    feature_importances = explanations.as_list()
+    # Sort features by importance (absolute value of weight)
+    sorted_feature_importances = sorted(feature_importances, key=lambda x: abs(x[1]), reverse=True)
+    # Display the sorted feature importances
+    for feature, importance in sorted_feature_importances:
+        print(f"{feature}: {importance}")
+
+# Ensure the index is valid
+if 0 <= index_to_check < len(X_test):
+    instance = X_test.iloc[index_to_check]
+    actual_value = y_test.iloc[index_to_check]
+    
+    # Get LIME explanations for each model
+    explanations = {
+        'SVM': svm_explainer.explain_instance(instance.values, models['SVM'].predict_proba, num_features=10),
+        'Random Forest': rf_explainer.explain_instance(instance.values, models['Random Forest'].predict_proba, num_features=10),
+        'Voting Classifier': vc_explainer.explain_instance(instance.values, models['Voting Classifier'].predict_proba, num_features=10),
+        'AdaBoost': ada_explainer.explain_instance(instance.values, models['AdaBoost'].predict_proba, num_features=10),
+        'XGBoost': xgb_explainer.explain_instance(instance.values, models['XGBoost'].predict_proba, num_features=10)
+    }
+    
+    # Display feature importances for each model
+    for model_name, explanation in explanations.items():
+        display_lime_feature_importances(explanation, model_name)
+    
+else:
+    print("Invalid index. Please enter a valid index from the test data.")
