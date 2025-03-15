@@ -572,19 +572,21 @@ else:
     print("Invalid index. Please enter a valid index from the test data.")
 
 # %%
-# Step 15: Display Numerical Feature Importance for Each Model using LIME
-# Extract and display numerical values for LIME feature importances for each model
+# Step 15: Display and Save Numerical Feature Importance for Each Model using LIME
 
-# Function to extract and display the feature importances
-def display_lime_feature_importances(explanations, model_name):
-    print(f"\nFeature importances for {model_name}:")
-    # Get feature weights (importances)
+# Function to extract and return feature importances as a list of dictionaries
+def get_lime_feature_importances(explanations, model_name):
     feature_importances = explanations.as_list()
     # Sort features by importance (absolute value of weight)
     sorted_feature_importances = sorted(feature_importances, key=lambda x: abs(x[1]), reverse=True)
-    # Display the sorted feature importances
-    for feature, importance in sorted_feature_importances:
-        print(f"{feature}: {importance}")
+    
+    # Prepare the data for saving to CSV
+    feature_data = [{'Model': model_name, 'Feature': feature, 'Importance': importance} for feature, importance in sorted_feature_importances]
+    
+    return feature_data
+
+# Create a list to store all feature importances
+all_feature_importances = []
 
 # Ensure the index is valid
 if 0 <= index_to_check < len(X_test):
@@ -600,9 +602,20 @@ if 0 <= index_to_check < len(X_test):
         'XGBoost': xgb_explainer.explain_instance(instance.values, models['XGBoost'].predict_proba, num_features=10)
     }
     
-    # Display feature importances for each model
+    # Collect feature importances for each model
     for model_name, explanation in explanations.items():
-        display_lime_feature_importances(explanation, model_name)
+        feature_importances = get_lime_feature_importances(explanation, model_name)
+        all_feature_importances.extend(feature_importances)
     
+    # Convert the list of dictionaries to a DataFrame
+    feature_importance_df = pd.DataFrame(all_feature_importances)
+    
+    # Define the output path for the CSV file
+    output_csv_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\lime_feature_importances.csv'
+    
+    # Save the feature importances to CSV
+    feature_importance_df.to_csv(output_csv_path, index=False)
+    print(f"Feature importances saved to: {output_csv_path}")
 else:
     print("Invalid index. Please enter a valid index from the test data.")
+# %%
