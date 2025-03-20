@@ -1,6 +1,6 @@
 # **Student Level Prediction Using Machine Learning**
 
-This project explores the use of Machine Learning (ML), particularly ensemble and graph-based methods, to predict student performance and support personalized learning strategies. Traditional methods like grades and test scores fail to capture all factors influencing academic success. ML models can analyze diverse data, such as demographics and engagement, to predict outcomes and identify at-risk students. The study also investigates Explainable AI (XAI) with LIME (Local Interpretable Model-agnostic Explanations), offering insights into model predictions. This research aims to enhance prediction accuracy, improve educational strategies, and contribute to the evolving use of AI in education.
+This project explores the use of **machine learning (ML)**, particularly **ensemble** and **graph-based methods**, to predict student performance and support personalized learning strategies. Traditional methods like grades and test scores fail to capture all factors influencing academic success. ML models can analyze diverse data, such as demographics and engagement, to predict outcomes and identify at-risk students. The study also investigates **Explainable AI (XAI)** with **LIME (Local Interpretable Model-agnostic Explanations)**, offering insights into model predictions. This research aims to enhance prediction accuracy, improve educational strategies, and contribute to the evolving use of AI in education.
 
 ---
 
