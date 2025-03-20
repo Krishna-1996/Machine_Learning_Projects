@@ -86,6 +86,7 @@ Here the LIME is representing the SVM model for instance(row) 218.
 
 **Here is the LIME explanation for SVM**
 ![My Image](https://github.com/Krishna-1996/Machine_Learning_Projects/blob/main/5.%20Student%20Level%20Prediction%20Using%20Machine%20Learning/LIME_for_SVM.png)
+
 ---
 
 ## **Discussion and Future Work**
