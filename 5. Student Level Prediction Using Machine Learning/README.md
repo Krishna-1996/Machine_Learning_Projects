@@ -77,6 +77,9 @@ Below are the evaluation results for each model, showing their **accuracy**, **p
 | **XGBoost**           | 89.3%    | 90.6%     | 86.1%  | 88.3%    | 0.966   |
 | **Voting Classifier** | 92.8%    | 96.2%     | 88.1%  | 91.9%    | 0.991   |
 
+**The Confusion Metrics Result**
+![My Image](confusion metrics output.png)
+
 ---
 
 ## **Discussion and Future Work**
