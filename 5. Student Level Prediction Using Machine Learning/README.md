@@ -78,7 +78,7 @@ Below are the evaluation results for each model, showing their **accuracy**, **p
 | **Voting Classifier** | 92.8%    | 96.2%     | 88.1%  | 91.9%    | 0.991   |
 
 **The Confusion Metrics Result**
-![My Image](confusion metrics output.png)
+![My Image](https://github.com/Krishna-1996/Machine_Learning_Projects/blob/main/5.%20Student%20Level%20Prediction%20Using%20Machine%20Learning/confusion%20metrics%20output.png)
 
 ---
 
