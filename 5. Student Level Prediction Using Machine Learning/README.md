@@ -80,6 +80,11 @@ Below are the evaluation results for each model, showing their **accuracy**, **p
 **The Confusion Metrics Result**
 ![My Image](https://github.com/Krishna-1996/Machine_Learning_Projects/blob/main/5.%20Student%20Level%20Prediction%20Using%20Machine%20Learning/confusion%20metrics%20output.png)
 
+**The Expandable AI: LIME**
+This study used LIME to explain how the model is predicting the value and what features will impact the this prediction. 
+Here the LIME is representing the SVM model for instance(row) 218.
+**Here is the LIME explanation for SVM**
+![My Image](https://github.com/Krishna-1996/Machine_Learning_Projects/blob/main/5.%20Student%20Level%20Prediction%20Using%20Machine%20Learning/LIME_for_SVM.png)
 ---
 
 ## **Discussion and Future Work**
