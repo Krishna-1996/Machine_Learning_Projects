@@ -1,7 +1,6 @@
 # **Student Level Prediction Using Machine Learning**
 
-When a student changes their curriculum, everything—from their study environment to teaching styles and school culture—can shift dramatically. These changes affect not only the student but also their parents, guardians, and teachers. Traditionally, discussions and meetings between parents and teachers help decide the best grade level for a student, but this approach is outdated. What’s needed is a more effective way to predict whether a student is ready for the new grade.
-
+When a student changes their curriculum, everything—from their study environment to teaching styles and school culture—can shift dramatically. These changes affect not only the student but also their parents, guardians, and teachers. Traditionally, discussions and meetings between parents and teachers help decide the best grade level for a student, but this approach is outdated. What’s needed is a more effective way to predict whether a student is ready for the new grade. 
 This project aims to help students, teachers, and parents by uncovering hidden patterns in academic data and predicting which grade level is the best fit for a student when changing schools. By using **Machine Learning (ML)**, especially **Ensemble** and **Graph-Based Methods**, this study analyzes factors like student demographics, academic performance, and engagement. Additionally, the project explores **Explainable AI (XAI)** using **LIME** (Local Interpretable Model-agnostic Explanations) to provide clear insights into the predictions. The goal is to improve prediction accuracy, enhance learning strategies, and contribute to the growing use of AI in education.
 ---
 
