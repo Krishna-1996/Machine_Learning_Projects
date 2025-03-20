@@ -18,7 +18,9 @@ This project aims to help students, teachers, and parents by uncovering hidden p
 
 ## **Introduction**
 
-The primary objective of this project is to build predictive models to determine if a student will pass (class 1) or fail (class 0). We evaluate the performance of various machine learning models such as **SVM**, **Random Forest**, **AdaBoost**, **XGBoost**, and **Voting Classifier**. The dataset used contains features such as **study hours**, **attendance**, and **previous grades**.
+The primary aim of this project is to develop a set of predictive models to classify students' academic outcomes as either pass (class 1) or fail (class 0). The fail and pass will give information like weather the chosen grade will be good for the student or not. The prediction is based on key student performance indicators such as **study hours**, **attendance**, and **previous academic performance** (grades). We employ several machine learning techniques to build and evaluate these models, including **Support Vector Machines (SVM)**, **Random Forest**, **AdaBoost**, **XGBoost**, and **Voting Classifier**.
+
+The models are trained on a dataset containing structured features that are likely to influence student performance. These features are then used to train the models and predict whether a student will pass or fail. We evaluate each model's performance using a comprehensive set of evaluation metrics, such as **accuracy**, **precision**, **recall**, **F1-score**, and **ROC AUC**, to assess their effectiveness in real-world prediction tasks. The goal is to provide a robust solution for student performance prediction, allowing for data-driven educational strategies and early interventions for at-risk students.
 
 ### **Performance Metrics Evaluated:**
 
