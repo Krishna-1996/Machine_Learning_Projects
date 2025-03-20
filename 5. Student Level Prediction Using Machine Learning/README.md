@@ -47,7 +47,7 @@ The models are trained on a dataset with features influencing student performanc
 - **Performance**: Performs well on imbalanced datasets with high recall and precision.
 
 ### 4. **XGBoost**  
-- **Approach**: A highly efficient gradient boosting method with regularization to prevent overfitting.
+- **Approach**: A highly efficient gradient boosting method with regularization to prevent over-fitting.
 - **Performance**: Known for fast computation and superior accuracy.
 
 ### 5. **Voting Classifier**  
@@ -58,7 +58,7 @@ The models are trained on a dataset with features influencing student performanc
 
 ## **Dataset and Preprocessing**
 
-The dataset consists of student performance data, including features like **study hours**, **attendance**, and **previous grades**. The dataset is preprocessed with steps such as **handling missing values**, **normalizing continuous features**, and **encoding categorical variables**.
+The dataset consists of student performance data, including features like **previous grades**, **entrance exam result**, and **previous curriculum**. The dataset is preprocessed with steps such as **handling missing values**, **normalizing continuous features**, and **encoding categorical variables**.
 
 - **Training Data**: Includes 594 instances of class 0 (fail) and 524 instances of class 1 (pass).
 - **Test Data**: Includes 148 instances of class 0 (fail) and 131 instances of class 1 (pass).
