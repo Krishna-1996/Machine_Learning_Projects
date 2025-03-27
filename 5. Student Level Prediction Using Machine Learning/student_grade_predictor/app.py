@@ -1,0 +1,62 @@
+from flask import Flask, render_template, request
+import pandas as pd
+import numpy as np
+import pickle
+from sklearn.ensemble import VotingClassifier
+import lime.lime_tabular
+
+app = Flask(__name__)
+
+# Load the trained models (assuming you saved them as pickle files)
+with open('models/voting_classifier_model.pkl', 'rb') as f:
+    voting_classifier = pickle.load(f)
+
+# Load LIME explainer for interpretability
+def load_lime_explainer():
+    # Replace this with actual training data and feature names for the explainer
+    X_train = pd.DataFrame(np.random.randn(100, 10))  # Dummy data for explainer
+    feature_names = [f"Feature {i}" for i in range(10)]
+    explainer = lime.lime_tabular.LimeTabularExplainer(
+        X_train.values,
+        feature_names=feature_names,
+        class_names=['0', '1'],
+        mode='classification'
+    )
+    return explainer
+
+explainer = load_lime_explainer()
+
+@app.route("/", methods=["GET", "POST"])
+def index():
+    if request.method == "POST":
+        # Get user input data
+        student_data = {
+            'Feature1': float(request.form['feature1']),
+            'Feature2': float(request.form['feature2']),
+            'Feature3': float(request.form['feature3']),
+            # Add other features here based on your model
+        }
+        user_input = pd.DataFrame([student_data])
+
+        # Predict the grade using the model
+        predicted_grade = voting_classifier.predict(user_input)[0]
+        chosen_grade = int(request.form['chosen_grade'])
+
+        # Check if the chosen grade is correct
+        if predicted_grade == chosen_grade:
+            result = "Correct! Your grade prediction is accurate."
+            explanation = "The model predicts the correct grade for the student based on the data provided."
+        else:
+            result = "Incorrect. The chosen grade might not be suitable."
+            explanation = "Here’s the model’s suggestion based on the input data. Please provide more accurate data to get a better prediction."
+
+            # Suggest dataset improvements based on LIME explanations
+            explanation_details = explainer.explain_instance(user_input.values[0], voting_classifier.predict_proba)
+            explanation = explanation + " " + str(explanation_details.as_list())
+
+        return render_template("index.html", result=result, explanation=explanation, student_data=student_data)
+    
+    return render_template("index.html")
+
+if __name__ == "__main__":
+    app.run(debug=True)
