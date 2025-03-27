@@ -8,7 +8,7 @@ import lime.lime_tabular
 app = Flask(__name__)
 
 # Load the trained models (assuming you saved them as pickle files)
-with open('models/voting_classifier_model.pkl', 'rb') as f:
+with open('models/svm_model.pkl', 'rb') as f:
     voting_classifier = pickle.load(f)
 
 # Load LIME explainer for interpretability
