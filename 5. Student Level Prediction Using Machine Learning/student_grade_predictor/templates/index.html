@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Grade Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Student Grade Prediction</h1>
+        <form method="POST">
+            <div class="input-group">
+                <label for="feature1">Feature 1 (Quantitative):</label>
+                <input type="text" id="feature1" name="feature1" required>
+            </div>
+            <div class="input-group">
+                <label for="feature2">Feature 2 (Quantitative):</label>
+                <input type="text" id="feature2" name="feature2" required>
+            </div>
+            <div class="input-group">
+                <label for="feature3">Feature 3 (Qualitative):</label>
+                <input type="text" id="feature3" name="feature3" required>
+            </div>
+            <div class="input-group">
+                <label for="chosen_grade">Chosen Grade:</label>
+                <input type="number" id="chosen_grade" name="chosen_grade" min="0" max="10" required>
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+
+        {% if result %}
+        <div class="result">
+            <h2>Prediction Result</h2>
+            <p>{{ result }}</p>
+            <h3>Explanation:</h3>
+            <p>{{ explanation }}</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
