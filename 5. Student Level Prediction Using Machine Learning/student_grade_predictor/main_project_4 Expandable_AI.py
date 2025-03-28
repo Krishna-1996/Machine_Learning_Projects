@@ -632,3 +632,38 @@ joblib.dump(models['SVM'], model_save_path)
 print(f"SVM model saved to: {model_save_path}")
 
 # %%
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+
+# Assuming 'df' is your dataset (replace it with your actual DataFrame)
+# Example: df = pd.read_csv('your_dataset.csv')
+
+# Create a LabelEncoder instance
+label_encoder = LabelEncoder()
+
+# Prepare an empty list to store the results
+encoding_info = []
+
+# Iterate over each column to check for categorical columns
+for column in df.columns:
+    # Check if the column has categorical data (non-numeric)
+    if df[column].dtype == 'object':
+        # Fit and transform the LabelEncoder
+        label_encoder.fit(df[column])
+        
+        # Get the unique values and their corresponding labels
+        unique_values = label_encoder.classes_
+        numerical_values = label_encoder.transform(unique_values)
+        
+        # Append the feature name, unique values, and numerical labels to the list
+        for unique_value, num_value in zip(unique_values, numerical_values):
+            encoding_info.append([column, unique_value, num_value])
+
+# Convert the list to a DataFrame
+encoding_df = pd.DataFrame(encoding_info, columns=["Feature Name", "Unique Value", "Numerical Value"])
+
+# Save the DataFrame to an Excel file
+output_excel_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\feature_encoding_info.xlsx'
+encoding_df.to_excel(output_excel_path, index=False)
+
+print(f"Encoding information saved to: {output_excel_path}")
