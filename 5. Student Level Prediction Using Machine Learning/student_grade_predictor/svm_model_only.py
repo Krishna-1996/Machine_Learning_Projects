@@ -7,7 +7,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+from sklearn.preprocessing import LabelEncoder
 
 # 1.1 Load the dataset
 file_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\Student Level Prediction Using Machine Learning - Copy.csv'
