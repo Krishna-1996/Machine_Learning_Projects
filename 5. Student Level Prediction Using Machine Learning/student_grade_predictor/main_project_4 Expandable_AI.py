@@ -667,3 +667,5 @@ output_excel_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction U
 encoding_df.to_excel(output_excel_path, index=False)
 
 print(f"Encoding information saved to: {output_excel_path}")
+
+# %%
