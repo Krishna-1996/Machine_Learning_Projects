@@ -62,19 +62,38 @@ for col in df.columns:
             mean_value = df[col].mean()
             df[col].fillna(mean_value, inplace=True)
 
-# Encode Categorical Data
-categorical_columns = df.select_dtypes(include=['object']).columns
+# --- Feature Encoding Information --- #
+# Create a LabelEncoder instance
 label_encoders = {}
 
-# Remove rows where 'Year_of_Admission' contains "New Admission 18/19"
-df = df[df['Year_of_Admission'] != 'New Admission 18/19']
+# Prepare an empty list to store the results (Feature Name, Unique Value, Numerical Value)
+encoding_info = []
 
-for col in categorical_columns:
-    le = LabelEncoder()
-    df[col] = le.fit_transform(df[col])  # Convert categorical to numerical
-    label_encoders[col] = le  # Save the encoder for future reference
+# Iterate over each column to check for categorical columns
+for column in df.columns:
+    if df[column].dtype == 'object':  # Check for categorical columns
+        le = LabelEncoder()
+        df[column] = le.fit_transform(df[column])  # Fit and transform the column
+        label_encoders[column] = le  # Save the encoder for later use
+        
+        # Get the unique values and their corresponding labels (numerical values)
+        unique_values = le.classes_
+        numerical_values = le.transform(unique_values)
+        
+        # Store the feature, unique values, and corresponding numerical values in the list
+        for unique_value, num_value in zip(unique_values, numerical_values):
+            encoding_info.append([column, unique_value, num_value])
 
-df.drop(columns=['Year_of_Admission'], inplace=True)
+# Convert the list to a DataFrame
+encoding_df = pd.DataFrame(encoding_info, columns=["Feature Name", "Unique Value", "Numerical Value"])
+
+# Save the encoding information to an Excel file
+encoding_excel_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\student_grade_predictor\Only_SVM\feature_encoding_info.xlsx'
+encoding_df.to_excel(encoding_excel_path, index=False)
+
+print(f"Encoding information saved to: {encoding_excel_path}")
+
+# --- Continue with the rest of the preprocessing and model training --- #
 
 # Feature Engineering
 columns_to_avg = ['Mathexam', 'Scienceexam_', 'Englishexam_', 'Math191_', 'Science191_', 'English191_',
@@ -139,34 +158,3 @@ with pd.ExcelWriter(output_file_path) as writer:
     mapping_df.to_excel(writer, sheet_name='Mappings')
 
 print(f"Preprocessing complete. Dataset saved to: {output_file_path}")
-
-# Feature Encoding Information for all categorical columns
-# Create a LabelEncoder instance
-label_encoder = LabelEncoder()
-
-# Prepare an empty list to store the results
-encoding_info = []
-
-# Iterate over each column to check for categorical columns
-for column in df.columns:
-    # Check if the column has categorical data (non-numeric)
-    if df[column].dtype == 'object':
-        # Fit and transform the LabelEncoder
-        label_encoder.fit(df[column])
-        
-        # Get the unique values and their corresponding labels
-        unique_values = label_encoder.classes_
-        numerical_values = label_encoder.transform(unique_values)
-        
-        # Append the feature name, unique values, and numerical labels to the list
-        for unique_value, num_value in zip(unique_values, numerical_values):
-            encoding_info.append([column, unique_value, num_value])
-
-# Convert the list to a DataFrame
-encoding_df = pd.DataFrame(encoding_info, columns=["Feature Name", "Unique Value", "Numerical Value"])
-
-# Save the DataFrame to an Excel file
-encoding_excel_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\student_grade_predictor\Only_SVM\feature_encoding_info.xlsx'
-encoding_df.to_excel(encoding_excel_path, index=False)
-
-print(f"Encoding information saved to: {encoding_excel_path}")
