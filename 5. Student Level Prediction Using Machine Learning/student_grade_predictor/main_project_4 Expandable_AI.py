@@ -619,3 +619,14 @@ if 0 <= index_to_check < len(X_test):
 else:
     print("Invalid index. Please enter a valid index from the test data.")
 # %%
+import joblib
+
+# Assuming 'models['SVM']' is your trained SVM model
+
+# Define the path where you want to save the model
+model_save_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\svm_model.pkl'
+
+# Save the SVM model to a file
+joblib.dump(models['SVM'], model_save_path)
+
+print(f"SVM model saved to: {model_save_path}")
