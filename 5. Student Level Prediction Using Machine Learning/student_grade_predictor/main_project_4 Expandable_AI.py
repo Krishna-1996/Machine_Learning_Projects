@@ -554,11 +554,11 @@ if 0 <= index_to_check < len(X_test):
     
     # Get LIME explanations and display them on the subplots
     explanations = {
-        'SVM': svm_explainer.explain_instance(instance.values, models['SVM'].predict_proba, num_features=10),
-        'Random Forest': rf_explainer.explain_instance(instance.values, models['Random Forest'].predict_proba, num_features=10),
-        'Voting Classifier': vc_explainer.explain_instance(instance.values, models['Voting Classifier'].predict_proba, num_features=10),
-        'AdaBoost': ada_explainer.explain_instance(instance.values, models['AdaBoost'].predict_proba, num_features=10),
-        'XGBoost': xgb_explainer.explain_instance(instance.values, models['XGBoost'].predict_proba, num_features=10)
+        'SVM': svm_explainer.explain_instance(instance.values, models['SVM'].predict_proba, num_features=30),
+        'Random Forest': rf_explainer.explain_instance(instance.values, models['Random Forest'].predict_proba, num_features=30),
+        'Voting Classifier': vc_explainer.explain_instance(instance.values, models['Voting Classifier'].predict_proba, num_features=30),
+        'AdaBoost': ada_explainer.explain_instance(instance.values, models['AdaBoost'].predict_proba, num_features=30),
+        'XGBoost': xgb_explainer.explain_instance(instance.values, models['XGBoost'].predict_proba, num_features=30)
     }
     
     # Iterate over explanations to plot them
@@ -595,11 +595,11 @@ if 0 <= index_to_check < len(X_test):
     
     # Get LIME explanations for each model
     explanations = {
-        'SVM': svm_explainer.explain_instance(instance.values, models['SVM'].predict_proba, num_features=10),
-        'Random Forest': rf_explainer.explain_instance(instance.values, models['Random Forest'].predict_proba, num_features=10),
-        'Voting Classifier': vc_explainer.explain_instance(instance.values, models['Voting Classifier'].predict_proba, num_features=10),
-        'AdaBoost': ada_explainer.explain_instance(instance.values, models['AdaBoost'].predict_proba, num_features=10),
-        'XGBoost': xgb_explainer.explain_instance(instance.values, models['XGBoost'].predict_proba, num_features=10)
+        'SVM': svm_explainer.explain_instance(instance.values, models['SVM'].predict_proba, num_features=30),
+        'Random Forest': rf_explainer.explain_instance(instance.values, models['Random Forest'].predict_proba, num_features=30),
+        'Voting Classifier': vc_explainer.explain_instance(instance.values, models['Voting Classifier'].predict_proba, num_features=30),
+        'AdaBoost': ada_explainer.explain_instance(instance.values, models['AdaBoost'].predict_proba, num_features=30),
+        'XGBoost': xgb_explainer.explain_instance(instance.values, models['XGBoost'].predict_proba, num_features=30)
     }
     
     # Collect feature importances for each model
