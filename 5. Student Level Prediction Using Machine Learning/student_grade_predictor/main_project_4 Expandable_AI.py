@@ -624,7 +624,7 @@ import joblib
 # Assuming 'models['SVM']' is your trained SVM model
 
 # Define the path where you want to save the model
-model_save_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\svm_model.pkl'
+model_save_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\student_grade_predictor\svm_model.pkl'
 
 # Save the SVM model to a file
 joblib.dump(models['SVM'], model_save_path)
