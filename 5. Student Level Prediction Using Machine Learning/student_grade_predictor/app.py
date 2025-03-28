@@ -31,11 +31,37 @@ def index():
     if request.method == "POST":
         # Get user input data
         student_data = {
-            'Feature1': float(request.form['feature1']),
-            'Feature2': float(request.form['feature2']),
-            'Feature3': float(request.form['feature3']),
-            # Add other features here based on your model
+            'Gender': request.form['gender'],
+            'Age_as_of_Academic_Year_1718': float(request.form['age_as_of_1718']),
+            'Current_Year_1718': int(request.form['current_year_1718']),
+            'Proposed_YearGrade_1819': int(request.form['proposed_year_grade_1819']),
+            'Previous_Curriculum_17182': request.form['previous_curriculum_17182'],
+            'Current_School': request.form['current_school'],
+            'Current_Curriculum': request.form['current_curriculum'],
+            'Previous_yearGrade': int(request.form['previous_year_grade']),
+            'Mathexam': float(request.form['mathexam']),
+            'Scienceexam_': float(request.form['scienceexam']),
+            'Englishexam_': float(request.form['englishexam']),
+            'Math191_': float(request.form['math191']),
+            'Science191_': float(request.form['science191']),
+            'English191_': float(request.form['english191']),
+            'Math192_': float(request.form['math192']),
+            'Science192_': float(request.form['science192']),
+            'English192_': float(request.form['english192']),
+            'Math193_': float(request.form['math193']),
+            'Science193_': float(request.form['science193']),
+            'English193_': float(request.form['english193']),
+            'Math201_': float(request.form['math201']),
+            'Science201_': float(request.form['science201']),
+            'English201_': float(request.form['english201']),
+            'Math202_': float(request.form['math202']),
+            'Science202_': float(request.form['science202']),
+            'English202_': float(request.form['english202']),
+            'Math203_': float(request.form['math203']),
+            'Science203_': float(request.form['science203']),
+            'English203_': float(request.form['english203']),
         }
+        
         user_input = pd.DataFrame([student_data])
 
         # Predict the grade using the model

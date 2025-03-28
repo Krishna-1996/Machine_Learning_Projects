@@ -11,17 +11,57 @@
         <h1>Student Grade Prediction</h1>
         <form method="POST">
             <div class="input-group">
-                <label for="feature1">Feature 1 (Quantitative):</label>
-                <input type="text" id="feature1" name="feature1" required>
+                <label for="gender">Gender:</label>
+                <select id="gender" name="gender" required>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
             </div>
             <div class="input-group">
-                <label for="feature2">Feature 2 (Quantitative):</label>
-                <input type="text" id="feature2" name="feature2" required>
+                <label for="age_as_of_1718">Age as of Academic Year 1718:</label>
+                <input type="text" id="age_as_of_1718" name="age_as_of_1718" required>
             </div>
             <div class="input-group">
-                <label for="feature3">Feature 3 (Qualitative):</label>
-                <input type="text" id="feature3" name="feature3" required>
+                <label for="current_year_1718">Current Year 1718:</label>
+                <input type="text" id="current_year_1718" name="current_year_1718" required>
             </div>
+            <div class="input-group">
+                <label for="proposed_year_grade_1819">Proposed Year Grade 1819:</label>
+                <input type="text" id="proposed_year_grade_1819" name="proposed_year_grade_1819" required>
+            </div>
+            <div class="input-group">
+                <label for="previous_curriculum_17182">Previous Curriculum 17182:</label>
+                <input type="text" id="previous_curriculum_17182" name="previous_curriculum_17182" required>
+            </div>
+            <div class="input-group">
+                <label for="current_school">Current School:</label>
+                <input type="text" id="current_school" name="current_school" required>
+            </div>
+            <div class="input-group">
+                <label for="current_curriculum">Current Curriculum:</label>
+                <input type="text" id="current_curriculum" name="current_curriculum" required>
+            </div>
+            <div class="input-group">
+                <label for="previous_year_grade">Previous Year Grade:</label>
+                <input type="text" id="previous_year_grade" name="previous_year_grade" required>
+            </div>
+
+            <!-- Include all exam scores -->
+            <div class="input-group">
+                <label for="mathexam">Math Exam:</label>
+                <input type="text" id="mathexam" name="mathexam" required>
+            </div>
+            <div class="input-group">
+                <label for="scienceexam">Science Exam:</label>
+                <input type="text" id="scienceexam" name="scienceexam" required>
+            </div>
+            <div class="input-group">
+                <label for="englishexam">English Exam:</label>
+                <input type="text" id="englishexam" name="englishexam" required>
+            </div>
+
+            <!-- Continue with the other features (Math191_, Science191_, etc.) -->
+
             <div class="input-group">
                 <label for="chosen_grade">Chosen Grade:</label>
                 <input type="number" id="chosen_grade" name="chosen_grade" min="0" max="10" required>
