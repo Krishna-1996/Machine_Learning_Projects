@@ -630,3 +630,5 @@ model_save_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Usi
 joblib.dump(models['SVM'], model_save_path)
 
 print(f"SVM model saved to: {model_save_path}")
+
+# %%
