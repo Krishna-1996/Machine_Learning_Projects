@@ -2,31 +2,35 @@ import os
 from flask import Flask, render_template, request
 import joblib
 import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 import numpy as np
 
 # Initialize the Flask app
 app = Flask(__name__)
 
-# Load the pre-trained SVM model, scaler, and LabelEncoder mappings
+# Load the pre-trained SVM model and LabelEncoder mappings
 svm_model_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\student_grade_predictor\Only_SVM\The_SVM_Model_Output.pkl'
-scaler_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\student_grade_predictor\Only_SVM\The_SVM_Scaler.pkl'
-label_encoders_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\student_grade_predictor\Only_SVM\Label_Encoders.pkl'
+model = joblib.load(svm_model_path)
 
-# Load the model, scaler, and label encoders
-svm_model = joblib.load(svm_model_path)
-scaler = joblib.load(scaler_path)
-label_encoders = joblib.load(label_encoders_path)
+# Load the feature encoding information from the Excel file
+encoding_excel_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\student_grade_predictor\Only_SVM\feature_encoding_info.xlsx'
+encoding_df = pd.read_excel(encoding_excel_path)
+
+# Create a dictionary for fast lookup of feature encodings
+encoding_dict = {}
+for _, row in encoding_df.iterrows():
+    feature = row['Feature Name']
+    if feature not in encoding_dict:
+        encoding_dict[feature] = {}
+    encoding_dict[feature][row['Unique Value']] = row['Numerical Value']
 
 # Home route to render the input form
 @app.route('/')
 def home():
-    # Define feature columns based on the encoded feature
-    features = {
-        'Gender': ['Male', 'Female'],  # Assuming Gender as categorical
-        'Grade': ['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'],
-        'Curriculum': ['American', 'British'],  # Example for curriculum
-        'Year_of_Admission': ['Current Student']  # Example for year of admission
-    }
+    # Fetch feature names and unique values to display as options in the form
+    features = {}
+    for feature in encoding_dict:
+        features[feature] = list(encoding_dict[feature].keys())
 
     # Add numerical features to the form as input fields
     numerical_features = ['Mathexam', 'Scienceexam_', 'Englishexam_', 'Math191_', 'Science191_', 'English191_',
@@ -41,7 +45,7 @@ def home():
 def predict():
     # Fetch user inputs from the form
     user_input = {}
-    for feature in ['Gender', 'Grade', 'Curriculum', 'Year_of_Admission']:
+    for feature in encoding_dict:
         user_input[feature] = request.form.get(feature)
 
     # Fetch numerical feature values from the form
@@ -52,26 +56,23 @@ def predict():
                     'Math203_', 'Science203_', 'English203_']:
         numerical_input.append(float(request.form.get(feature, 0)))
 
-    # Map the categorical user inputs to their corresponding numerical values using label encoders
+    # Map the categorical user inputs to their corresponding numerical values
     encoded_input = []
     for feature, value in user_input.items():
-        if value in label_encoders[feature].classes_:
-            encoded_input.append(label_encoders[feature].transform([value])[0])
+        if value in encoding_dict[feature]:
+            encoded_input.append(encoding_dict[feature][value])
         else:
             return "Error: Invalid input value."
 
     # Combine the encoded categorical input and numerical input
     final_input = np.array(encoded_input + numerical_input).reshape(1, -1)
 
-    # Scale the features
-    final_input_scaled = scaler.transform(final_input)
-
     # Make prediction using the SVM model
-    prediction = svm_model.predict(final_input_scaled)[0]
+    prediction = model.predict(final_input)[0]
 
     # Display message based on the prediction result
     if prediction == 0:
-        result_message = "That's superb..!! The chosen grade is fit for the student, and with a little more effort, the student can achieve really good results."
+        result_message = "That's superb..!! The chosen grade is fit for the student, and with little more effort, the student can achieve really good results."
     else:
         result_message = "No, the chosen grade for the student has some issues, but with a little practice and training, the student will do well."
 
