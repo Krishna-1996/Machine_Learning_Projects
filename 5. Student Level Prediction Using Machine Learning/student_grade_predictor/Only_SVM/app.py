@@ -20,7 +20,7 @@ label_encoders = joblib.load(label_encoders_path)
 # Home route to render the input form
 @app.route('/')
 def home():
-    # Define feature columns based on the encoded features
+    # Define feature columns based on the encoded feature
     features = {
         'Gender': ['Male', 'Female'],  # Assuming Gender as categorical
         'Grade': ['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'],
