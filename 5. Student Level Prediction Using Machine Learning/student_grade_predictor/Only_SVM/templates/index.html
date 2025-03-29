@@ -94,10 +94,10 @@
         <div class="form-card">
             <form action="/predict" method="POST">
                 <h2>Categorical Features</h2>
-                {% for feature, label in feature_labels.items() %}
+                {% for feature, label in categorical_feature_labels.items() %}
                     <label for="{{ feature }}">{{ label }}</label>
                     <select name="{{ feature }}" id="{{ feature }}" required>
-                        <option value="">Select {{ feature }}</option>
+                        <option value="">Click Here</option>
                         {% for option in features[feature] %}
                             <option value="{{ option }}">{{ option }}</option>
                         {% endfor %}
@@ -107,28 +107,23 @@
                 <h2>Numerical Features</h2>
                 <h3>Entrance Exam Scores</h3>
                 {% for feature in entrance_exam_features %}
-                    <label for="{{ feature }}">{{ feature_labels.get(feature, feature) }}:</label>
+                    <label for="{{ feature }}">{{ numerical_feature_Labels.get(feature, feature) }}:</label>
                     <input type="number" name="{{ feature }}" id="{{ feature }}" required><br><br>
                 {% endfor %}
 
-                <h3>Marks Obtained in Previous Year 1 (2019)</h3>
-                {% for feature in marks_previous_years_1 %}
-                    <label for="{{ feature }}">{{ feature_labels.get(feature, feature) }}:</label>
+                <h3>Marks Obtained in Previous Year 1</h3>
+                {% for feature in marks_obtain_in_year_1 %}
+                    <label for="{{ feature }}">{{ numerical_feature_Labels.get(feature, feature) }}:</label>
                     <input type="number" name="{{ feature }}" id="{{ feature }}" required><br><br>
                 {% endfor %}
 
-                <h3>Marks Obtained in Previous Year 2 (2020)</h3>
-                {% for feature in marks_previous_years_2 %}
-                    <label for="{{ feature }}">{{ feature_labels.get(feature, feature) }}:</label>
+                <h3>Marks Obtained in Previous Year 2</h3>
+                {% for feature in marks_obtain_in_year_2 %}
+                    <label for="{{ feature }}">{{ numerical_feature_Labels.get(feature, feature) }}:</label>
                     <input type="number" name="{{ feature }}" id="{{ feature }}" required><br><br>
                 {% endfor %}
 
-                <h3>Marks Obtained in Previous Year 3 (2021)</h3>
-                {% for feature in marks_previous_years_3 %}
-                    <label for="{{ feature }}">{{ feature_labels.get(feature, feature) }}:</label>
-                    <input type="number" name="{{ feature }}" id="{{ feature }}" required><br><br>
-                {% endfor %}
-
+            
                 <input type="submit" value="Submit">
             </form>
         </div>

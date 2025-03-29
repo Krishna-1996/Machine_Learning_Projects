@@ -27,33 +27,59 @@ for _, row in encoding_df.iterrows():
 @app.route('/')
 def home():
     # Categorical features with better labels (questions)
-    feature_labels = {
-        'Gender': 'What is your gender?',
-        'Age_as_of_Academic_Year_1718': 'What is your age as of academic year 2017-2018?',
-        'Current_Year_1718': 'What grade are you in for the current year (2017-2018)?',
-        'Parental_education': 'What is the highest level of education completed by your parents?',
-        'Region': 'Which region do you live in?',
-        # Add more features as required with meaningful names
+    categorical_feature_labels = {
+        'Gender': 'Select your Gender',
+        'Age_as_of_Academic_Year_1718': 'Select your age',
+        'Current_Year_1718': 'Select the grade you had in previous school',
+        'Proposed_YearGrade_1819:': 'Which grade you proposed for next year?',
+        'Previous_Curriculum_17182:': 'Select the Curricula you had in previous school',
+        'Current_School:': 'Select your new school name',
+        'Current_Curriculum:': 'Select your new curricula',
+        'Previous_yearGrade:': 'Select the curricula system which is followed in your previous school',
+        
     }
-    
+    numerical_feature_Labels = {
+        'Mathexam': 'Enter your Math entrance exam score',
+        'Scienceexam_': 'Enter your Science entrance exam score',
+        'Englishexam_': 'Enter your English entrance exam score',
+        'Math191_': 'Enter your Math mark for Term 1',
+        'Science191_': 'Enter your Science mark for Term 1',
+        'English191_': 'Enter your English mark for Term 1',
+        'Math192_': 'Enter your Math mark for Term 2',
+        'Science192_': 'Enter your Science mark for Term 2',
+        'English192_': 'Enter your English mark for Term 2',
+        'Math193_': 'Enter your Math mark for Term 3',
+        'Science193_': 'Enter your Science mark for Term 3',
+        'English193_': 'Enter your English mark for Term 3',
+        'Math201_': 'Enter your Math mark for Term 1',
+        'Science201_': 'Enter your Science mark for Term 1',
+        'English201_': 'Enter your English mark for Term 1',
+        'Math202_': 'Enter your Math mark for Term 2',
+        'Science202_': 'Enter your Science mark for Term 2',
+        'English202_': 'Enter your English mark for Term 2',
+        'Math203_': 'Enter your Math mark for Term 3',
+        'Science203_': 'Enter your Science mark for Term 3',
+        'English203_': 'Enter your English mark for Term 3',
+    }
+
     features = {}
     for feature in encoding_dict:
         features[feature] = list(encoding_dict[feature].keys())
 
     # Numerical features: entrance exam scores, and marks in previous years (2019/2020)
     entrance_exam_features = ['Mathexam', 'Scienceexam_', 'Englishexam_']
-    marks_previous_years_1 = ['Math191_', 'Science191_', 'English191_']
-    marks_previous_years_2 = ['Math192_', 'Science192_', 'English192_']
-    marks_previous_years_3 = ['Math193_', 'Science193_', 'English193_']
-    marks_previous_years_4 = ['Math201_', 'Science201_', 'English201_']
-    marks_previous_years_5 = ['Math202_', 'Science202_', 'English202_']
-    marks_previous_years_6 = ['Math203_', 'Science203_', 'English203_']
+    marks_obtain_in_year_1 = ['Math191_', 'Science191_', 'English191_', 'Math192_', 'Science192_', 'English192_', 'Math193_', 'Science193_', 'English193_']
+    marks_obtain_in_year_2 = ['Math201_', 'Science201_', 'English201_', 'Math202_', 'Science202_', 'English202_', 'Math203_', 'Science203_', 'English203_']
+    
 
-    return render_template('index.html', features=features, feature_labels=feature_labels, 
-                           entrance_exam_features=entrance_exam_features, 
-                           marks_previous_years_1=marks_previous_years_1, marks_previous_years_2=marks_previous_years_2, 
-                           marks_previous_years_3=marks_previous_years_3, marks_previous_years_4=marks_previous_years_4, 
-                           marks_previous_years_5=marks_previous_years_5, marks_previous_years_6=marks_previous_years_6)
+    return render_template('index.html', 
+                           features=features,                           
+                           categorical_feature_labels=categorical_feature_labels,
+                           numerical_feature_Labels = numerical_feature_Labels,
+                           entrance_exam_features=entrance_exam_features,
+                           marks_obtain_in_year_1=marks_obtain_in_year_1,
+                           marks_obtain_in_year_2=marks_obtain_in_year_2
+                        )
 
 # Route to handle the prediction based on user input
 @app.route('/predict', methods=['POST'])
