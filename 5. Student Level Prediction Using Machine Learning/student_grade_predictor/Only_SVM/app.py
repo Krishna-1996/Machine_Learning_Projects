@@ -48,6 +48,9 @@ def predict():
     for feature in encoding_dict:
         user_input[feature] = request.form.get(feature)
 
+    # Debugging: Check user inputs
+    print("User inputs (categorical features):", user_input)
+
     # Fetch numerical feature values from the form
     numerical_input = []
     for feature in ['Mathexam', 'Scienceexam_', 'Englishexam_', 'Math191_', 'Science191_', 'English191_',
@@ -56,19 +59,28 @@ def predict():
                     'Math203_', 'Science203_', 'English203_']:
         numerical_input.append(float(request.form.get(feature, 0)))
 
+    # Debugging: Check numerical inputs
+    print("User inputs (numerical features):", numerical_input)
+
     # Map the categorical user inputs to their corresponding numerical values
     encoded_input = []
     for feature, value in user_input.items():
         if value in encoding_dict[feature]:
             encoded_input.append(encoding_dict[feature][value])
         else:
-            return "Error: Invalid input value."
+            return f"Error: Invalid input value for {feature}. Check the available options."
 
     # Combine the encoded categorical input and numerical input
     final_input = np.array(encoded_input + numerical_input).reshape(1, -1)
 
+    # Debugging: Check the final input for prediction
+    print("Final input for prediction:", final_input)
+
     # Make prediction using the SVM model
     prediction = model.predict(final_input)[0]
+
+    # Debugging: Check prediction
+    print("Prediction result:", prediction)
 
     # Display message based on the prediction result
     if prediction == 0:

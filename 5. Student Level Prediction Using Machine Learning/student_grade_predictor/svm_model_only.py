@@ -156,6 +156,7 @@ data['Predict_Value SVM'] = svm_model.predict(X_test_scaled)  # Corrected line
 output_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\student_grade_predictor\predictions_output.csv'
 data.to_csv(output_path, index=False)
 print(f"Predictions saved to: {output_path}")
+print(X.columns)
 
 # LIME explainer setup for all svm_model
 svm_explainer = lime.lime_tabular.LimeTabularExplainer(
