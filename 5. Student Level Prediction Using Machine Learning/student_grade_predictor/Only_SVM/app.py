@@ -31,55 +31,30 @@ def home():
         'Gender': 'Select your Gender',
         'Age_as_of_Academic_Year_1718': 'Select your age',
         'Current_Year_1718': 'Select the grade you had in previous school',
-        'Proposed_YearGrade_1819:': 'Which grade you proposed for next year?',
-        'Previous_Curriculum_17182:': 'Select the Curricula you had in previous school',
-        'Current_School:': 'Select your new school name',
-        'Current_Curriculum:': 'Select your new curricula',
-        'Previous_yearGrade:': 'Select the curricula system which is followed in your previous school',
-        
+        'Proposed_YearGrade_1819': 'Which grade you proposed for next year?',
+        'Previous_Curriculum_17182': 'Select the Curriculum from previous school',
+        'Current_School': 'Select your current school name',
+        'Current_Curriculum': 'Select your current curriculum',
+        'Previous_yearGrade': 'Select the curriculum system followed in previous school',
     }
-    numerical_feature_Labels = {
-        'Mathexam': 'Enter your Math entrance exam score',
-        'Scienceexam_': 'Enter your Science entrance exam score',
-        'Englishexam_': 'Enter your English entrance exam score',
-        'Math191_': 'Enter your Math mark for Term 1',
-        'Science191_': 'Enter your Science mark for Term 1',
-        'English191_': 'Enter your English mark for Term 1',
-        'Math192_': 'Enter your Math mark for Term 2',
-        'Science192_': 'Enter your Science mark for Term 2',
-        'English192_': 'Enter your English mark for Term 2',
-        'Math193_': 'Enter your Math mark for Term 3',
-        'Science193_': 'Enter your Science mark for Term 3',
-        'English193_': 'Enter your English mark for Term 3',
-        'Math201_': 'Enter your Math mark for Term 1',
-        'Science201_': 'Enter your Science mark for Term 1',
-        'English201_': 'Enter your English mark for Term 1',
-        'Math202_': 'Enter your Math mark for Term 2',
-        'Science202_': 'Enter your Science mark for Term 2',
-        'English202_': 'Enter your English mark for Term 2',
-        'Math203_': 'Enter your Math mark for Term 3',
-        'Science203_': 'Enter your Science mark for Term 3',
-        'English203_': 'Enter your English mark for Term 3',
-    }
-
+    
+    # Prepare a dictionary for passing dropdown options to the template
     features = {}
     for feature in encoding_dict:
-        features[feature] = list(encoding_dict[feature].keys())
+        features[feature] = list(encoding_dict[feature].keys())  # Get unique values for dropdown options
 
-    # Numerical features: entrance exam scores, and marks in previous years (2019/2020)
+    # Numerical features for the form (exams and marks)
     entrance_exam_features = ['Mathexam', 'Scienceexam_', 'Englishexam_']
     marks_obtain_in_year_1 = ['Math191_', 'Science191_', 'English191_', 'Math192_', 'Science192_', 'English192_', 'Math193_', 'Science193_', 'English193_']
     marks_obtain_in_year_2 = ['Math201_', 'Science201_', 'English201_', 'Math202_', 'Science202_', 'English202_', 'Math203_', 'Science203_', 'English203_']
-    
 
     return render_template('index.html', 
                            features=features,                           
                            categorical_feature_labels=categorical_feature_labels,
-                           numerical_feature_Labels = numerical_feature_Labels,
                            entrance_exam_features=entrance_exam_features,
                            marks_obtain_in_year_1=marks_obtain_in_year_1,
-                           marks_obtain_in_year_2=marks_obtain_in_year_2
-                        )
+                           marks_obtain_in_year_2=marks_obtain_in_year_2)
+
 
 # Route to handle the prediction based on user input
 @app.route('/predict', methods=['POST'])
@@ -122,6 +97,7 @@ def predict():
         result_message = "No, the chosen grade for the student has some issues, but with a little practice and training, the student will do well."
 
     return render_template('result.html', result_message=result_message)
+
 
 # Run the app
 if __name__ == '__main__':
