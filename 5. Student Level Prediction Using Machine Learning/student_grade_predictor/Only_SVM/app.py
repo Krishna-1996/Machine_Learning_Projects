@@ -22,7 +22,7 @@ for _, row in encoding_df.iterrows():
     feature = row['Feature Name']
     if feature not in encoding_dict:
         encoding_dict[feature] = {}
-    encoding_dict[feature][row['Unique Value']] = row['Numerical Value']
+    encoding_dict[feature][str(row['Unique Value'])] = row['Numerical Value']  # Ensure that keys are strings
 
 # Home route to render the input form
 @app.route('/')
@@ -68,6 +68,7 @@ def predict():
         if value in encoding_dict[feature]:
             encoded_input.append(encoding_dict[feature][value])
         else:
+            print(f"Invalid input value for {feature}: {value}. Check the available options.")
             return f"Error: Invalid input value for {feature}. Check the available options."
 
     # Combine the encoded categorical input and numerical input
