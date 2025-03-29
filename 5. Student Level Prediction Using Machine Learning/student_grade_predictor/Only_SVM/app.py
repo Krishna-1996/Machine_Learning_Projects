@@ -2,7 +2,6 @@ import os
 from flask import Flask, render_template, request
 import joblib
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
 import numpy as np
 
 # Initialize the Flask app
@@ -24,6 +23,42 @@ for _, row in encoding_df.iterrows():
         encoding_dict[feature] = {}
     encoding_dict[feature][str(row['Unique Value'])] = row['Numerical Value']  # Ensure that keys are strings
 
+# Custom labels for categorical features
+custom_labels = {
+    'Gender': {'Male': 'Male Student', 'Female': 'Female Student'},
+    'Study Program': {'Science': 'Science Program', 'Commerce': 'Commerce Program'},
+    'Parental Education': {'Undergraduate': 'Undergraduate Degree', 'Postgraduate': 'Postgraduate Degree'},
+    'School': {'High School': 'High School', 'Middle School': 'Middle School'},
+    'Location': {'Urban': 'Urban Area', 'Rural': 'Rural Area'},
+    # Add more features and their custom display names as needed
+}
+
+# Custom labels for numerical fields (you can adjust these names as needed)
+custom_numerical_labels = {
+    'Mathexam': 'Mathematics Exam Score',
+    'Scienceexam_': 'Science Exam Score',
+    'Englishexam_': 'English Exam Score',
+    'Math191_': 'Math 191 Score',
+    'Science191_': 'Science 191 Score',
+    'English191_': 'English 191 Score',
+    'Math192_': 'Math 192 Score',
+    'Science192_': 'Science 192 Score',
+    'English192_': 'English 192 Score',
+    'Math193_': 'Math 193 Score',
+    'Science193_': 'Science 193 Score',
+    'English193_': 'English 193 Score',
+    'Math201_': 'Math 201 Score',
+    'Science201_': 'Science 201 Score',
+    'English201_': 'English 201 Score',
+    'Math202_': 'Math 202 Score',
+    'Science202_': 'Science 202 Score',
+    'English202_': 'English 202 Score',
+    'Math203_': 'Math 203 Score',
+    'Science203_': 'Science 203 Score',
+    'English203_': 'English 203 Score',
+    # Add more numerical fields with custom names as needed
+}
+
 # Home route to render the input form
 @app.route('/')
 def home():
@@ -33,12 +68,15 @@ def home():
         features[feature] = list(encoding_dict[feature].keys())
 
     # Add numerical features to the form as input fields
-    numerical_features = ['Mathexam', 'Scienceexam_', 'Englishexam_', 'Math191_', 'Science191_', 'English191_',
-                          'Math192_', 'Science192_', 'English192_', 'Math193_', 'Science193_', 'English193_',
-                          'Math201_', 'Science201_', 'English201_', 'Math202_', 'Science202_', 'English202_',
-                          'Math203_', 'Science203_', 'English203_']
+    numerical_features = [
+        'Mathexam', 'Scienceexam_', 'Englishexam_', 'Math191_', 'Science191_', 'English191_',
+        'Math192_', 'Science192_', 'English192_', 'Math193_', 'Science193_', 'English193_',
+        'Math201_', 'Science201_', 'English201_', 'Math202_', 'Science202_', 'English202_',
+        'Math203_', 'Science203_', 'English203_'
+    ]
 
-    return render_template('index.html', features=features, numerical_features=numerical_features)
+    return render_template('index.html', features=features, numerical_features=numerical_features,
+                           custom_labels=custom_labels, custom_numerical_labels=custom_numerical_labels)
 
 # Route to handle the prediction based on user input
 @app.route('/predict', methods=['POST'])
@@ -48,9 +86,6 @@ def predict():
     for feature in encoding_dict:
         user_input[feature] = request.form.get(feature)
 
-    # Debugging: Check user inputs
-    print("User inputs (categorical features):", user_input)
-
     # Fetch numerical feature values from the form
     numerical_input = []
     for feature in ['Mathexam', 'Scienceexam_', 'Englishexam_', 'Math191_', 'Science191_', 'English191_',
@@ -59,29 +94,17 @@ def predict():
                     'Math203_', 'Science203_', 'English203_']:
         numerical_input.append(float(request.form.get(feature, 0)))
 
-    # Debugging: Check numerical inputs
-    print("User inputs (numerical features):", numerical_input)
-
     # Map the categorical user inputs to their corresponding numerical values
     encoded_input = []
     for feature, value in user_input.items():
         if value in encoding_dict[feature]:
             encoded_input.append(encoding_dict[feature][value])
-        else:
-            print(f"Invalid input value for {feature}: {value}. Check the available options.")
-            return f"Error: Invalid input value for {feature}. Check the available options."
 
     # Combine the encoded categorical input and numerical input
     final_input = np.array(encoded_input + numerical_input).reshape(1, -1)
 
-    # Debugging: Check the final input for prediction
-    print("Final input for prediction:", final_input)
-
     # Make prediction using the SVM model
     prediction = model.predict(final_input)[0]
-
-    # Debugging: Check prediction
-    print("Prediction result:", prediction)
 
     # Display message based on the prediction result
     if prediction == 0:
