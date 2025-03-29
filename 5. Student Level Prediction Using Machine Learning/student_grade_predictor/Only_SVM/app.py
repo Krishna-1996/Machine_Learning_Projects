@@ -31,7 +31,14 @@ def home():
     features = {}
     for feature in encoding_dict:
         features[feature] = list(encoding_dict[feature].keys())
-    return render_template('index.html', features=features)
+
+    # Add numerical features to the form as input fields
+    numerical_features = ['Mathexam', 'Scienceexam_', 'Englishexam_', 'Math191_', 'Science191_', 'English191_',
+                          'Math192_', 'Science192_', 'English192_', 'Math193_', 'Science193_', 'English193_',
+                          'Math201_', 'Science201_', 'English201_', 'Math202_', 'Science202_', 'English202_',
+                          'Math203_', 'Science203_', 'English203_']
+
+    return render_template('index.html', features=features, numerical_features=numerical_features)
 
 # Route to handle the prediction based on user input
 @app.route('/predict', methods=['POST'])
@@ -41,20 +48,27 @@ def predict():
     for feature in encoding_dict:
         user_input[feature] = request.form.get(feature)
 
-    # Map the categorical user inputs to their corresponding numerical values
+    # Fetch numerical feature values from the form
     numerical_input = []
+    for feature in ['Mathexam', 'Scienceexam_', 'Englishexam_', 'Math191_', 'Science191_', 'English191_',
+                    'Math192_', 'Science192_', 'English192_', 'Math193_', 'Science193_', 'English193_',
+                    'Math201_', 'Science201_', 'English201_', 'Math202_', 'Science202_', 'English202_',
+                    'Math203_', 'Science203_', 'English203_']:
+        numerical_input.append(float(request.form.get(feature, 0)))
+
+    # Map the categorical user inputs to their corresponding numerical values
+    encoded_input = []
     for feature, value in user_input.items():
         if value in encoding_dict[feature]:
-            numerical_input.append(encoding_dict[feature][value])
+            encoded_input.append(encoding_dict[feature][value])
         else:
             return "Error: Invalid input value."
 
-    # Create the input array for prediction (make sure to match the model input)
-    # Assumes that all features are provided by the user, matching the model's expected feature set
-    numerical_input = np.array(numerical_input).reshape(1, -1)
+    # Combine the encoded categorical input and numerical input
+    final_input = np.array(encoded_input + numerical_input).reshape(1, -1)
 
     # Make prediction using the SVM model
-    prediction = model.predict(numerical_input)[0]
+    prediction = model.predict(final_input)[0]
 
     # Display message based on the prediction result
     if prediction == 0:

@@ -7,6 +7,8 @@ from sklearn.metrics import confusion_matrix, accuracy_score
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
+import lime.lime_tabular
+from lime.lime_tabular import LimeTabularExplainer
 
 # 1.1 Load the dataset
 file_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\Student Level Prediction Using Machine Learning - Copy.csv'  # Your dataset path
@@ -100,8 +102,8 @@ scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
-# Train the SVM model
-svm_model = SVC(probability=True, kernel='linear', random_state=42)
+# Train the SVM model with class weights to handle imbalance
+svm_model = SVC(probability=True, kernel='linear', random_state=42, class_weight='balanced')
 svm_model.fit(X_train_scaled, y_train)
 
 # Make predictions and evaluate
@@ -139,3 +141,63 @@ with pd.ExcelWriter(output_file_path) as writer:
     mapping_df.to_excel(writer, sheet_name='Mappings')
 
 print(f"Preprocessing complete. Dataset saved to: {output_file_path}")
+
+# ________________________________________________________________
+
+# Step 13: Generate Predictions & Save Results to CSV
+# Assuming the model is trained and X_test is available
+
+# Add predictions to the dataset
+data = X_test.copy()  # Copy the test set to preserve it
+data['Actual_Value'] = y_test  # The actual data value
+data['Predict_Value SVM'] = svm_model.predict(X_test_scaled)  # Corrected line
+
+# Save to CSV
+output_path = r'D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\student_grade_predictor\predictions_output.csv'
+data.to_csv(output_path, index=False)
+print(f"Predictions saved to: {output_path}")
+
+# LIME explainer setup for all svm_model
+svm_explainer = lime.lime_tabular.LimeTabularExplainer(
+    training_data=X_train.values,
+    feature_names=X.columns,
+    class_names=['0', '1'],
+    mode='classification'
+)
+
+# User input for which instance to explain (Use the index of the test set)
+index_to_check = int(input("Enter the index of the instance to explain: ")) - 2  # User input for test instance
+
+# Ensure the index is within the range of the test data
+if 0 <= index_to_check < len(X_test):
+    instance = X_test.iloc[index_to_check]
+    actual_value = y_test.iloc[index_to_check]
+    
+    # Get predictions for the instance using all svm_model
+    predicted_value_svm = svm_model.predict(instance.values.reshape(1, -1))[0]
+      
+    # Check if the predictions are correct or not
+    prediction_correct_svm = "Correct" if actual_value == predicted_value_svm else "Incorrect"
+        
+    # Display the chosen instance details
+    print(f"\nChosen Instance {index_to_check + 1}:")
+    print(f"Actual Value: {actual_value}")
+    print(f"SVM Predicted Value: {predicted_value_svm} ({prediction_correct_svm})")
+        
+    # Create subplots for visual comparison
+    fig, axes = plt.subplots(2, 3, figsize=(18, 10))
+    
+    # Get LIME explanations and display them on the subplots
+    explanations = {
+        'SVM': svm_explainer.explain_instance(instance.values, svm_model.predict_proba, num_features=40),
+    }
+    
+    # Iterate over explanations to plot them
+    for ax, (model_name, explanation) in zip(axes.flat, explanations.items()):
+        explanation.as_pyplot_figure(label=1).axes[0].set_title(f'{model_name} Explanation')
+    
+    plt.tight_layout()  # Adjust layout for better spacing
+    plt.show()
+
+else:
+    print("Invalid index. Please enter a valid index from the test data.")
