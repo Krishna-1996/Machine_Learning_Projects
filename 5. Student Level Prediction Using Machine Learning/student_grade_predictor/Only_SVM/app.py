@@ -2,7 +2,6 @@ import os
 from flask import Flask, render_template, request
 import joblib
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
 import numpy as np
 
 # Initialize the Flask app
@@ -27,18 +26,34 @@ for _, row in encoding_df.iterrows():
 # Home route to render the input form
 @app.route('/')
 def home():
-    # Fetch feature names and unique values to display as options in the form
+    # Categorical features with better labels (questions)
+    feature_labels = {
+        'Gender': 'What is your gender?',
+        'Age_as_of_Academic_Year_1718': 'What is your age as of academic year 2017-2018?',
+        'Current_Year_1718': 'What grade are you in for the current year (2017-2018)?',
+        'Parental_education': 'What is the highest level of education completed by your parents?',
+        'Region': 'Which region do you live in?',
+        # Add more features as required with meaningful names
+    }
+    
     features = {}
     for feature in encoding_dict:
         features[feature] = list(encoding_dict[feature].keys())
 
-    # Add numerical features to the form as input fields
-    numerical_features = ['Mathexam', 'Scienceexam_', 'Englishexam_', 'Math191_', 'Science191_', 'English191_',
-                          'Math192_', 'Science192_', 'English192_', 'Math193_', 'Science193_', 'English193_',
-                          'Math201_', 'Science201_', 'English201_', 'Math202_', 'Science202_', 'English202_',
-                          'Math203_', 'Science203_', 'English203_']
+    # Numerical features: entrance exam scores, and marks in previous years (2019/2020)
+    entrance_exam_features = ['Mathexam', 'Scienceexam_', 'Englishexam_']
+    marks_previous_years_1 = ['Math191_', 'Science191_', 'English191_']
+    marks_previous_years_2 = ['Math192_', 'Science192_', 'English192_']
+    marks_previous_years_3 = ['Math193_', 'Science193_', 'English193_']
+    marks_previous_years_4 = ['Math201_', 'Science201_', 'English201_']
+    marks_previous_years_5 = ['Math202_', 'Science202_', 'English202_']
+    marks_previous_years_6 = ['Math203_', 'Science203_', 'English203_']
 
-    return render_template('index.html', features=features, numerical_features=numerical_features)
+    return render_template('index.html', features=features, feature_labels=feature_labels, 
+                           entrance_exam_features=entrance_exam_features, 
+                           marks_previous_years_1=marks_previous_years_1, marks_previous_years_2=marks_previous_years_2, 
+                           marks_previous_years_3=marks_previous_years_3, marks_previous_years_4=marks_previous_years_4, 
+                           marks_previous_years_5=marks_previous_years_5, marks_previous_years_6=marks_previous_years_6)
 
 # Route to handle the prediction based on user input
 @app.route('/predict', methods=['POST'])
@@ -48,19 +63,16 @@ def predict():
     for feature in encoding_dict:
         user_input[feature] = request.form.get(feature)
 
-    # Debugging: Check user inputs
-    print("User inputs (categorical features):", user_input)
-
     # Fetch numerical feature values from the form
     numerical_input = []
-    for feature in ['Mathexam', 'Scienceexam_', 'Englishexam_', 'Math191_', 'Science191_', 'English191_',
-                    'Math192_', 'Science192_', 'English192_', 'Math193_', 'Science193_', 'English193_',
-                    'Math201_', 'Science201_', 'English201_', 'Math202_', 'Science202_', 'English202_',
+    for feature in ['Mathexam', 'Scienceexam_', 'Englishexam_',
+                    'Math191_', 'Science191_', 'English191_',
+                    'Math192_', 'Science192_', 'English192_',
+                    'Math193_', 'Science193_', 'English193_',
+                    'Math201_', 'Science201_', 'English201_',
+                    'Math202_', 'Science202_', 'English202_',
                     'Math203_', 'Science203_', 'English203_']:
         numerical_input.append(float(request.form.get(feature, 0)))
-
-    # Debugging: Check numerical inputs
-    print("User inputs (numerical features):", numerical_input)
 
     # Map the categorical user inputs to their corresponding numerical values
     encoded_input = []
@@ -74,16 +86,10 @@ def predict():
     # Combine the encoded categorical input and numerical input
     final_input = np.array(encoded_input + numerical_input).reshape(1, -1)
 
-    # Debugging: Check the final input for prediction
-    print("Final input for prediction:", final_input)
-
     # Make prediction using the SVM model
     prediction = model.predict(final_input)[0]
 
-    # Debugging: Check prediction
-    print("Prediction result:", prediction)
-
-    # Display message baseAd on the prediction result
+    # Display message based on the prediction result
     if prediction == 0:
         result_message = "That's superb..!! The chosen grade is fit for the student, and with little more effort, the student can achieve really good results."
     else:
