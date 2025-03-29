@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Grade Predictor</title>
+</head>
+<body>
+    <h1>Student Grade Prediction</h1>
+    <form action="/predict" method="POST">
+        <h2>Categorical Features</h2>
+        {% for feature, options in features.items() %}
+            <label for="{{ feature }}">{{ feature }}:</label>
+            <select name="{{ feature }}" id="{{ feature }}">
+                <option value="">Select {{ feature }}</option>
+                {% for option in options %}
+                    <option value="{{ option }}">{{ option }}</option>
+                {% endfor %}
+            </select><br><br>
+        {% endfor %}
+
+        <h2>Numerical Features</h2>
+        {% for feature in numerical_features %}
+            <label for="{{ feature }}">{{ feature }}:</label>
+            <input type="number" name="{{ feature }}" id="{{ feature }}" required><br><br>
+        {% endfor %}
+
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>
