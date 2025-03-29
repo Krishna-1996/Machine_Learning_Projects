@@ -54,9 +54,9 @@
             margin-bottom: 15px;
         }
         
-        .categorical-section {
+        .categorical-section, .numerical-section {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 20px;
             padding: 10px;
         }
@@ -71,7 +71,7 @@
             color: #333;
             margin-bottom: 5px;
         }
-        
+
         select, input[type="number"] {
             width: 100%;
             padding: 12px;
@@ -81,9 +81,14 @@
             font-size: 1rem;
             transition: border 0.3s;
         }
-        
+
         select:focus, input[type="number"]:focus {
             border-color: #4CAF50;
+        }
+
+        select:hover, input[type="number"]:hover {
+            background-color: #f1f1f1;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
         }
         
         input[type="submit"] {
@@ -97,7 +102,7 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
-        
+
         input[type="submit"]:hover {
             background-color: #45a049;
         }
@@ -113,7 +118,7 @@
             border: 1px solid #4CAF50;
             transition: background-color 0.3s ease;
         }
-        
+
         .back-btn:hover {
             background-color: #4CAF50;
             color: white;
@@ -185,12 +190,14 @@
             </div>
 
             <h3>Numerical Features</h3>
-            {% for feature in numerical_features %}
-                <div class="input-field">
-                    <label for="{{ feature }}">{{ feature }}:</label>
-                    <input type="number" name="{{ feature }}" id="{{ feature }}" required step="any">
-                </div>
-            {% endfor %}
+            <div class="numerical-section">
+                {% for feature in numerical_features %}
+                    <div class="input-field">
+                        <label for="{{ feature }}">{{ feature }}:</label>
+                        <input type="number" name="{{ feature }}" id="{{ feature }}" required step="any">
+                    </div>
+                {% endfor %}
+            </div>
 
             <input type="submit" value="Submit">
         </form>
