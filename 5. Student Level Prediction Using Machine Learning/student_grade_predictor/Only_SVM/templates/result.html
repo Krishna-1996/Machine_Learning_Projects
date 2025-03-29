@@ -4,10 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prediction Result</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+        }
+        .result-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            margin: 30px auto;
+            width: 60%;
+        }
+        .result-card p {
+            font-size: 1.5rem;
+            color: #333;
+        }
+        .result-card.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .result-card.failure {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-top: 20px;
+            font-size: 1.2rem;
+            text-decoration: none;
+            color: #4CAF50;
+        }
+    </style>
 </head>
 <body>
-    <h1>Prediction Result</h1>
-    <p>{{ result_message }}</p>
-    <a href="/">Go Back</a>
+    <header>
+        <h1>Prediction Result</h1>
+    </header>
+    <div class="container">
+        <div class="result-card {% if 'superb' in result_message %}success{% else %}failure{% endif %}">
+            <p>{{ result_message }}</p>
+            <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> Go Back</a>
+        </div>
+    </div>
 </body>
 </html>
