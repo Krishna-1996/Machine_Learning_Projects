@@ -9,34 +9,23 @@ output_file_path = r"D:\Machine_Learning_Projects\5. Student Level Prediction Us
 student_data = pd.read_excel(dataset_file_path)
 encoding_data = pd.read_csv(encoding_file_path)
 
-# Create a dictionary to store encoding information
-encoding_dict = {}
-for _, row in encoding_data.iterrows():
-    feature = row['Feature Name']
-    value = row['Unique Value']
-    num_value = row['Numerical Value']
-    
-    # Normalize the values to ensure exact match (remove leading/trailing spaces, lowercase)
-    value = str(value).strip().lower()  # Normalize value from encoding file
-    if feature not in encoding_dict:
-        encoding_dict[feature] = {}
-    encoding_dict[feature][value] = num_value
-
-# Function to encode categorical columns based on the encoding dictionary
-def encode_categorical_columns(df, encoding_dict):
-    for column in df.columns:
-        if column in encoding_dict:
-            # Normalize the values in the dataframe column (strip spaces and lower case)
-            df[column] = df[column].apply(lambda x: str(x).strip().lower() if isinstance(x, str) else x)
-            
-            # Map the categorical values to their numerical equivalents
-            df[column] = df[column].map(encoding_dict[column]).fillna(df[column])
+# Function to encode the categorical columns based on the encoding dictionary
+def encode_feature(df, encoding_data):
+    for feature in encoding_data['Feature Name'].unique():
+        # Get the mapping for the current feature
+        feature_data = encoding_data[encoding_data['Feature Name'] == feature][['Unique Value', 'Numerical Value']]
+        mapping_dict = dict(zip(feature_data['Numerical Value'], feature_data['Unique Value']))
+        
+        # If the feature exists in the dataset, apply the mapping
+        if feature in df.columns:
+            # Replace the numerical values with the corresponding unique values
+            df[feature] = df[feature].map(mapping_dict).fillna(df[feature])  # fillna keeps the original value if not in the map
     return df
 
-# Encode the categorical features
-encoded_student_data = encode_categorical_columns(student_data.copy(), encoding_dict)
+# Encode the dataset
+encoded_student_data = encode_feature(student_data.copy(), encoding_data)
 
-# Save the encoded data to a new Excel file
+# Save the encoded dataset to a new Excel file
 encoded_student_data.to_excel(output_file_path, index=False)
 
 print(f"Encoded data saved to: {output_file_path}")
