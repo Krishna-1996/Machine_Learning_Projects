@@ -16,6 +16,8 @@ for _, row in encoding_data.iterrows():
     value = row['Unique Value']
     num_value = row['Numerical Value']
     
+    # Normalize the values to ensure exact match (remove leading/trailing spaces, lowercase)
+    value = str(value).strip().lower()  # Normalize value from encoding file
     if feature not in encoding_dict:
         encoding_dict[feature] = {}
     encoding_dict[feature][value] = num_value
@@ -24,8 +26,11 @@ for _, row in encoding_data.iterrows():
 def encode_categorical_columns(df, encoding_dict):
     for column in df.columns:
         if column in encoding_dict:
-            # Apply the encoding map to the column
-            df[column] = df[column].map(encoding_dict[column]).fillna(df[column])  # Non-matching values stay as-is
+            # Normalize the values in the dataframe column (strip spaces and lower case)
+            df[column] = df[column].apply(lambda x: str(x).strip().lower() if isinstance(x, str) else x)
+            
+            # Map the categorical values to their numerical equivalents
+            df[column] = df[column].map(encoding_dict[column]).fillna(df[column])
     return df
 
 # Encode the categorical features
