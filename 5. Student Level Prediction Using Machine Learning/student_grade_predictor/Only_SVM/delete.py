@@ -1,8 +1,8 @@
 import pandas as pd
 
 # File paths
-csv_file_path = r"D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\student_grade_predictor\Only_SVM\Powr BI Excel_Update.csv"
-encoding_file_path = r"D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\student_grade_predictor\Only_SVM\feature_encoding_info.xlsx"
+csv_file_path = r"D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\student_grade_predictor\Only_SVM\final_dataset_file.xlsx"
+encoding_file_path = r"D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\student_grade_predictor\Only_SVM\Power BI Excel_Update.csv"
 output_file_path = r"D:\Machine_Learning_Projects\5. Student Level Prediction Using Machine Learning\student_grade_predictor\Only_SVM\processed_student_data.xlsx"
 
 # Load the datasets
