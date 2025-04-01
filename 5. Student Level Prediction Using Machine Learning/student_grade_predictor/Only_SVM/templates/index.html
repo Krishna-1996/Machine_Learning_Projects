@@ -7,13 +7,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* Global Styling */
         body {
             font-family: 'Poppins', sans-serif;
             background: linear-gradient(135deg, #ff7e5f, #feb47b);
             margin: 0;
             padding: 0;
-            color: #333;
         }
 
         header {
@@ -99,20 +97,6 @@
             background-color: #45a049;
         }
 
-        /* Mobile Responsiveness */
-        @media (max-width: 768px) {
-            header {
-                font-size: 2rem;
-            }
-
-            .container {
-                padding: 20px;
-            }
-
-            .form-card {
-                padding: 30px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -137,20 +121,20 @@
 
             <h2>Numerical Features</h2>
             <h3>Entrance Exam Scores</h3>
-            {% for feature in entrance_exam_features %}
-                <label for="{{ feature }}"><i class="fas fa-pencil-alt"></i> {{ feature }}:</label>
+            {% for feature, label in entrance_exam_features.items() %}
+                <label for="{{ feature }}"><i class="fas fa-pencil-alt"></i> {{ label }}:</label>
                 <input type="number" name="{{ feature }}" id="{{ feature }}" required><br><br>
             {% endfor %}
 
             <h3>Marks Obtained in Previous Year 1</h3>
-            {% for feature in marks_obtain_in_year_1 %}
-                <label for="{{ feature }}"><i class="fas fa-graduation-cap"></i> {{ feature }}:</label>
+            {% for feature, label in marks_obtain_in_year_1.items() %}
+                <label for="{{ feature }}"><i class="fas fa-graduation-cap"></i> {{ label }}:</label>
                 <input type="number" name="{{ feature }}" id="{{ feature }}" required><br><br>
             {% endfor %}
 
             <h3>Marks Obtained in Previous Year 2</h3>
-            {% for feature in marks_obtain_in_year_2 %}
-                <label for="{{ feature }}"><i class="fas fa-graduation-cap"></i> {{ feature }}:</label>
+            {% for feature, label in marks_obtain_in_year_2.items() %}
+                <label for="{{ feature }}"><i class="fas fa-graduation-cap"></i> {{ label }}:</label>
                 <input type="number" name="{{ feature }}" id="{{ feature }}" required><br><br>
             {% endfor %}
 

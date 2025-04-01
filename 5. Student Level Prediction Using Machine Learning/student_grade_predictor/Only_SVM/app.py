@@ -23,6 +23,37 @@ for _, row in encoding_df.iterrows():
         encoding_dict[feature] = {}
     encoding_dict[feature][str(row['Unique Value'])] = row['Numerical Value']  # Ensure that keys are strings
 
+# Numerical features for the form (exams and marks)
+entrance_exam_features = {
+    'Mathexam': 'Mathematics',
+    'Scienceexam_': 'Science',
+    'Englishexam_': 'English',
+}
+
+marks_obtain_in_year_1 = {
+    'Math191_': 'Mathematics Term I',
+    'Science191_': 'Science Term I',
+    'English191_': 'English Term I',
+    'Math192_': 'Mathematics Term II',
+    'Science192_': 'Science Term II',
+    'English192_': 'English Term II',
+    'Math193_': 'Mathematics Term III',
+    'Science193_': 'Science Term III',
+    'English193_': 'English Term III',
+}
+
+marks_obtain_in_year_2 = {
+    'Math201_': 'Mathematics Term I',
+    'Science201_': 'Science Term I',
+    'English201_': 'English Term I',
+    'Math202_': 'Mathematics Term II',
+    'Science202_': 'Science Term II',
+    'English202_': 'English Term II',
+    'Math203_': 'Mathematics Term III',
+    'Science203_': 'Science Term III',
+    'English203_': 'English Term III',
+}
+
 # Home route to render the input form
 @app.route('/')
 def home():
@@ -36,16 +67,6 @@ def home():
         'Current_School': 'Select your current school name',
         'Current_Curriculum': 'Select your current curriculum',
         'Previous_yearGrade': 'Select the curriculum system followed in previous school',
-        # Entrance Exam Score
-        'Mathexam': 'Mathematics', 'Scienceexam_': 'Science', 'Englishexam_': 'English',
-        # Year 1 Exam Score
-        'Math191_': 'Mathematics Term I', 'Science191_': 'Science Term I', 'English191_': 'English Term I',
-        'Math192_': 'Mathematics Term II', 'Science192_': 'Science Term II', 'English192_': 'English Term II',
-        'Math193_': 'Mathematics Term III', 'Science193_': 'Science Term III', 'English193_': 'English Term III',
-        # Year 2 Exam Score
-        'Math201_': 'Mathematics Term I', 'Science201_': 'Science Term I', 'English201_': 'English Term I',
-        'Math202_': 'Mathematics Term II', 'Science202_': 'Science Term II', 'English202_': 'English Term II',
-        'Math203_': 'Mathematics Term III', 'Science203_': 'Science Term III', 'English203_': 'English Term III',
     }
     
     # Prepare a dictionary for passing dropdown options to the template
@@ -53,18 +74,12 @@ def home():
     for feature in encoding_dict:
         features[feature] = list(encoding_dict[feature].keys())  # Get unique values for dropdown options
 
-    # Numerical features for the form (exams and marks)
-    entrance_exam_features = ['Mathexam', 'Scienceexam_', 'Englishexam_']
-    marks_obtain_in_year_1 = ['Math191_', 'Science191_', 'English191_', 'Math192_', 'Science192_', 'English192_', 'Math193_', 'Science193_', 'English193_']
-    marks_obtain_in_year_2 = ['Math201_', 'Science201_', 'English201_', 'Math202_', 'Science202_', 'English202_', 'Math203_', 'Science203_', 'English203_']
-
     return render_template('index.html', 
                            features=features,                           
                            categorical_feature_labels=categorical_feature_labels,
-                           # entrance_exam_features=entrance_exam_features,
-                           # marks_obtain_in_year_1=marks_obtain_in_year_1,
-                           # marks_obtain_in_year_2=marks_obtain_in_year_2
-                           )
+                           entrance_exam_features=entrance_exam_features,
+                           marks_obtain_in_year_1=marks_obtain_in_year_1,
+                           marks_obtain_in_year_2=marks_obtain_in_year_2)
 
 
 # Route to handle the prediction based on user input
@@ -77,13 +92,7 @@ def predict():
 
     # Fetch numerical feature values from the form
     numerical_input = []
-    for feature in ['Mathexam', 'Scienceexam_', 'Englishexam_',
-                    'Math191_', 'Science191_', 'English191_',
-                    'Math192_', 'Science192_', 'English192_',
-                    'Math193_', 'Science193_', 'English193_',
-                    'Math201_', 'Science201_', 'English201_',
-                    'Math202_', 'Science202_', 'English202_',
-                    'Math203_', 'Science203_', 'English203_']:
+    for feature in list(entrance_exam_features.keys()) + list(marks_obtain_in_year_1.keys()) + list(marks_obtain_in_year_2.keys()):
         numerical_input.append(float(request.form.get(feature, 0)))
 
     # Map the categorical user inputs to their corresponding numerical values
