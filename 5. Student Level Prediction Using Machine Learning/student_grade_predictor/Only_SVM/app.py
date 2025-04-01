@@ -61,9 +61,10 @@ def home():
     return render_template('index.html', 
                            features=features,                           
                            categorical_feature_labels=categorical_feature_labels,
-                           entrance_exam_features=entrance_exam_features,
-                           marks_obtain_in_year_1=marks_obtain_in_year_1,
-                           marks_obtain_in_year_2=marks_obtain_in_year_2)
+                           # entrance_exam_features=entrance_exam_features,
+                           # marks_obtain_in_year_1=marks_obtain_in_year_1,
+                           # marks_obtain_in_year_2=marks_obtain_in_year_2
+                           )
 
 
 # Route to handle the prediction based on user input
