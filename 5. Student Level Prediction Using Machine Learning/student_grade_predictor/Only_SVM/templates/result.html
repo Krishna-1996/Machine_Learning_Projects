@@ -7,56 +7,78 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
-    <!-- Materialize CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
     <style>
+        /* Global Styling */
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #f4f4f9;
+            background: linear-gradient(135deg, #ff7e5f, #feb47b);
             margin: 0;
             padding: 0;
+            color: #333;
         }
+
         header {
             background-color: #4CAF50;
             color: white;
             padding: 20px;
             text-align: center;
+            font-size: 2.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
         .result-card {
             background-color: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            margin: 30px auto;
-            width: 60%;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
             text-align: center;
-            transition: transform 0.3s ease-in-out;
         }
-        .result-card:hover {
-            transform: scale(1.02);
-        }
+
         .success {
             background-color: #d4edda;
             color: #155724;
         }
+
         .failure {
             background-color: #f8d7da;
             color: #721c24;
         }
+
         .back-btn {
             display: inline-block;
             margin-top: 20px;
             font-size: 1.2rem;
-            color: #4CAF50;
-            text-decoration: none;
-            padding: 12px;
-            border-radius: 5px;
-            border: 1px solid #4CAF50;
-            transition: background-color 0.3s ease;
-        }
-        .back-btn:hover {
+            color: #fff;
             background-color: #4CAF50;
-            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .back-btn:hover {
+            background-color: #45a049;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            header {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            .result-card {
+                padding: 30px;
+            }
         }
     </style>
 </head>
@@ -73,10 +95,6 @@
         <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> Go Back</a>
     </div>
 </div>
-
-<!-- Include Materialize JS for better UI components -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
 </body>
 </html>
