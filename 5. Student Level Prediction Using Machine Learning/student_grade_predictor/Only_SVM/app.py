@@ -38,10 +38,14 @@ def home():
         'Previous_yearGrade': 'Select the curriculum system followed in previous school',
         # Entrance Exam Score
         'Mathexam': 'Mathematics', 'Scienceexam_': 'Science', 'Englishexam_': 'English',
+        # Year 1 Exam Score
         'Math191_': 'Mathematics Term I', 'Science191_': 'Science Term I', 'English191_': 'English Term I',
         'Math192_': 'Mathematics Term II', 'Science192_': 'Science Term II', 'English192_': 'English Term II',
         'Math193_': 'Mathematics Term III', 'Science193_': 'Science Term III', 'English193_': 'English Term III',
-        'Math201_': 'Mathematics Term I', 'Science201_': 'Science Term I', 'English201_': 'English Term I', 'Math202_': 'Mathematics Term II', 'Science202_': 'Science Term II', 'English202_', 'Math203_': 'Mathematics Term III', 'Science203_': 'Science Term III', 'English203_'
+        # Year 2 Exam Score
+        'Math201_': 'Mathematics Term I', 'Science201_': 'Science Term I', 'English201_': 'English Term I',
+        'Math202_': 'Mathematics Term II', 'Science202_': 'Science Term II', 'English202_': 'English Term II',
+        'Math203_': 'Mathematics Term III', 'Science203_': 'Science Term III', 'English203_': 'English Term III',
     }
     
     # Prepare a dictionary for passing dropdown options to the template
