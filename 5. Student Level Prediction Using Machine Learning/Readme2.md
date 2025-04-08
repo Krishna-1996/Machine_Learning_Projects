@@ -111,6 +111,9 @@ To make the project accessible and useful to end-users, a web application was de
 - **321** predicted "grade appropriate"
 - **179** flagged potential issues
 - Confirms model consistency and usefulness in real-world applications
+**Fig: 500 Random Dataset Result Visualization**  
+![Random Dataset Graph](https://github.com/Krishna-1996/Machine_Learning_Projects/blob/main/5.%20Student%20Level%20Prediction%20Using%20Machine%20Learning/500%20new%20dataset.png)
+
 
 ### **WebApp Screenshots**
 
@@ -120,8 +123,7 @@ To make the project accessible and useful to end-users, a web application was de
 **Fig: Result Output Page**  
 ![WebApp Result Page](https://your-screenshot-link-2)
 
-**Fig: 500 Random Dataset Result Visualization**  
-![Random Dataset Graph](https://your-screenshot-link-3)
+
 
 > _Note: Replace the above image URLs with links to your uploaded GitHub screenshots._
 
