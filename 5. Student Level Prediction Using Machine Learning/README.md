@@ -11,6 +11,8 @@ This project aims to help students, teachers, and parents by uncovering hidden p
 - **[Models Overview](#models-overview)**
 - **[Dataset and Preprocessing](#dataset-and-preprocessing)**
 - **[Evaluation Results](#evaluation-results)**
+- **[SVM Insights and LIME](#svm-insights-and-lime)**
+- **[Web Application](#web-application)**
 - **[Discussion and Future Work](#discussion-and-future-work)**
 - **[Conclusion](#conclusion)**
 
