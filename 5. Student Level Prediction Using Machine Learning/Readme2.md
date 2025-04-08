@@ -120,7 +120,11 @@ To make the project accessible and useful to end-users, a web application was de
 ### **WebApp Screenshots**
 
 **Fig: User Input Page**<br>
-![WebApp Input Page](https://github.com/Krishna-1996/Machine_Learning_Projects/blob/main/5.%20Student%20Level%20Prediction%20Using%20Machine%20Learning/Webpage%20front%20page1.png)**Fig: User Input Page** ![WebApp Input Page](https://github.com/Krishna-1996/Machine_Learning_Projects/blob/main/5.%20Student%20Level%20Prediction%20Using%20Machine%20Learning/Webpage%20front%20page2.png)<br>
+![WebApp Input Page](https://github.com/Krishna-1996/Machine_Learning_Projects/blob/main/5.%20Student%20Level%20Prediction%20Using%20Machine%20Learning/Webpage%20front%20page1.png)<br>
+
+
+**Fig: User Input Page**<br>
+![WebApp Input Page](https://github.com/Krishna-1996/Machine_Learning_Projects/blob/main/5.%20Student%20Level%20Prediction%20Using%20Machine%20Learning/Webpage%20front%20page2.png)<br>
 
 **Fig: Result Output Page** <br> 
 ![WebApp Result Page](https://github.com/Krishna-1996/Machine_Learning_Projects/blob/main/5.%20Student%20Level%20Prediction%20Using%20Machine%20Learning/Webpage%20result%20page.png)
