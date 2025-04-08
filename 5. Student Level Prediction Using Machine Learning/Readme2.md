@@ -119,10 +119,10 @@ To make the project accessible and useful to end-users, a web application was de
 
 ### **WebApp Screenshots**
 
-**Fig: User Input Page**  
-![WebApp Input Page](https://your-screenshot-link-1)**Fig: User Input Page** ![WebApp Input Page](https://your-screenshot-link-1)
+**Fig: User Input Page**<br>
+![WebApp Input Page](https://your-screenshot-link-1)**Fig: User Input Page** ![WebApp Input Page](https://your-screenshot-link-1)<br>
 
-**Fig: Result Output Page**  
+**Fig: Result Output Page** <br> 
 ![WebApp Result Page](https://your-screenshot-link-2)
 
 
