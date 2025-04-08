@@ -88,30 +88,62 @@ Here the LIME is representing the SVM model for instance(row) 218.
 ![My Image](https://github.com/Krishna-1996/Machine_Learning_Projects/blob/main/5.%20Student%20Level%20Prediction%20Using%20Machine%20Learning/LIME_for_SVM.png)
 
 ---
+---
+
+## **Web Application**
+
+To make the project accessible and useful to end-users, a web application was developed using the **SVM model**.
+
+- The app allows users (students, teachers, parents) to input student data.
+- Based on the input, the model predicts if the chosen grade level is suitable.
+- It uses **LIME** to explain why the prediction was made.
+
+**500 Random Data Points Tested**
+- **321** predicted "grade appropriate"
+- **179** flagged potential issues
+- Confirms model consistency and usefulness in real-world applications.
+
+**500 Random Dataset Result Visualization**<br>
+![Random Dataset Graph](https://github.com/Krishna-1996/Machine_Learning_Projects/blob/main/5.%20Student%20Level%20Prediction%20Using%20Machine%20Learning/500%20new%20dataset.png)
+
+---
+
+### **WebApp Screenshots**
+
+**User Input Page**<br>
+![WebApp Input Page ](https://github.com/Krishna-1996/Machine_Learning_Projects/blob/main/5.%20Student%20Level%20Prediction%20Using%20Machine%20Learning/Webpage%20front%20page1.png)<br>
+
+
+**User Submit Page**<br>
+![WebApp Submit Page ](https://github.com/Krishna-1996/Machine_Learning_Projects/blob/main/5.%20Student%20Level%20Prediction%20Using%20Machine%20Learning/Webpage%20front%20page2.png)<br>
+
+**Result Page** <br> 
+![WebApp Result Page ](https://github.com/Krishna-1996/Machine_Learning_Projects/blob/main/5.%20Student%20Level%20Prediction%20Using%20Machine%20Learning/Webpage%20result%20page.png)
+
+---
 
 ## **Discussion and Future Work**
 
-### **Future Work**
-- **Hyperparameter Tuning**: Perform grid search or random search to optimize the hyperparameters of models.
-- **Cross-validation**: Implement **k-fold cross-validation** to get a better estimate of model performance.
-- **Deep Learning Models**: Explore neural networks like **MLP** to potentially improve predictions.
+- **SVM** and **Voting Classifier** outperformed others across all metrics.
+- SVM’s reliability with numeric features makes it ideal for this context.
+- The **web app** bridges model utility and real-world accessibility.
+- **LIME** adds transparency, building user trust in predictions.
 
-### **Discussion**
-- The results show that **SVM** and **Voting Classifier** perform exceptionally well in terms of accuracy and precision.  
-- **Random Forest** and **AdaBoost** are good alternatives, providing a balance between accuracy and computational efficiency.  
-- The **Voting Classifier** benefits from combining multiple models, giving it a strong performance across all metrics.
+### **Future Work**
+- **Hyperparameter Tuning**: Use grid or random search for fine-tuning models.
+- **Explore Deep Learning**: Test MLP or other deep models for potential improvements.
 
 ---
 
 ## **Conclusion**
 
-In conclusion, the **SVM** and **Voting Classifier** are the best-performing models for this problem. These models offer high accuracy and strong predictive power. However, different models may be preferred based on specific use cases:
+This project successfully demonstrates how ML can assist academic decision-making:
 
-- **SVM** is ideal for high-dimensional and complex datasets where accuracy is the top priority.
-- **Voting Classifier** is great for combining the strengths of different models and enhancing overall performance.
-- **Random Forest** and **AdaBoost** can be used for robust and well-rounded results in various scenarios.
+- **SVM** is the top performer for predicting student readiness.
+- **WebApp** makes predictions accessible and actionable.
+- **Explainability** via LIME increases model interpretability.
 
-This project demonstrates the importance of selecting the right model based on the data at hand, and further improvements can be made through hyperparameter tuning and cross-validation.
+> Students, parents, and educators can now leverage this tool for informed, data-driven educational planning.
 
 ---
 
