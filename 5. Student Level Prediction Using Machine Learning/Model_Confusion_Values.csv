@@ -1,11 +1,6 @@
 Model Name,FP,FN,TP,TN
-Random Forest,7,28,103,142
-ANN (MLP),29,25,106,120
 SVM,1,0,131,147
-KNN,5,30,101,143
-Bernoulli Naive Bayes,16,38,93,133
+Random Forest,7,28,103,142
 AdaBoost,8,23,108,140
 XGBoost,6,19,112,142
-Extra Trees,6,27,104,143
-Stacking,15,16,115,134
 Voting Classifier,4,10,121,145
