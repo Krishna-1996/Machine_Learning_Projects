@@ -79,14 +79,39 @@ doc_bin.to_disk("train.spacy")
 
 # %%
 # Step 7: SpaCy configuration (NER)
+! python -m spacy init config config.cfg --lang en --pipeline ner --optimize efficiency
+
+# %%
+# Step 8: Model training using SpaCy
+
+# %%
+# Step 9: 
 
 
 # %%
-# Step 
+# Step 10: 
 
 # %%
-# Step 
+# Step 1:
 
 
+
+ 
 # %%
-# Step 
+# Step 1:
+
+
+
+ 
+# %%
+# Step 1:
+
+
+
+ 
+# %%
+# Step 1:
+
+
+
+ 
