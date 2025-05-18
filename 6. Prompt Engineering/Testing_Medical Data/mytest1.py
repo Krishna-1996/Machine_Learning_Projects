@@ -17,22 +17,17 @@ data_path = './Corona2.json'  # or just 'Corona2.json' if you're already in the 
 data = pd.read_json(data_path)
 data.head()
 
-
-
 # %%
-# Step 3: Check Columns name
+# Step 3: Check Columns name and values
 list(data['examples'][0].keys())
 
-
 # %%
-# Step 4: Check content with example column
+# Step 3.1: Check content with example column
 data['examples'][0]['content']
 
-
 # %%
-# Step 5:
+# Step 3.2:
 data['examples'][0]['annotations'][0]
-
 
 # %%
 # Step 6:
