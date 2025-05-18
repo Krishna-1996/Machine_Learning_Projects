@@ -27,11 +27,20 @@ data['examples'][0]['content']
 
 # %%
 # Step 3.2:
-data['id'][0]['examples'][0]
-data['examples'][0]['content'][0]
-data['examples'][0]['metadata'][0]
-data['examples'][0]['annotations'][0]
-data['examples'][0]['classifications'][0]
+print("id : Examples: ")
+data['id'][10]['examples'][10]
+
+print("Examples : content: ")
+data['examples'][10]['content'][10]
+
+print("Examples : metadata: ")
+data['examples'][10]['metadata'][10]
+
+print("Examples : annotations: ")
+data['examples'][10]['annotations'][10]
+
+print("Examples : classifications: ")
+data['examples'][10]['classifications'][10]
 
 # %%
 # Step 6:
