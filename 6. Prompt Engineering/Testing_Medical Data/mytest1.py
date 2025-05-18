@@ -107,13 +107,22 @@ The allergy to penicillin was noted in the patient's medical history.
 # Step 11: Conclusion
 spacy.displacy.render(doc, style="ent", jupyter=True)
 
-
-
  
 # %%
-# Step 1:
-
-
+# Step 12:
+doc1 = nlp_trained_model('''
+The patient is scheduled for a follow-up appointment to monitor their asthma symptoms.
+The cardiologist recommended a stress test to assess the patient’s heart function.
+The patient's blood sugar levels are fluctuating, and their doctor is considering increasing the insulin dosage.
+The surgeon discussed the potential risks and benefits of a knee replacement surgery with the patient.
+The patient was advised to reduce sodium intake to help manage their hypertension.
+A routine mammogram was ordered to screen for breast cancer in the patient.
+The patient has a history of migraine headaches and has been prescribed Sumatriptan for relief.
+The physical therapist suggested daily exercises to improve the patient’s mobility after hip surgery.
+The patient's MRI results showed signs of a herniated disc, which may be causing their back pain.
+The pediatrician recommended the flu vaccine for the child to prevent influenza during flu season.
+''')
+spacy.displacy.render(doc1, style="ent", jupyter=True)
 
  
 # %%
