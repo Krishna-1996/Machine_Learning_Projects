@@ -21,17 +21,18 @@ for dirname, _, filenames in os.walk('/kaggle/input'):
 
 # %%
 # Step 3:
-
+data = pd.read_json('/kaggle/input/medical-ner/Corona2.json')
+data.head()
 
 
 # %%
 # Step 4:
-
+list(data['examples'][0].keys())
 
 
 # %%
 # Step 5:
-
+data['examples'][0]['content']
 
 
 # %%
