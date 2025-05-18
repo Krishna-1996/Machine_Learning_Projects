@@ -52,15 +52,33 @@ training_data[0]['entities']
 # %%
 training_data[0]['text'][563:571]
 # %%
-# Step :5
+# Step :5 Processing text data using the SpaCy
+nlp = spacy.blank("en") 
+doc_bin = DocBin()
+# %%
+# Step 6: Processing training data by tokenizing text
+from spacy.util import filter_spans
+
+for training_example in tqdm(training_data):
+    text = training_example['text']
+    labels = training_example['entities']
+    doc = nlp.make_doc(text)
+    ents = []
+    for start, end, label in labels:
+        span = doc.char_span(start, end, label=label, alignment_mode="contract")
+        if span is None:
+            print("Skipping entity")
+        else:
+            ents.append(span)
+    filtered_ents = filter_spans(ents)
+    doc.set_ents(filtered_ents)
+    doc_bin.add(doc)
+
+doc_bin.to_disk("train.spacy")
+
 
 # %%
-# Step 6:
-
-
-
-# %%
-# Step 7:
+# Step 7: SpaCy configuration (NER)
 
 
 # %%
