@@ -20,7 +20,7 @@ for dirname, _, filenames in os.walk('/kaggle/input'):
 
 
 # %%
-# Step 3:
+# Step 3: Read and check Dataset
 data = pd.read_json('/kaggle/input/medical-ner/Corona2.json')
 data.head()
 
