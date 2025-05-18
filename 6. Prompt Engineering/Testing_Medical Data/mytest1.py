@@ -12,7 +12,7 @@ from spacy.tokens import DocBin
 from tqdm import tqdm
 
 # %%
-# Step 2:
+# Step 2: Load Dataset
 import os
 for dirname, _, filenames in os.walk('/kaggle/input'):
     for filename in filenames:
@@ -37,4 +37,26 @@ data['examples'][0]['content']
 
 # %%
 # Step 6:
+data['examples'][0]['annotations'][0]
 
+
+# %%
+# Step 7:
+
+# %%
+# Step 
+
+
+# %%
+# Step 
+
+
+# %%
+# Step 
+
+# %%
+# Step 
+
+
+# %%
+# Step 
