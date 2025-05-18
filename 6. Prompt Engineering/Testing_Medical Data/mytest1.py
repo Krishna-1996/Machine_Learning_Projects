@@ -36,17 +36,9 @@ print(data.head())
 # Step 3.2:
 
 
-print("Examples : content: ")
-data['examples'][0]['content'][0]
-
-print("Examples : metadata: ")
-data['examples'][0]['metadata'][0]
-
 print("Examples : annotations: ")
 data['examples'][0]['annotations'][0]
 
-print("Examples : classifications: ")
-data['examples'][0]['classifications'][0]
 
 # %%
 # Step 6:
