@@ -20,17 +20,17 @@ data.head()
 
 
 # %%
-# Step 4: Check Columns name
+# Step 3: Check Columns name
 list(data['examples'][0].keys())
 
 
 # %%
-# Step 5: Check content with example column
+# Step 4: Check content with example column
 data['examples'][0]['content']
 
 
 # %%
-# Step 6:
+# Step 5:
 data['examples'][0]['annotations'][0]
 
 
