@@ -83,16 +83,29 @@ doc_bin.to_disk("train.spacy")
 
 # %%
 # Step 8: Model training using SpaCy
-
+! python -m spacy train config.cfg --output ./ --paths.train ./train.spacy --paths.dev ./train.spacy
 # %%
 # Step 9: 
-
-
-# %%
-# Step 10: 
+nlp_trained_model = spacy.load("model-best")
 
 # %%
-# Step 1:
+# Step 10: Model Testing
+doc = nlp_trained_model('''
+The patient was prescribed Aspirin for their heart condition.
+The doctor recommended Ibuprofen to alleviate the patient's headache.
+The patient is suffering from diabetes, and they need to take Metformin regularly.
+After the surgery, the patient experienced some post-operative complications, including infection.
+The patient is currently on a regimen of Lisinopril to manage their high blood pressure.
+The antibiotic course for treating the bacterial infection should be completed as prescribed.
+The patient's insulin dosage needs to be adjusted to better control their blood sugar levels.
+The physician suspects that the patient may have pneumonia and has ordered a chest X-ray.
+The patient's cholesterol levels are high, and they have been advised to take Atorvastatin.
+The allergy to penicillin was noted in the patient's medical history.
+''')
+
+# %%
+# Step 11: Conclusion
+spacy.displacy.render(doc, style="ent", jupyter=True)
 
 
 
