@@ -34,11 +34,16 @@ print(data.head())
 
 # %%
 # Step 3.2:
-
-
 print("Examples : annotations: ")
 data['examples'][0]['annotations'][0]
 
+
+# %%
+# Step 4:
+
+
+# %%
+# Step :5
 
 # %%
 # Step 6:
@@ -47,13 +52,6 @@ data['examples'][0]['annotations'][0]
 
 # %%
 # Step 7:
-
-# %%
-# Step 
-
-
-# %%
-# Step 
 
 
 # %%
