@@ -35,6 +35,11 @@ data['examples'][0]['annotations'][0]
 
 
 # %%
+# Step 6:
+
+
+
+# %%
 # Step 7:
 
 # %%
