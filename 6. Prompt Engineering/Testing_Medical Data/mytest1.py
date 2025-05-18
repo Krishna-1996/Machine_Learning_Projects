@@ -48,6 +48,9 @@ training_data = [{'text': example['content'],
 
 # Step 4.1:
 training_data[0]['entities']
+
+# %%
+training_data[0]['text'][563:571]
 # %%
 # Step :5
 
