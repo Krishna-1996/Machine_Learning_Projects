@@ -26,9 +26,15 @@ list(data['examples'][0].keys())
 data['examples'][0]['content']
 
 # %%
+# Inspect the top-level columns of the DataFrame
+print(data.columns)
+
+# Check the first few rows of the DataFrame
+print(data.head())
+
+# %%
 # Step 3.2:
-print("id : Examples: ")
-data['id'][0]['examples'][0]
+
 
 print("Examples : content: ")
 data['examples'][0]['content'][0]
