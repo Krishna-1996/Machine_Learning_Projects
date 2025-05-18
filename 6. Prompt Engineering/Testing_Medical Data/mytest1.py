@@ -31,7 +31,7 @@ data['id'][0]['examples'][0]
 data['examples'][0]['content'][0]
 data['examples'][0]['metadata'][0]
 data['examples'][0]['annotations'][0]
-data['examples'][0]['annotations'][0]
+data['examples'][0]['classifications'][0]
 
 # %%
 # Step 6:
