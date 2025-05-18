@@ -40,9 +40,14 @@ data['examples'][0]['annotations'][0]
 
 # %%
 # Step 4: Data Transform
+training_data = [{'text': example['content'],
+                  'entities': [(annotation['start'], annotation['end'], annotation['tag_name'].upper())
+                               for annotation in example['annotations']]}
+                 for example in data['examples']]
 
 
-
+# Step 4.1:
+training_data[0]['entities']
 # %%
 # Step :5
 
