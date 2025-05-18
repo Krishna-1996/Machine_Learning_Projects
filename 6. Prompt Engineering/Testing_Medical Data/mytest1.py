@@ -13,25 +13,19 @@ from tqdm import tqdm
 
 # %%
 # Step 2: Load Dataset
-import os
-for dirname, _, filenames in os.walk('/kaggle/input'):
-    for filename in filenames:
-        print(os.path.join(dirname, filename))
-
-
-# %%
-# Step 3: Read and check Dataset
-data = pd.read_json('/kaggle/input/medical-ner/Corona2.json')
+data_path = './Corona2.json'  # or just 'Corona2.json' if you're already in the script's directory
+data = pd.read_json(data_path)
 data.head()
 
 
+
 # %%
-# Step 4:
+# Step 4: Check Columns name
 list(data['examples'][0].keys())
 
 
 # %%
-# Step 5:
+# Step 5: Check content with example column
 data['examples'][0]['content']
 
 
