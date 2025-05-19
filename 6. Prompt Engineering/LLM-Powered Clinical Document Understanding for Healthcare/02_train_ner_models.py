@@ -1,127 +1,121 @@
-# 02_train_ner_models.py
-# 2.1 Import Necessary Libraries
-import pandas as pd
 import argparse
 import os
-from datasets import Dataset
-from transformers import (
-    AutoTokenizer,
-    AutoModelForTokenClassification,
-    Trainer,
-    TrainingArguments,
-)
+import torch
+from transformers import AutoTokenizer, AutoModelForTokenClassification, Trainer, TrainingArguments
+from datasets import load_dataset, Dataset
 from sklearn.model_selection import train_test_split
-from seqeval.metrics import classification_report
 
-# 2.
-# 2.2 Model Registry
+# Function to encode labels (from strings to integers)
+def encode_labels(tags, label2id):
+    return [label2id.get(tag, -1) for tag in tags]
 
-MODEL_REGISTRY = {
-    "biobert": "dmis-lab/biobert-base-cased-v1.1",
-    "clinicalbert": "emilyalsentzer/Bio_ClinicalBERT",
-    "biomed_roberta": "allenai/biomed_roberta_base"
+# Define the label mapping (string to integer)
+label2id = {
+    'O': 0,  # Non-entity token
+    'DIAGNOSIS': 1,
+    'MEDICATION': 2,
+    'SYMPTOM': 3,
+    'TREATMENT': 4,
+    # Add other labels here as needed
 }
 
+# Function to load dataset and prepare it for training
+def load_and_prepare_data():
+    # Load your dataset (assumes a CSV file; you can adjust this as needed)
+    # Replace 'Corona2_annotations.csv' with your actual dataset file
+    dataset = load_dataset("csv", data_files="./data/Corona2_annotations.csv", delimiter=",")
+    
+    # Process dataset and prepare it in the required format (tokens and labels)
+    def preprocess_data(examples):
+        texts = examples['text']
+        labels = examples['tag_name']
+        
+        # Convert text to tokens and labels to integers
+        tokenized_inputs = tokenizer(texts, padding=True, truncation=True, is_split_into_words=True)
+        label_ids = [encode_labels(label.split(), label2id) for label in labels]  # Split labels by spaces
+        
+        # Add labels to tokenized inputs
+        tokenized_inputs['labels'] = label_ids
+        return tokenized_inputs
+    
+    # Tokenizer: change based on your model (BioBERT, ClinicalBERT, BioMed-RoBERTa)
+    tokenizer = AutoTokenizer.from_pretrained('dmis-lab/biobert-base-cased-v1.1')  # Change based on the model
+    
+    # Preprocess the dataset
+    tokenized_dataset = dataset.map(preprocess_data, batched=True)
+    
+    # Split into train and validation sets
+    train_dataset, val_dataset = train_test_split(tokenized_dataset['train'], test_size=0.1, random_state=42)
+    
+    return train_dataset, val_dataset, tokenizer
 
-# 2.3 Preprocessing
-
-def load_and_format_data(path):
-    df = pd.read_csv(path)
-    texts = df['text'].unique()
-
-    formatted = []
-    for text in texts:
-        sub_df = df[df['text'] == text]
-        entities = [(row['start'], row['end'], row['tag_name']) for _, row in sub_df.iterrows()]
-        formatted.append({'text': text, 'entities': entities})
-    return formatted
-
-def tokenize_and_align_labels(examples, tokenizer, label2id):
-    tokenized_inputs = tokenizer(examples['text'], truncation=True, padding='max_length', max_length=128,
-                                 return_offsets_mapping=True)
-    labels = []
-
-    for i, offsets in enumerate(tokenized_inputs["offset_mapping"]):
-        word_labels = ["O"] * len(offsets)
-        for start, end, tag in examples['entities'][i]:
-            for idx, (tok_start, tok_end) in enumerate(offsets):
-                if tok_start >= start and tok_end <= end:
-                    prefix = "B" if word_labels[idx] == "O" else "I"
-                    word_labels[idx] = f"{prefix}-{tag}"
-        labels.append([label2id.get(lbl, 0) for lbl in word_labels])
-
-    tokenized_inputs["labels"] = labels
-    return tokenized_inputs
-
-
-# 2.4 Training Function
-
-def train_model(model_key):
-    print(f"[INFO] Training model: {model_key}")
-    model_name = MODEL_REGISTRY[model_key]
-
-    # Load and format data
-    formatted = load_and_format_data('./data/Corona2_annotations.csv')
-    dataset = Dataset.from_list(formatted)
-
-    # Extract unique labels
-    all_tags = set(tag for ex in formatted for _, _, tag in ex['entities'])
-    label_list = ['O'] + [f"B-{tag}" for tag in all_tags] + [f"I-{tag}" for tag in all_tags]
-    label2id = {label: i for i, label in enumerate(label_list)}
-    id2label = {i: label for label, i in label2id.items()}
-
-    # Load tokenizer and model
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForTokenClassification.from_pretrained(
-        model_name,
-        num_labels=len(label2id),
-        id2label=id2label,
-        label2id=label2id
-    )
-
-    # Tokenize + align labels
-    tokenized_dataset = dataset.map(lambda x: tokenize_and_align_labels(x, tokenizer, label2id), batched=True)
-    tokenized_dataset = tokenized_dataset.train_test_split(test_size=0.2)
-
+# Function to train the model
+def train_model(model_name):
+    # Load the dataset
+    train_dataset, val_dataset, tokenizer = load_and_prepare_data()
+    
+    # Load the model based on the specified model
+    if model_name == "biobert":
+        model = AutoModelForTokenClassification.from_pretrained('dmis-lab/biobert-base-cased-v1.1', num_labels=len(label2id))
+    elif model_name == "clinicalbert":
+        model = AutoModelForTokenClassification.from_pretrained('emilyalsentzer/Bio_ClinicalBERT', num_labels=len(label2id))
+    elif model_name == "biomed_roberta":
+        model = AutoModelForTokenClassification.from_pretrained('Rostlab/prot_bert_bfd', num_labels=len(label2id))
+    else:
+        raise ValueError(f"Model {model_name} is not supported")
+    
+    # Prepare the training arguments
     training_args = TrainingArguments(
-        output_dir=f"./models/{model_key}",
-        evaluation_strategy="epoch",
-        learning_rate=2e-5,
-        per_device_train_batch_size=8,
+        output_dir=f'./results/{model_name}',  # Where the model checkpoints will be saved
         num_train_epochs=3,
-        save_total_limit=1,
+        per_device_train_batch_size=16,
+        per_device_eval_batch_size=16,
+        warmup_steps=500,
+        weight_decay=0.01,
+        logging_dir='./logs',
         logging_steps=10,
+        evaluation_strategy="epoch",  # Evaluate after each epoch
+        save_strategy="epoch",  # Save the model after each epoch
+        load_best_model_at_end=True,  # Load the best model when finished training
     )
 
+    # Trainer instance
     trainer = Trainer(
         model=model,
         args=training_args,
-        train_dataset=tokenized_dataset['train'],
-        eval_dataset=tokenized_dataset['test'],
+        train_dataset=train_dataset,
+        eval_dataset=val_dataset,
         tokenizer=tokenizer,
     )
-
+    
+    # Train the model
     trainer.train()
-    trainer.save_model(f"./models/{model_key}")
-    tokenizer.save_pretrained(f"./models/{model_key}")
-    print(f"[INFO] Model saved to ./models/{model_key}")
+    
+    # Save the model after training
+    model.save_pretrained(f'./saved_models/{model_name}')
+    tokenizer.save_pretrained(f'./saved_models/{model_name}')
 
+    print(f"Model {model_name} trained and saved successfully!")
 
-# 2.5 CLI Interface
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Train NER model on clinical data.")
-    parser.add_argument("--model", choices=MODEL_REGISTRY.keys(), required=True, help="Which model to train.")
+# Main function to parse arguments and run the training process
+def main():
+    # Argument parsing
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model', type=str, required=True, choices=['biobert', 'clinicalbert', 'biomed_roberta'], help="Model to train")
     args = parser.parse_args()
-
-    os.makedirs('./models', exist_ok=True)
+    
+    # Call the function to train the model based on the input argument
+    print(f"[INFO] Training model: {args.model}")
     train_model(args.model)
-'''
-python 02_train_ner_models.py --model biobert
 
-# Train ClinicalBERT
-python 02_train_ner_models.py --model clinicalbert
+if __name__ == '__main__':
+    main()
 
-# Train BioMed-RoBERTa
-python 02_train_ner_models.py --model biomed_roberta
-'''
+# 1. Train BioBERT:
+# Run this in terminal: python 02_train_ner_models.py --model biobert
+
+# 2. Train ClinicalBERT:
+# Run this in terminal: python 02_train_ner_models.py --model clinicalbert
+
+# 3. Train BioMed-RoBERTa:
+# Run this in terminal: python 02_train_ner_models.py --model biomed_roberta
