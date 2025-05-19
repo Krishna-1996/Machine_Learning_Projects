@@ -73,3 +73,17 @@ def main():
 
 if __name__ == "__main__":
     main()
+'''
+
+🟢 What's Next?
+You can now:
+
+Add evaluation on test sets (metrics like F1, precision)
+
+Visualize results or generate HTML reports
+
+Optionally build a lightweight web UI using Streamlit or Flask
+
+Would you like help building a basic UI or generating evaluation reports?
+
+'''
