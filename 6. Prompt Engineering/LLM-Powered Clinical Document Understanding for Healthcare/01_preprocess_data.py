@@ -58,15 +58,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-''' 
-
-To run this :# Train BioBERT
-python 02_train_ner_models.py --model biobert
-
-# Train ClinicalBERT
-python 02_train_ner_models.py --model clinicalbert
-
-# Train BioMed-RoBERTa
-python 02_train_ner_models.py --model biomed_roberta
-
-'''
