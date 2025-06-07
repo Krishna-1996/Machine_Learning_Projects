@@ -1,0 +1,32 @@
+LIME Explanability AI,,
+Model,Feature,Importance
+LightGBM,Math193_ <= 70.00,0.2993
+LightGBM,English193_ <= 69.80,0.1732
+LightGBM,Previous_Curriculum_17182 <= 0.00,0.1705
+LightGBM,Englishexam_ > 83.00,-0.1493
+LightGBM,Science192_ <= 71.00,0.1490
+LightGBM,Science201_ <= 76.00,0.1334
+LightGBM,Math191_ > 91.00,-0.1301
+LightGBM,Mathexam <= 65.00,0.1057
+LightGBM,English192_ > 89.00,-0.1011
+LightGBM,English202_ <= 77.70,0.0968
+Voting Classifier,Math193_ <= 70.00,0.2132
+Voting Classifier,English193_ <= 69.80,0.1292
+Voting Classifier,Englishexam_ > 83.00,-0.1262
+Voting Classifier,Math191_ > 91.00,-0.1173
+Voting Classifier,Science201_ <= 76.00,0.0966
+Voting Classifier,Science192_ <= 71.00,0.0894
+Voting Classifier,Previous_Curriculum_17182 <= 0.00,0.0890
+Voting Classifier,Mathexam <= 65.00,0.0792
+Voting Classifier,Previous_yearGrade <= 0.00,0.0719
+Voting Classifier,English192_ > 89.00,-0.0624
+XGBoost,Math193_ <= 70.00,0.2602
+XGBoost,English193_ <= 69.80,0.1794
+XGBoost,Englishexam_ > 83.00,-0.1790
+XGBoost,Previous_Curriculum_17182 <= 0.00,0.1678
+XGBoost,Math191_ > 91.00,-0.1301
+XGBoost,Science201_ <= 76.00,0.1244
+XGBoost,Mathexam <= 65.00,0.1208
+XGBoost,Science192_ <= 71.00,0.1168
+XGBoost,English202_ <= 77.70,0.1010
+XGBoost,English192_ > 89.00,-0.0910
