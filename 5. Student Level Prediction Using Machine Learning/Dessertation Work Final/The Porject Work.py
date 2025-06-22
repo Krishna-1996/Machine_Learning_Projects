@@ -703,7 +703,7 @@ importance_xgb = pd.DataFrame({
     'SHAP_Importance_XGBoost': np.abs(shap_values_xgb.values).mean(axis=0)
 })
 
-# Merge and export the csv file
+# Merge and export
 importance_df = importance_lgbm.merge(importance_xgb, on='Feature')
 output_file_Location = importance_df.to_csv('The_Student_Dataset_SHAP_Global_Features_Importance.csv', index=False)
 print("Global SHAP importance saved to: ", output_file_Location)
