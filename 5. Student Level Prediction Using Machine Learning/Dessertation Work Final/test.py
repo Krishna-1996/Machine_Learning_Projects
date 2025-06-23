@@ -832,6 +832,28 @@ for model_name in ['LightGBM', 'XGBoost']:
     plt.savefig(f'The_Student_Dataset_Permutation_Importance_{model_name}.png')
     plt.show()
 
+# %%
+# Step 3: Partial Dependence Plots (PDP) for LightGBM and XGBoost
+
+from sklearn.inspection import PartialDependenceDisplay
+
+for model_name in ['LightGBM', 'XGBoost']:
+    print(f"\nGenerating PDPs for {model_name}...")
+
+    top_features = top_features_dict[model_name]
+
+    fig, ax = plt.subplots(figsize=(12, 4 * len(top_features)))
+    PartialDependenceDisplay.from_estimator(
+        models[model_name],
+        X_test,
+        features=top_features,
+        ax=ax
+    )
+
+    plt.suptitle(f'Partial Dependence Plots ({model_name})', fontsize=16)
+    plt.tight_layout()
+    plt.savefig(f'The_Student_Dataset_PDP_{model_name}.png')
+    plt.show()
 
 # %%
 # Next step 4: Accumulated Local Effects (ALE) Plot
