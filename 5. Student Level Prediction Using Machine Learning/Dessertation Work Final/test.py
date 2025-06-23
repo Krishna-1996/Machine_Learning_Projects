@@ -707,4 +707,40 @@ importance_xgb = pd.DataFrame({
 importance_df = importance_lgbm.merge(importance_xgb, on='Feature')
 output_file_Location = importance_df.to_csv('The_Student_Dataset_SHAP_Global_Features_Importance.csv', index=False)
 print("Global SHAP importance saved to: ", output_file_Location)
+
 # %%
+# Next step 1: Native Feature Importance from LightGBM & XGBoost
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Extract native feature importances
+lightgbm_fi = pd.DataFrame({
+    'Feature': X.columns,
+    'Importance': models['LightGBM'].feature_importances_,
+    'Model': 'LightGBM'
+})
+
+xgboost_fi = pd.DataFrame({
+    'Feature': X.columns,
+    'Importance': models['XGBoost'].feature_importances_,
+    'Model': 'XGBoost'
+})
+
+# Combine into one dataframe
+native_fi_df = pd.concat([lightgbm_fi, xgboost_fi], ignore_index=True)
+
+# Save to CSV
+native_fi_path = 'The_Student_Dataset_Native_Feature_Importance.csv'
+native_fi_df.to_csv(native_fi_path, index=False)
+print(f"Native feature importances saved to: {native_fi_path}")
+
+# Plot
+plt.figure(figsize=(12, 6))
+sns.barplot(data=native_fi_df, x='Importance', y='Feature', hue='Model')
+plt.title('Native Feature Importances')
+plt.tight_layout()
+plt.savefig('The_Student_Dataset_Native_Feature_Importance.png')
+plt.show()
+
