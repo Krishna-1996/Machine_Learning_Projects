@@ -770,3 +770,19 @@ plt.title('Permutation Importance (LightGBM)')
 plt.tight_layout()
 plt.savefig('The_Student_Dataset_Permutation_Importance_LightGBM.png')
 plt.show()
+
+# %%
+# Next step 3: Partial Dependence Plots (PDP)
+
+from sklearn.inspection import PartialDependenceDisplay
+
+# Pick top features from permutation or SHAP
+top_features = perm_df['Feature'].head(3).tolist()
+
+# Create PDP for LightGBM
+fig, ax = plt.subplots(figsize=(12, 4 * len(top_features)))
+PartialDependenceDisplay.from_estimator(models['LightGBM'], X_test, top_features, ax=ax)
+plt.suptitle('Partial Dependence Plots (LightGBM)', fontsize=16)
+plt.tight_layout()
+plt.savefig('The_Student_Dataset_PDP_LightGBM.png')
+plt.show()
