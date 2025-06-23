@@ -796,11 +796,11 @@ from PyALE import ale
 import warnings
 warnings.filterwarnings("ignore")
 
+
 # Compute ALE for LightGBM and top 3 features
 fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(18, 5))
 for i, feature in enumerate(top_features):
-    ale_eff = ale(x=X_test, model= models['LightGBM'].predict, feature=[feature], include_CI=False, plot=False )
-    # ale_eff = ale(X=X_test, model=models['LightGBM'].predict, feature=[feature], include_CI=False, plot=False)
+    ale_eff = ale(X=X_test, model=models['LightGBM'], feature=[feature], include_CI=False, plot=False)
     axs[i].plot(ale_eff['quantiles'][feature], ale_eff['ale_values'])
     axs[i].set_title(f"ALE for {feature}")
     axs[i].set_xlabel(feature)
@@ -810,6 +810,7 @@ plt.suptitle("ALE Plots (LightGBM)")
 plt.tight_layout()
 plt.savefig('The_Student_Dataset_ALE_LightGBM.png')
 plt.show()
+
 
 
 # %%
