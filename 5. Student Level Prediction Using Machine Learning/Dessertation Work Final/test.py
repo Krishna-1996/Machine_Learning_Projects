@@ -809,3 +809,19 @@ plt.suptitle("ALE Plots (LightGBM)")
 plt.tight_layout()
 plt.savefig('The_Student_Dataset_ALE_LightGBM.png')
 plt.show()
+
+
+# %%
+# Next step 5: SHAP Interaction Values
+
+import shap
+
+# Only supported for tree models like LightGBM/XGBoost
+explainer = shap.TreeExplainer(models['LightGBM'])
+shap_interaction_values = explainer.shap_interaction_values(X_test)
+
+# Interaction summary plot
+shap.summary_plot(shap_interaction_values, X_test, plot_type="dot")
+plt.title("SHAP Interaction Values - LightGBM")
+plt.savefig("The_Student_Dataset_SHAP_Interaction_LightGBM.png")
+plt.show()
