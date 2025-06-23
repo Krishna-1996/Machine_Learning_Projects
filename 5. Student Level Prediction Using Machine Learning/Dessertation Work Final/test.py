@@ -792,7 +792,7 @@ plt.show()
 # Next step 4: Accumulated Local Effects (ALE) Plot
 
 # You may need to install: pip install pyALE
-from pyALE import ale
+from PyALE import ale
 import warnings
 warnings.filterwarnings("ignore")
 
