@@ -872,3 +872,5 @@ for model_name in ['LightGBM', 'XGBoost']:
     plt.tight_layout()
     plt.savefig(f"The_Student_Dataset_Global_Surrogate_{model_name}.png")
     plt.show()
+
+# %%
