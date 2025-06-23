@@ -744,3 +744,29 @@ plt.tight_layout()
 plt.savefig('The_Student_Dataset_Native_Feature_Importance.png')
 plt.show()
 
+# %%
+# Next step 2: Permutation Importance using Scikit-Learn
+
+from sklearn.inspection import permutation_importance
+
+# Use LightGBM as example (can repeat for others if needed)
+perm_importance = permutation_importance(models['LightGBM'], X_test, y_test, n_repeats=10, random_state=42)
+
+perm_df = pd.DataFrame({
+    'Feature': X.columns,
+    'Mean Importance': perm_importance.importances_mean,
+    'Std Dev': perm_importance.importances_std
+}).sort_values(by='Mean Importance', ascending=False)
+
+# Save to CSV
+perm_path = 'The_Student_Dataset_Permutation_Importance_LightGBM.csv'
+perm_df.to_csv(perm_path, index=False)
+print(f"Permutation importance saved to: {perm_path}")
+
+# Plot
+plt.figure(figsize=(10, 6))
+sns.barplot(data=perm_df, x='Mean Importance', y='Feature')
+plt.title('Permutation Importance (LightGBM)')
+plt.tight_layout()
+plt.savefig('The_Student_Dataset_Permutation_Importance_LightGBM.png')
+plt.show()
