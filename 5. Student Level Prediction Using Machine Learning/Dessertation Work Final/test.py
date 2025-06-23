@@ -744,6 +744,7 @@ plt.tight_layout()
 plt.savefig('The_Student_Dataset_Native_Feature_Importance.png')
 plt.show()
 
+'''
 # %%
 # Next step 2: Permutation Importance using Scikit-Learn
 
@@ -786,6 +787,50 @@ plt.suptitle('Partial Dependence Plots (LightGBM)', fontsize=16)
 plt.tight_layout()
 plt.savefig('The_Student_Dataset_PDP_LightGBM.png')
 plt.show()
+
+'''
+# %%
+# Step 2: Permutation Importance for LightGBM and XGBoost
+
+from sklearn.inspection import permutation_importance
+import seaborn as sns
+import matplotlib.pyplot as plt
+import pandas as pd
+
+top_features_dict = {}  # To store top features for each model
+
+for model_name in ['LightGBM', 'XGBoost']:
+    print(f"\nCalculating permutation importance for {model_name}...")
+
+    perm_result = permutation_importance(
+        models[model_name],
+        X_test,
+        y_test,
+        n_repeats=10,
+        random_state=42
+    )
+
+    perm_df = pd.DataFrame({
+        'Feature': X.columns,
+        'Mean Importance': perm_result.importances_mean,
+        'Std Dev': perm_result.importances_std
+    }).sort_values(by='Mean Importance', ascending=False)
+
+    # Save CSV
+    csv_path = f'The_Student_Dataset_Permutation_Importance_{model_name}.csv'
+    perm_df.to_csv(csv_path, index=False)
+    print(f"Saved to: {csv_path}")
+
+    # Save top 3 features for PDP
+    top_features_dict[model_name] = perm_df['Feature'].head(3).tolist()
+
+    # Plot
+    plt.figure(figsize=(10, 6))
+    sns.barplot(data=perm_df, x='Mean Importance', y='Feature')
+    plt.title(f'Permutation Importance ({model_name})')
+    plt.tight_layout()
+    plt.savefig(f'The_Student_Dataset_Permutation_Importance_{model_name}.png')
+    plt.show()
 
 
 # %%
