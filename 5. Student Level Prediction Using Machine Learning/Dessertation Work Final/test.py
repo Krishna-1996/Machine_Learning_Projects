@@ -791,26 +791,35 @@ plt.show()
 # %%
 # Next step 4: Accumulated Local Effects (ALE) Plot
 
-# You may need to install: pip install pyALE
+# Compute ALE for LightGBM and top 3 features
 from PyALE import ale
+import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings("ignore")
 
 
-# Compute ALE for LightGBM and top 3 features
 fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(18, 5))
+
 for i, feature in enumerate(top_features):
-    ale_eff = ale(X=X_test, model=models['LightGBM'], feature=[feature], include_CI=False, plot=False)
-    axs[i].plot(ale_eff['quantiles'][feature], ale_eff['ale_values'])
+    # ALE for LightGBM
+    ale_lgb = ale(X=X_test, model=models['LightGBM'], feature=[feature], include_CI=False, plot=False)
+
+    # ALE for XGBoost
+    ale_xgb = ale(X=X_test, model=models['XGBoost'], feature=[feature], include_CI=False, plot=False)
+
+    # Plot both on the same axis
+    axs[i].plot(ale_lgb['eff'], ale_lgb['size'], label='LightGBM', color='blue')
+    axs[i].plot(ale_xgb['eff'], ale_xgb['size'], label='XGBoost', color='orange', linestyle='--')
+
     axs[i].set_title(f"ALE for {feature}")
     axs[i].set_xlabel(feature)
     axs[i].set_ylabel("ALE")
+    axs[i].legend()
 
-plt.suptitle("ALE Plots (LightGBM)")
+plt.suptitle("ALE Plots: LightGBM vs XGBoost", fontsize=16)
 plt.tight_layout()
-plt.savefig('The_Student_Dataset_ALE_LightGBM.png')
+plt.savefig('The_Student_Dataset_ALE_LightGBM_XGBoost.png')
 plt.show()
-
 
 
 # %%
