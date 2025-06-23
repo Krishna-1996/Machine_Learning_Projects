@@ -821,41 +821,54 @@ plt.tight_layout()
 plt.savefig('The_Student_Dataset_ALE_LightGBM_XGBoost.png')
 plt.show()
 
-
 # %%
-# Next step 5: SHAP Interaction Values
+# Step 5: SHAP Interaction Values for LightGBM and XGBoost
 
 import shap
+import matplotlib.pyplot as plt
 
-# Only supported for tree models like LightGBM/XGBoost
-explainer = shap.TreeExplainer(models['LightGBM'])
-shap_interaction_values = explainer.shap_interaction_values(X_test)
+for model_name in ['LightGBM', 'XGBoost']:
+    print(f"\nGenerating SHAP interaction values for {model_name}...")
+    
+    explainer = shap.TreeExplainer(models[model_name])
+    shap_interaction_values = explainer.shap_interaction_values(X_test)
+    
+    # Plot SHAP interaction summary
+    shap.summary_plot(shap_interaction_values, X_test, plot_type="dot", show=False)
+    plt.title(f"SHAP Interaction Values - {model_name}")
+    plt.tight_layout()
+    plt.savefig(f"The_Student_Dataset_SHAP_Interaction_{model_name}.png")
+    plt.show()
 
-# Interaction summary plot
-shap.summary_plot(shap_interaction_values, X_test, plot_type="dot")
-plt.title("SHAP Interaction Values - LightGBM")
-plt.savefig("The_Student_Dataset_SHAP_Interaction_LightGBM.png")
-plt.show()
 
 # %%
-# Next step 6: Global Surrogate Model (Decision Tree)
+# Step 6: Global Surrogate Model (Decision Tree) for LightGBM and XGBoost
 
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 
-# Use predictions from the black-box model
-y_pred_blackbox = models['LightGBM'].predict(X_test)
+for model_name in ['LightGBM', 'XGBoost']:
+    print(f"\nTraining surrogate decision tree for {model_name}...")
 
-# Train a simple decision tree as surrogate
-surrogate = DecisionTreeClassifier(max_depth=3, random_state=42)
-surrogate.fit(X_test, y_pred_blackbox)
+    # Get predictions from the black-box model
+    y_pred_blackbox = models[model_name].predict(X_test)
 
-# Accuracy of surrogate on predicting the black-box predictions
-surrogate_accuracy = surrogate.score(X_test, y_pred_blackbox)
-print(f"Surrogate model accuracy: {surrogate_accuracy:.2f}")
+    # Train the surrogate decision tree model
+    surrogate = DecisionTreeClassifier(max_depth=3, random_state=42)
+    surrogate.fit(X_test, y_pred_blackbox)
 
-# Visualize the tree
-plt.figure(figsize=(14, 6))
-plot_tree(surrogate, feature_names=X.columns, class_names=['0', '1'], filled=True)
-plt.title("Global Surrogate Decision Tree (Approximates LightGBM)")
-plt.savefig("The_Student_Dataset_Global_Surrogate_Decision_Tree.png")
-plt.show()
+    # Accuracy of surrogate model
+    surrogate_accuracy = surrogate.score(X_test, y_pred_blackbox)
+    print(f"{model_name} surrogate accuracy: {surrogate_accuracy:.2f}")
+
+    # Visualise the surrogate tree
+    plt.figure(figsize=(14, 6))
+    plot_tree(
+        surrogate,
+        feature_names=X.columns,
+        class_names=[str(cls) for cls in surrogate.classes_],
+        filled=True
+    )
+    plt.title(f"Global Surrogate Decision Tree (Approximates {model_name})")
+    plt.tight_layout()
+    plt.savefig(f"The_Student_Dataset_Global_Surrogate_{model_name}.png")
+    plt.show()
