@@ -1,4 +1,0 @@
-Model Name,FP,FN,TP,TN
-LightGBM,6,15,116,142
-XGBoost,6,19,112,142
-Voting Classifier,3,11,120,145
