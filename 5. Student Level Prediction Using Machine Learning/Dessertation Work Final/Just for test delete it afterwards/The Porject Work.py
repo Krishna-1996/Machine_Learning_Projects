@@ -872,8 +872,9 @@ for model_name in ['LightGBM', 'XGBoost']:
 
 # %%
 # Step 21: Accumulated Local Effects (ALE) Plot
-
 # Compute ALE for LightGBM and top 3 features
+
+'''
 from PyALE import ale
 import matplotlib.pyplot as plt
 import warnings
@@ -902,6 +903,71 @@ plt.suptitle("ALE Plots: LightGBM vs XGBoost", fontsize=16)
 plt.tight_layout()
 plt.savefig('The_Student_Dataset_ALE_LightGBM_XGBoost.png')
 plt.show()
+'''
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from PyALE import ale
+
+# Assuming you have your trained models (LightGBM and XGBoost) and features data (X_test) ready
+# Example:
+# models = {'LightGBM': lightgbm_model, 'XGBoost': xgboost_model}
+# X_test = your_test_data  # Features dataset
+
+# Create a figure for plotting ALE results
+fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(18, 5))
+
+for model_name in ['LightGBM', 'XGBoost']:
+    print(f"\nGenerating ALE Plots for {model_name}...")
+    
+    # Get top features for the current model
+    top_features = top_features_dict[model_name]
+
+    # Loop over each feature to generate ALE for the current model
+    for i, feature in enumerate(top_features):
+        # Compute ALE for the current feature and model
+        ale_data = ale(X=X_test, model=models[model_name], feature=[feature], include_CI=False, plot=False)
+
+        # Plot ALE for the current feature and model
+        axs[i].plot(ale_data['eff'], ale_data['size'], label=f'{model_name} ALE', color='blue' if model_name == 'LightGBM' else 'orange', linestyle='--' if model_name == 'XGBoost' else '-')
+        
+        # Set plot labels and title
+        axs[i].set_title(f"ALE for {feature} ({model_name})")
+        axs[i].set_xlabel(feature)
+        axs[i].set_ylabel("ALE Effect")
+        axs[i].legend()
+
+# Adjust layout and save the plot
+plt.suptitle("ALE Plots: LightGBM vs XGBoost", fontsize=16)
+plt.tight_layout()
+plt.savefig('The_Student_Dataset_ALE_LightGBM_XGBoost.png')
+plt.show()
+
+# If you want to save ALE results to CSV
+ale_results_list = []
+
+# Loop to compute ALE for each model and feature and save the data
+for model_name in ['LightGBM', 'XGBoost']:
+    for feature in top_features_dict[model_name]:
+        ale_data = ale(X=X_test, model=models[model_name], feature=[feature], include_CI=False, plot=False)
+        
+        # Append ALE data to the results list for CSV
+        ale_results_list.append({
+            'Model': model_name,
+            'Feature': feature,
+            'Feature Value': ale_data['eff'],
+            'ALE Effect': ale_data['size']
+        })
+
+# Convert the results list into a DataFrame
+ale_results_df = pd.DataFrame(ale_results_list)
+
+# Save ALE results to a CSV file
+ale_results_df.to_csv('ALE_results_LightGBM_XGBoost.csv', index=False)
+
+# Optionally, print the first few rows to inspect
+print(ale_results_df.head())
+
 
 # %%
 # Step 22: SHAP Interaction Values for LightGBM and XGBoost
@@ -921,6 +987,7 @@ for model_name in ['LightGBM', 'XGBoost']:
     plt.tight_layout()
     plt.savefig(f"The_Student_Dataset_SHAP_Interaction_{model_name}.png")
     plt.show()
+
 
 
 # %%
