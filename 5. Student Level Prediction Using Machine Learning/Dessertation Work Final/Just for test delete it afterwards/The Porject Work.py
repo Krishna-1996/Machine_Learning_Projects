@@ -813,6 +813,7 @@ for model_name in ['LightGBM', 'XGBoost']:
 from sklearn.inspection import PartialDependenceDisplay
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 for model_name in ['LightGBM', 'XGBoost']:
     print(f"\nGenerating PDPs for {model_name}...")
@@ -831,29 +832,42 @@ for model_name in ['LightGBM', 'XGBoost']:
 
     # Loop over each feature's PDP results
     for i, feature in enumerate(top_features):
-        result = pd_results[i]  # PartialDependenceResults object for feature i
-        values = result.values  # grid points (list of arrays for multi-feature, but single here)
-        avg = result.average.flatten()  # average PDP values
+        result = pd_results[i]
 
-        # values is a list of arrays (one array per feature dimension),
-        # for 1D feature PDP, it's a single array inside list:
-        grid_points = values[0]
+        # Get the grid points and average partial dependence values
+        values = list(result.values())  # convert dict_values to list
+        avg = result.average.ravel()  # Flatten average PDP values
 
-        # Prepare dataframe
+        grid_points = np.asarray(values[0]).flatten()  # Flatten grid_points to 1D array
+
+        # Debugging prints to ensure lengths match
+        print(f"\nFeature: {feature}")
+        print(f"Length of grid_points: {len(grid_points)}")
+        print(f"Length of avg: {len(avg)}")
+        print(f"grid_points sample: {grid_points[:5]}")
+        print(f"avg sample: {avg[:5]}")
+
+        # Check if lengths match before creating DataFrame
+        if len(grid_points) != len(avg):
+            raise ValueError(f"Length mismatch: grid_points({len(grid_points)}) vs avg({len(avg)})")
+
+        # Create the DataFrame
         df = pd.DataFrame({
             feature: grid_points,
             'PartialDependence': avg
         })
 
+        # Save to CSV
         csv_filename = f'PDP_{model_name}_{feature}.csv'
         df.to_csv(csv_filename, index=False)
         print(f"Saved PDP values for feature '{feature}' in {csv_filename}")
 
-    # Plotting is done by from_estimator, just save and show:
+    # Plotting the results
     plt.suptitle(f'Partial Dependence Plots ({model_name})', fontsize=16)
     plt.tight_layout()
     plt.savefig(f'The_Student_Dataset_PDP_{model_name}.png')
     plt.show()
+
 
 
 # %%
