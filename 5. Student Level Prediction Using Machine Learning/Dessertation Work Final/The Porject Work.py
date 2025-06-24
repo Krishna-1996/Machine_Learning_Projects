@@ -864,7 +864,7 @@ for model_name in ['LightGBM', 'XGBoost']:
 
 
 # %%
-# Step 23: Global Surrogate Model (Decision Tree) for LightGBM and XGBoost
+# Step 23 (Optional): Global Surrogate Model (Decision Tree) for LightGBM and XGBoost
 
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 
