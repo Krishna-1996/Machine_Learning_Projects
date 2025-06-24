@@ -169,7 +169,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 
-# Tune LightGBM
+# Hyper Paramter Tune LightGBM
 lgbm_params = {
     'n_estimators': [100, 150],
     'max_depth': [5, 10, 15],
@@ -181,7 +181,7 @@ grid_lgbm.fit(X, y)
 best_lgbm = grid_lgbm.best_estimator_
 print("Best LightGBM Parameters:", grid_lgbm.best_params_)
 
-# Tune XGBoost
+# Hyper Paramter Tune XGBoost
 xgb_params = {
     'n_estimators': [100, 150],
     'max_depth': [3, 6, 10],
