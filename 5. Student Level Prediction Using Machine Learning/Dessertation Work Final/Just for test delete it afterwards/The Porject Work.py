@@ -786,6 +786,9 @@ for model_name in ['LightGBM', 'XGBoost']:
     plt.tight_layout()
     plt.savefig(f'The_Student_Dataset_Permutation_Importance_{model_name}.png')
     plt.show()
+# %%
+import sklearn
+print(sklearn.__version__)
 
 # %%
 # Step 20: Partial Dependence Plots (PDP) for LightGBM and XGBoost
@@ -810,6 +813,7 @@ for model_name in ['LightGBM', 'XGBoost']:
     plt.savefig(f'The_Student_Dataset_PDP_{model_name}.png')
     plt.show()
 '''
+
 from sklearn.inspection import partial_dependence, PartialDependenceDisplay
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -827,7 +831,7 @@ for model_name in ['LightGBM', 'XGBoost']:
         estimator=models[model_name],
         X=X_test,
         features=top_features,
-        kind='average'  # default, can be omitted
+        grid_resolution=20  # default, can be omitted
     )
 
     # pd_results returns a dict with 'average' and 'values' keys:
