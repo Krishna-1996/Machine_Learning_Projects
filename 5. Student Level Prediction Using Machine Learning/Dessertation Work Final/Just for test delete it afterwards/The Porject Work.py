@@ -810,8 +810,7 @@ for model_name in ['LightGBM', 'XGBoost']:
     plt.savefig(f'The_Student_Dataset_PDP_{model_name}.png')
     plt.show()
 '''
-
-from sklearn.inspection import partial_dependence, PartialDependenceDisplay
+from sklearn.inspection import PartialDependenceDisplay
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -820,48 +819,42 @@ for model_name in ['LightGBM', 'XGBoost']:
 
     top_features = top_features_dict[model_name]
 
-    # Create subplots for visualization
-    fig, ax = plt.subplots(figsize=(12, 4 * len(top_features)))
-
-    # Calculate partial dependence values for all features at once
-    pd_results = partial_dependence(
-        estimator=models[model_name],
-        X=X_test,
+    # Generate the PDP display object (computes and plots)
+    display = PartialDependenceDisplay.from_estimator(
+        models[model_name],
+        X_test,
         features=top_features,
-        grid_resolution=20  # default, can be omitted
+        grid_resolution=20
     )
 
-    # pd_results returns a dict with 'average' and 'values' keys:
-    # - 'average' contains the partial dependence values
-    # - 'values' contains the grid points for each feature
-    
-    # Save numerical PDP data to CSV
+    pd_results = display.pd_results  # This is a list of PartialDependenceResults
+
+    # Loop over each feature's PDP results
     for i, feature in enumerate(top_features):
-        values = pd_results['values'][i]        # Grid points for feature i
-        avg = pd_results['average'][i].flatten()  # Partial dependence values for feature i
-        
-        # Create a DataFrame for saving
+        result = pd_results[i]  # PartialDependenceResults object for feature i
+        values = result.values  # grid points (list of arrays for multi-feature, but single here)
+        avg = result.average.flatten()  # average PDP values
+
+        # values is a list of arrays (one array per feature dimension),
+        # for 1D feature PDP, it's a single array inside list:
+        grid_points = values[0]
+
+        # Prepare dataframe
         df = pd.DataFrame({
-            feature: values,
+            feature: grid_points,
             'PartialDependence': avg
         })
-        
+
         csv_filename = f'PDP_{model_name}_{feature}.csv'
         df.to_csv(csv_filename, index=False)
         print(f"Saved PDP values for feature '{feature}' in {csv_filename}")
 
-    # Plot PDPs using the display helper
-    PartialDependenceDisplay.from_estimator(
-        models[model_name],
-        X_test,
-        features=top_features,
-        ax=ax
-    )
-
+    # Plotting is done by from_estimator, just save and show:
     plt.suptitle(f'Partial Dependence Plots ({model_name})', fontsize=16)
     plt.tight_layout()
     plt.savefig(f'The_Student_Dataset_PDP_{model_name}.png')
     plt.show()
+
 
 # %%
 # Step 21: Accumulated Local Effects (ALE) Plot
