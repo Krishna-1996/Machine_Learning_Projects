@@ -1,4 +1,4 @@
-
+# %%
 import os
 import pandas as pd
 from openpyxl import Workbook
@@ -913,22 +913,28 @@ for model_name in ['LightGBM', 'XGBoost']:
 from sklearn.inspection import PartialDependenceDisplay
 
 for model_name in ['LightGBM', 'XGBoost']:
-    print(f"\nGenerating PDPs for {model_name}...")
-
+    model = models[model_name]
     top_features = top_features_dict[model_name]
 
-    fig, ax = plt.subplots(figsize=(12, 4 * len(top_features)))
-    PartialDependenceDisplay.from_estimator(
-        models[model_name],
-        X_test,
-        features=top_features,
-        ax=ax
-    )
+    for feature in top_features:
+        # Generate PDP and store the display object
+        display = PartialDependenceDisplay.from_estimator(
+            model,
+            X_test,
+            features=[feature],
+            kind='average'
+        )
 
-    plt.suptitle(f'Partial Dependence Plots ({model_name})', fontsize=16)
-    plt.tight_layout()
-    plt.savefig(f'The_Student_Dataset_PDP_{model_name}.png')
-    plt.show()
+        # Extract x and y values from the display object
+        xx = display.pd_lines[0][0].ravel()  # Feature values
+        yy = display.pd_lines[0][1].ravel()  # PDP values
+
+        # Save to Excel sheet
+        pd_df = pd.DataFrame({
+            f'{feature}_value': xx,
+            'Partial_Dependence': yy
+        })
+        pd_df.to_excel(excel_writer, sheet_name=f'PDP_{model_name}_{feature}', index=False)
 
 
 # In[ ]:
@@ -1028,9 +1034,166 @@ for model_name in ['LightGBM', 'XGBoost']:
     plt.tight_layout()
     plt.savefig(f"The_Student_Dataset_Global_Surrogate_{model_name}.png")
     plt.show()
+'''
+# ---- Save ALE Data ----
+for feature in selected_features:
+    # Generate ALE
+    ale_lgb = ale_library.compute(model_lgb, X_train, feature)
+    ale_xgb = ale_library.compute(model_xgb, X_train, feature)
+
+    # Save ALE
+    try:
+        ale_lgb.to_excel(excel_writer, sheet_name=f'ALE_LightGBM_{feature}', index=False)
+        ale_xgb.to_excel(excel_writer, sheet_name=f'ALE_XGBoost_{feature}', index=False)
+    except Exception as e:
+        print(f"Could not save ALE data for {feature}: {e}")
 
 
+# ---- Save PDP Data ----
+try:
+    df_pdp = pd.DataFrame({'Feature': xx, 'PDP': yy})
+    df_pdp.to_excel(excel_writer, sheet_name=f'PDP_{model_name}_{feature}', index=False)
+except Exception as e:
+    print(f"Could not save PDP data for {model_name} {feature}: {e}")
 
+# ---- Save SHAP Global Importance ----
+try:
+    shap_df_lgbm = pd.DataFrame(shap_values_lgbm.values, columns=X_test.columns)
+    shap_df_xgb = pd.DataFrame(shap_values_xgb.values, columns=X_test.columns)
+    shap_df_lgbm.to_excel(excel_writer, sheet_name='SHAP_Values_LightGBM', index=False)
+    shap_df_xgb.to_excel(excel_writer, sheet_name='SHAP_Values_XGBoost', index=False)
+except Exception as e:
+    print(f"Could not save SHAP global values: {e}")
+
+# ---- Save SHAP Interaction Values ----
+try:
+    shap_int_df = pd.DataFrame(shap_interaction_values.reshape(shap_interaction_values.shape[0], -1))
+    shap_int_df.to_excel(excel_writer, sheet_name=f'SHAP_Interaction_{model_name}', index=False)
+except Exception as e:
+    print(f"Could not save SHAP interaction values for {model_name}: {e}")
+
+# ---- Save Global Surrogate Output ----
+try:
+    y_pred_surrogate = surrogate.predict(X_test)
+    surrogate_df = pd.DataFrame({
+        'True Label': y_test,
+        'Surrogate Prediction': y_pred_surrogate
+    })
+    surrogate_df.to_excel(excel_writer, sheet_name=f'Surrogate_{model_name}', index=False)
+    pd.DataFrame({'Accuracy': [surrogate_accuracy]}).to_excel(
+        excel_writer, sheet_name=f'Surrogate_{model_name}_Accuracy', index=False)
+except Exception as e:
+    print(f"Could not save surrogate model results: {e}")113
+
+'''
+
+
+import pandas as pd
+import shap
+from PyALE import ale
+from sklearn.inspection import PartialDependenceDisplay
+from sklearn.tree import DecisionTreeClassifier
+import numpy as np
+import matplotlib.pyplot as plt
+from openpyxl import Workbook
+from sklearn.inspection import partial_dependence
+
+# Create Excel writer
+excel_writer = pd.ExcelWriter("The_Student_Dataset_Explainability_Data.xlsx", engine='xlsxwriter')
+
+# 1. -------- SHAP Global Importance --------
+shap_importance_lgbm = pd.DataFrame({
+    'Feature': X.columns,
+    'SHAP_Importance_LGBM': np.abs(shap_values_lgbm.values).mean(axis=0)
+})
+shap_importance_xgb = pd.DataFrame({
+    'Feature': X.columns,
+    'SHAP_Importance_XGBoost': np.abs(shap_values_xgb.values).mean(axis=0)
+})
+
+# Merge & save
+shap_global_df = shap_importance_lgbm.merge(shap_importance_xgb, on='Feature')
+shap_global_df.to_excel(excel_writer, sheet_name='SHAP_Global_Importance', index=False)
+
+# 2. -------- SHAP Interaction Values --------
+# Reshape interaction array (n_samples, n_features, n_features) into 2D
+shap_int_lgbm_flat = pd.DataFrame(
+    shap.TreeExplainer(models['LightGBM']).shap_interaction_values(X_test).mean(axis=0),
+    index=X.columns,
+    columns=X.columns
+)
+shap_int_xgb_flat = pd.DataFrame(
+    shap.TreeExplainer(models['XGBoost']).shap_interaction_values(X_test).mean(axis=0),
+    index=X.columns,
+    columns=X.columns
+)
+
+# Save both
+shap_int_lgbm_flat.to_excel(excel_writer, sheet_name='SHAP_Interaction_LGBM')
+shap_int_xgb_flat.to_excel(excel_writer, sheet_name='SHAP_Interaction_XGBoost')
+
+# 3. -------- ALE Values --------
+# Get ALE for top 3 features
+for model_name in ['LightGBM', 'XGBoost']:
+    model = models[model_name]
+    for feature in top_features_dict[model_name]:
+        ale_result = ale(X=X_test, model=model, feature=[feature], include_CI=False, plot=False)
+        ale_result.to_excel(excel_writer, sheet_name=f'ALE_{model_name}_{feature}', index=False)
+
+# 4. -------- PDP Values --------
+for model_name in ['LightGBM', 'XGBoost']:
+    model = models[model_name]
+    for feature in top_features_dict[model_name]:
+        pd_result = partial_dependence(model, X_test, features=[feature])
+        feature_values = pd_result['features'][0]
+        average_effects = pd_result['average'][0]
+
+        pd_df = pd.DataFrame({
+            f'{feature}_value': feature_values,
+            'Partial_Dependence': average_effects
+        })
+        pd_df.to_excel(excel_writer, sheet_name=f'PDP_{model_name}_{feature}', index=False)
+# %%
+# 5. -------- Surrogate Model Output --------
+for model_name in ['LightGBM', 'XGBoost']:
+    model = models[model_name]
+    # Predict with black box
+    y_pred_blackbox = model.predict(X_test)
+
+    # Train surrogate model
+    surrogate = DecisionTreeClassifier(max_depth=3, random_state=42)
+    surrogate.fit(X_test, y_pred_blackbox)
+
+    # Surrogate predictions
+    y_surrogate = surrogate.predict(X_test)
+
+    # Save prediction comparison
+    surrogate_df = pd.DataFrame({
+        'True Label': y_test,
+        'Blackbox Prediction': y_pred_blackbox,
+        'Surrogate Prediction': y_surrogate
+    })
+    surrogate_df.to_excel(excel_writer, sheet_name=f'Surrogate_Output_{model_name}', index=False)
+
+    # Save tree feature importances (optional)
+    feature_importance_df = pd.DataFrame({
+        'Feature': X.columns,
+        'Surrogate Importance': surrogate.feature_importances_
+    })
+    feature_importance_df.to_excel(excel_writer, sheet_name=f'Surrogate_Features_{model_name}', index=False)
+
+    # Save accuracy
+    acc = surrogate.score(X_test, y_pred_blackbox)
+    pd.DataFrame({'Surrogate_Accuracy': [acc]}).to_excel(
+        excel_writer, sheet_name=f'Surrogate_Accuracy_{model_name}', index=False
+    )
+
+# Finish writing
+excel_writer.close()
+print("✅ All numerical explainability data saved to 'The_Student_Dataset_Explainability_Data.xlsx'")
 
 # Save and close the Excel workbook
 excel_writer.close()
+
+
+# %%

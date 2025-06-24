@@ -707,4 +707,237 @@ importance_xgb = pd.DataFrame({
 importance_df = importance_lgbm.merge(importance_xgb, on='Feature')
 output_file_Location = importance_df.to_csv('The_Student_Dataset_SHAP_Global_Features_Importance.csv', index=False)
 print("Global SHAP importance saved to: ", output_file_Location)
+
+# %%
+# Next step 1: Native Feature Importance from LightGBM & XGBoost
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Extract native feature importances
+lightgbm_fi = pd.DataFrame({
+    'Feature': X.columns,
+    'Importance': models['LightGBM'].feature_importances_,
+    'Model': 'LightGBM'
+})
+
+xgboost_fi = pd.DataFrame({
+    'Feature': X.columns,
+    'Importance': models['XGBoost'].feature_importances_,
+    'Model': 'XGBoost'
+})
+
+# Combine into one dataframe
+native_fi_df = pd.concat([lightgbm_fi, xgboost_fi], ignore_index=True)
+
+# Save to CSV
+native_fi_path = 'The_Student_Dataset_Native_Feature_Importance.csv'
+native_fi_df.to_csv(native_fi_path, index=False)
+print(f"Native feature importances saved to: {native_fi_path}")
+
+# Plot
+plt.figure(figsize=(12, 6))
+sns.barplot(data=native_fi_df, x='Importance', y='Feature', hue='Model')
+plt.title('Native Feature Importances')
+plt.tight_layout()
+plt.savefig('The_Student_Dataset_Native_Feature_Importance.png')
+plt.show()
+
+'''
+# %%
+# Next step 2: Permutation Importance using Scikit-Learn
+
+from sklearn.inspection import permutation_importance
+
+# Use LightGBM as example (can repeat for others if needed)
+perm_importance = permutation_importance(models['LightGBM'], X_test, y_test, n_repeats=10, random_state=42)
+
+perm_df = pd.DataFrame({
+    'Feature': X.columns,
+    'Mean Importance': perm_importance.importances_mean,
+    'Std Dev': perm_importance.importances_std
+}).sort_values(by='Mean Importance', ascending=False)
+
+# Save to CSV
+perm_path = 'The_Student_Dataset_Permutation_Importance_LightGBM.csv'
+perm_df.to_csv(perm_path, index=False)
+print(f"Permutation importance saved to: {perm_path}")
+
+# Plot
+plt.figure(figsize=(10, 6))
+sns.barplot(data=perm_df, x='Mean Importance', y='Feature')
+plt.title('Permutation Importance (LightGBM)')
+plt.tight_layout()
+plt.savefig('The_Student_Dataset_Permutation_Importance_LightGBM.png')
+plt.show()
+
+# %%
+# Next step 3: Partial Dependence Plots (PDP)
+
+from sklearn.inspection import PartialDependenceDisplay
+
+# Pick top features from permutation or SHAP
+top_features = perm_df['Feature'].head(3).tolist()
+
+# Create PDP for LightGBM
+fig, ax = plt.subplots(figsize=(12, 4 * len(top_features)))
+PartialDependenceDisplay.from_estimator(models['LightGBM'], X_test, top_features, ax=ax)
+plt.suptitle('Partial Dependence Plots (LightGBM)', fontsize=16)
+plt.tight_layout()
+plt.savefig('The_Student_Dataset_PDP_LightGBM.png')
+plt.show()
+
+'''
+# %%
+# Step 2: Permutation Importance for LightGBM and XGBoost
+
+from sklearn.inspection import permutation_importance
+import seaborn as sns
+import matplotlib.pyplot as plt
+import pandas as pd
+
+top_features_dict = {}  # To store top features for each model
+
+for model_name in ['LightGBM', 'XGBoost']:
+    print(f"\nCalculating permutation importance for {model_name}...")
+
+    perm_result = permutation_importance(
+        models[model_name],
+        X_test,
+        y_test,
+        n_repeats=10,
+        random_state=42
+    )
+
+    perm_df = pd.DataFrame({
+        'Feature': X.columns,
+        'Mean Importance': perm_result.importances_mean,
+        'Std Dev': perm_result.importances_std
+    }).sort_values(by='Mean Importance', ascending=False)
+
+    # Save CSV
+    csv_path = f'The_Student_Dataset_Permutation_Importance_{model_name}.csv'
+    perm_df.to_csv(csv_path, index=False)
+    print(f"Saved to: {csv_path}")
+
+    # Save top 3 features for PDP
+    top_features_dict[model_name] = perm_df['Feature'].head(3).tolist()
+
+    # Plot
+    plt.figure(figsize=(10, 6))
+    sns.barplot(data=perm_df, x='Mean Importance', y='Feature')
+    plt.title(f'Permutation Importance ({model_name})')
+    plt.tight_layout()
+    plt.savefig(f'The_Student_Dataset_Permutation_Importance_{model_name}.png')
+    plt.show()
+
+# %%
+# Step 3: Partial Dependence Plots (PDP) for LightGBM and XGBoost
+
+from sklearn.inspection import PartialDependenceDisplay
+
+for model_name in ['LightGBM', 'XGBoost']:
+    print(f"\nGenerating PDPs for {model_name}...")
+
+    top_features = top_features_dict[model_name]
+
+    fig, ax = plt.subplots(figsize=(12, 4 * len(top_features)))
+    PartialDependenceDisplay.from_estimator(
+        models[model_name],
+        X_test,
+        features=top_features,
+        ax=ax
+    )
+
+    plt.suptitle(f'Partial Dependence Plots ({model_name})', fontsize=16)
+    plt.tight_layout()
+    plt.savefig(f'The_Student_Dataset_PDP_{model_name}.png')
+    plt.show()
+
+# %%
+# Next step 4: Accumulated Local Effects (ALE) Plot
+
+# Compute ALE for LightGBM and top 3 features
+from PyALE import ale
+import matplotlib.pyplot as plt
+import warnings
+warnings.filterwarnings("ignore")
+
+
+fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(18, 5))
+
+for i, feature in enumerate(top_features):
+    # ALE for LightGBM
+    ale_lgb = ale(X=X_test, model=models['LightGBM'], feature=[feature], include_CI=False, plot=False)
+
+    # ALE for XGBoost
+    ale_xgb = ale(X=X_test, model=models['XGBoost'], feature=[feature], include_CI=False, plot=False)
+
+    # Plot both on the same axis
+    axs[i].plot(ale_lgb['eff'], ale_lgb['size'], label='LightGBM', color='blue')
+    axs[i].plot(ale_xgb['eff'], ale_xgb['size'], label='XGBoost', color='orange', linestyle='--')
+
+    axs[i].set_title(f"ALE for {feature}")
+    axs[i].set_xlabel(feature)
+    axs[i].set_ylabel("ALE")
+    axs[i].legend()
+
+plt.suptitle("ALE Plots: LightGBM vs XGBoost", fontsize=16)
+plt.tight_layout()
+plt.savefig('The_Student_Dataset_ALE_LightGBM_XGBoost.png')
+plt.show()
+
+# %%
+# Step 5: SHAP Interaction Values for LightGBM and XGBoost
+
+import shap
+import matplotlib.pyplot as plt
+
+for model_name in ['LightGBM', 'XGBoost']:
+    print(f"\nGenerating SHAP interaction values for {model_name}...")
+    
+    explainer = shap.TreeExplainer(models[model_name])
+    shap_interaction_values = explainer.shap_interaction_values(X_test)
+    
+    # Plot SHAP interaction summary
+    shap.summary_plot(shap_interaction_values, X_test, plot_type="dot", show=False)
+    plt.title(f"SHAP Interaction Values - {model_name}")
+    plt.tight_layout()
+    plt.savefig(f"The_Student_Dataset_SHAP_Interaction_{model_name}.png")
+    plt.show()
+
+
+# %%
+# Step 6: Global Surrogate Model (Decision Tree) for LightGBM and XGBoost
+
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+
+for model_name in ['LightGBM', 'XGBoost']:
+    print(f"\nTraining surrogate decision tree for {model_name}...")
+
+    # Get predictions from the black-box model
+    y_pred_blackbox = models[model_name].predict(X_test)
+
+    # Train the surrogate decision tree model
+    surrogate = DecisionTreeClassifier(max_depth=3, random_state=42)
+    surrogate.fit(X_test, y_pred_blackbox)
+
+    # Accuracy of surrogate model
+    surrogate_accuracy = surrogate.score(X_test, y_pred_blackbox)
+    print(f"{model_name} surrogate accuracy: {surrogate_accuracy:.2f}")
+
+    # Visualise the surrogate tree
+    plt.figure(figsize=(14, 6))
+    plot_tree(
+        surrogate,
+        feature_names=X.columns,
+        class_names=[str(cls) for cls in surrogate.classes_],
+        filled=True
+    )
+    plt.title(f"Global Surrogate Decision Tree (Approximates {model_name})")
+    plt.tight_layout()
+    plt.savefig(f"The_Student_Dataset_Global_Surrogate_{model_name}.png")
+    plt.show()
+
 # %%
