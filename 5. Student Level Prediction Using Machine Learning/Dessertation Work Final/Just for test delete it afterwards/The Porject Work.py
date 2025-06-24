@@ -786,9 +786,6 @@ for model_name in ['LightGBM', 'XGBoost']:
     plt.tight_layout()
     plt.savefig(f'The_Student_Dataset_Permutation_Importance_{model_name}.png')
     plt.show()
-# %%
-import sklearn
-print(sklearn.__version__)
 
 # %%
 # Step 20: Partial Dependence Plots (PDP) for LightGBM and XGBoost
