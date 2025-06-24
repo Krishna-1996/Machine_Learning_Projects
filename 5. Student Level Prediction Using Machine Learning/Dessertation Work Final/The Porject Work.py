@@ -856,7 +856,7 @@ for model_name in ['LightGBM', 'XGBoost']:
     plt.show()
 
 # %%
-# Next step 4: Accumulated Local Effects (ALE) Plot
+# Step 4: Accumulated Local Effects (ALE) Plot
 
 # Compute ALE for LightGBM and top 3 features
 from PyALE import ale
