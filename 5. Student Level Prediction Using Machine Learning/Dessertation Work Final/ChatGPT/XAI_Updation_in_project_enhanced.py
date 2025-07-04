@@ -14,7 +14,7 @@ excel_writer = pd.ExcelWriter("results/results_summary.xlsx", engine="openpyxl")
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+
 
 
 # %%
@@ -68,7 +68,7 @@ df['Year_of_Admission'] = df['Year_of_Admission'].replace({'School 1 Current Stu
 df['Year_of_Admission'] = df['Year_of_Admission'].replace({'School 2 Current Student':'Current Student'})
 
 
-# In[ ]:
+
 
 
 # %%
@@ -84,7 +84,7 @@ for col in df.columns:
             df[col].fillna(mean_value, inplace=True)
 
 
-# In[ ]:
+
 
 
 # %%
@@ -121,7 +121,7 @@ with pd.ExcelWriter(output_file_path) as writer:
 print(f"Preprocessing complete. Dataset saved to: {output_file_path}")
 
 
-# In[ ]:
+
 
 
 # %%
@@ -170,7 +170,7 @@ plt.tight_layout()
 plt.show()
 
 
-# In[ ]:
+
 
 
 # %%
@@ -195,7 +195,7 @@ imbalance_df.to_excel(excel_writer, sheet_name='Feature_Imbalance')
 print(f"Feature imbalance results saved to: {imbalance_output_file_path}")
 
 
-# In[ ]:
+
 
 
 # %%
@@ -331,7 +331,7 @@ for model_name, model in models.items():
         roc_curves[model_name] = (mean_fpr, mean_tpr)
 
 
-# In[ ]:
+
 
 
 # %%
@@ -350,7 +350,7 @@ for model_name, model in models.items():
     print(f"Model {model_name} saved to {model_filename}")
 
 
-# In[ ]:
+
 
 
 # %%
@@ -384,7 +384,7 @@ print("\nFormatted Table:")
 # print(tabulate(metrics_df, headers='keys', tablefmt='pretty'))
 
 
-# In[ ]:
+
 
 
 # %%
@@ -408,7 +408,7 @@ plt.legend(loc='lower right')
 plt.show()
 
 
-# In[ ]:
+
 
 
 # %%
@@ -441,7 +441,7 @@ print("\nEvaluation Metrics for All Models:")
 print(metrics_df)
 
 
-# In[ ]:
+
 
 
 # %%
@@ -461,7 +461,7 @@ for model_name, cm in best_confusion_matrices.items():
     plt.show()  # Display the confusion matrix for the current model
 
 
-# In[ ]:
+
 
 
 # %%
@@ -546,7 +546,7 @@ confusion_df.to_csv(output_file_path, index=False)
 print(f"Confusion matrix values saved to: {output_file_path}")
 
 
-# In[ ]:
+
 
 
 # %%
@@ -581,7 +581,7 @@ for model_name, model in models.items():
         print(f"Model {model_name} does not support ROC curve (no 'predict_proba' method).")
 
 
-# In[ ]:
+
 
 
 # %%
@@ -603,7 +603,7 @@ data.to_csv(output_path, index=False)
 print(f"Predictions saved to: {output_path}")
 
 
-# In[ ]:
+
 
 
 # %%
@@ -683,7 +683,7 @@ else:
     print("Invalid index. Please enter a valid index from the test data.")
 
 
-# In[ ]:
+
 
 
 # %% 
@@ -734,7 +734,7 @@ else:
     print("Invalid index. Please enter a valid index from the test data.")
 
 
-# In[ ]:
+
 
 
 # %% 
@@ -790,11 +790,10 @@ shap.plots.waterfall(shap_values_lgbm[index_to_check])
 plt.show()
 
 
-# In[ ]:
+
 
 
 # %% 
-
 # Step 17: Global SHAP importances to CSV
 
 # Extract mean absolute SHAP values
@@ -813,8 +812,12 @@ importance_df = importance_lgbm.merge(importance_xgb, on='Feature')
 output_file_Location = importance_df.to_csv('The_Student_Dataset_SHAP_Global_Features_Importance.csv', index=False)
 print("Global SHAP importance saved to: ", output_file_Location)
 
+'''
+Now we work on some code to gwt better result of above information, 
+The result must be in csv file (text format).
+SO that it become easy to understand the text, as compare to images.
+This also help me to analyse and compare the result with other alternatives.'''
 
-# In[ ]:
 
 
 # %%
@@ -855,7 +858,7 @@ plt.savefig('The_Student_Dataset_Native_Feature_Importance.png')
 plt.show()
 
 
-# In[ ]:
+
 
 
 # %%
@@ -903,13 +906,12 @@ for model_name in ['LightGBM', 'XGBoost']:
     plt.show()
 
 
-# In[ ]:
+
 
 
 # %%
 
 # Step 3: Partial Dependence Plots (PDP) for LightGBM and XGBoost
-
 from sklearn.inspection import PartialDependenceDisplay
 
 for model_name in ['LightGBM', 'XGBoost']:
@@ -917,7 +919,7 @@ for model_name in ['LightGBM', 'XGBoost']:
     top_features = top_features_dict[model_name]
 
     for feature in top_features:
-        # Generate PDP and store the display object
+        # Create PDP display
         display = PartialDependenceDisplay.from_estimator(
             model,
             X_test,
@@ -925,19 +927,19 @@ for model_name in ['LightGBM', 'XGBoost']:
             kind='average'
         )
 
-        # Extract x and y values from the display object
-        xx = display.pd_lines[0][0].ravel()  # Feature values
-        yy = display.pd_lines[0][1].ravel()  # PDP values
+        # Extract feature grid and PDP values from display
+        # This works for sklearn >= 1.2
+        pd_data = display.pd_results[0]  # list of (xx, yy)
+        xx = pd_data[0].ravel()
+        yy = pd_data[1].ravel()
 
-        # Save to Excel sheet
+        # Save to Excel
         pd_df = pd.DataFrame({
             f'{feature}_value': xx,
             'Partial_Dependence': yy
         })
         pd_df.to_excel(excel_writer, sheet_name=f'PDP_{model_name}_{feature}', index=False)
 
-
-# In[ ]:
 
 
 # %%
@@ -975,7 +977,7 @@ plt.savefig('The_Student_Dataset_ALE_LightGBM_XGBoost.png')
 plt.show()
 
 
-# In[ ]:
+
 
 
 # %%
@@ -999,7 +1001,7 @@ for model_name in ['LightGBM', 'XGBoost']:
     plt.show()
 
 
-# In[ ]:
+
 
 
 # %%
@@ -1140,21 +1142,47 @@ for model_name in ['LightGBM', 'XGBoost']:
         ale_result = ale(X=X_test, model=model, feature=[feature], include_CI=False, plot=False)
         ale_result.to_excel(excel_writer, sheet_name=f'ALE_{model_name}_{feature}', index=False)
 
+
+
 # 4. -------- PDP Values --------
 for model_name in ['LightGBM', 'XGBoost']:
     model = models[model_name]
     for feature in top_features_dict[model_name]:
-        pd_result = partial_dependence(model, X_test, features=[feature])
-        feature_values = pd_result['features'][0]
-        average_effects = pd_result['average'][0]
+        # Generate the PDP plot
+        display = PartialDependenceDisplay.from_estimator(
+            model,
+            X_test,
+            features=[feature],
+            kind='average',  # PDP kind: average partial dependence
+            grid_resolution=100,  # More fine-grained resolution
+        )
 
+        # Extract feature values and PDP values correctly
+        # pd_results contains a list of dictionaries
+        pd_result = display.pd_results[0]  # Extract the first dictionary in the list
+        
+        # Access 'values' and 'average' correctly from the dictionary
+        feature_values = pd_result['values']  # The feature grid values
+        average_effects = pd_result['average']  # The partial dependence values
+
+        # Save the data to Excel
         pd_df = pd.DataFrame({
             f'{feature}_value': feature_values,
             'Partial_Dependence': average_effects
         })
         pd_df.to_excel(excel_writer, sheet_name=f'PDP_{model_name}_{feature}', index=False)
+
+        # Optionally, save the PDP plot as a PNG
+        display.figure_.suptitle(f'PDP - {model_name} - {feature}')
+        display.figure_.tight_layout()
+        display.figure_.savefig(f'PDP_{model_name}_{feature}.png')
+        plt.close(display.figure_)
+
+
+
+
 # %%
-# 5. -------- Surrogate Model Output --------
+# 7. -------- Surrogate Model Output --------
 for model_name in ['LightGBM', 'XGBoost']:
     model = models[model_name]
     # Predict with black box
@@ -1194,6 +1222,7 @@ print("✅ All numerical explainability data saved to 'The_Student_Dataset_Expla
 
 # Save and close the Excel workbook
 excel_writer.close()
+
 
 
 # %%
