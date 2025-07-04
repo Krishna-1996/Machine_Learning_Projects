@@ -418,6 +418,10 @@ plt.figure(figsize=(8, 6))
 sns.barplot(x='Model', y='R2 Score', data=comparison_df, color='lightblue')
 plt.title('Model Comparison - R2 Score')
 plt.show()
+
+
+
+print("======================================================")
 # %%
 
 # Step 6.5 
