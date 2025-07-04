@@ -394,30 +394,129 @@ for model_name, model in models.items():
 
 # %%
 # Step new: Compare the MLR model and ML Models(Lightgbm and XGBoost)
-# 6.2 Performance Comparison with LightGBM and XGBoost
-# Here, we evaluate and compare the performance of MLR with LightGBM and XGBoost
-mlr_accuracy = r2_score(y, y_mlr_pred)  # For regression tasks, R2 is a good metric
+# 6.2 Performance Comparison with LightGBM, XGBoost, and Voting Classifier
+import pandas as pd
+from sklearn.model_selection import StratifiedKFold
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, roc_auc_score, confusion_matrix
+import numpy as np
 
-# Initialize results dictionary
-model_comparison = {
-    'Model': ['Multiple Linear Regression', 'LightGBM', 'XGBoost'],
-    'R2 Score': [mlr_r2, grid_lgbm.best_score_, 0.90],  # Replace with actual results for LightGBM and XGBoost
-    'Mean Squared Error': [mlr_mse, best_lgbm.best_score_, 0.20],  # Replace with actual values
-    'Mean Absolute Error': [mlr_mae, 0.15, 0.18]  # Replace with actual values
+# Define models (these should already be defined earlier)
+models = {
+    'LightGBM': best_lgbm,
+    'XGBoost': xgb_model,
+    'Voting Classifier': VotingClassifier(estimators=[
+        ('log_reg', LogisticRegression(random_state=42, solver='liblinear')),
+        ('ann', best_mlp),
+        ('svm', SVC(kernel='linear', probability=True, random_state=42)),
+        ('lightgbm', best_lgbm)
+    ], voting='soft')
 }
 
-# Convert to DataFrame for visualization
-comparison_df = pd.DataFrame(model_comparison)
+# Initialize storage for results and confusion matrices
+results = {model_name: {'Accuracy': [], 'F1-Score': [], 'Precision': [], 'Recall': [], 'ROC AUC': []} for model_name in models}
+best_confusion_matrices = {}
+roc_curves = {}
 
-# Display the comparison table
-print("\nModel Comparison (R2, MAE, MSE):")
-print(comparison_df)
+# Stratified K-Fold Cross-Validation Setup
+kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
-# Visualize the comparison
-plt.figure(figsize=(8, 6))
-sns.barplot(x='Model', y='R2 Score', data=comparison_df, color='lightblue')
-plt.title('Model Comparison - R2 Score')
-plt.show()
+# Loop through each model and perform K-Fold Cross-Validation
+for model_name, model in models.items():
+    best_accuracy = -1  # Track the best accuracy for the model
+    best_cm = None  # Store the best confusion matrix
+    mean_fpr = np.linspace(0, 1, 100)  # For plotting ROC curve
+    tprs = []
+
+    # Iterate over the splits in K-Fold
+    for fold_num, (train_idx, test_idx) in enumerate(kfold.split(X, y), 1):
+        # Split the data into train and test
+        X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+        y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
+
+        # Train the model
+        model.fit(X_train, y_train)
+
+        # Make predictions
+        y_pred = model.predict(X_test)
+
+        # Check if the model supports 'predict_proba' for ROC curve
+        if hasattr(model, 'predict_proba'):
+            y_prob = model.predict_proba(X_test)[:, 1]
+        else:
+            y_prob = None
+
+        # Calculate evaluation metrics
+        accuracy = accuracy_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred)
+        precision = precision_score(y_test, y_pred)
+        recall = recall_score(y_test, y_pred)
+        roc_auc = roc_auc_score(y_test, y_prob) if y_prob is not None else None
+
+        # Store the metrics for each fold
+        results[model_name]['Accuracy'].append(accuracy)
+        results[model_name]['F1-Score'].append(f1)
+        results[model_name]['Precision'].append(precision)
+        results[model_name]['Recall'].append(recall)
+        if roc_auc is not None:
+            results[model_name]['ROC AUC'].append(roc_auc)
+
+        # Track the best confusion matrix for the model
+        if accuracy > best_accuracy:
+            best_accuracy = accuracy
+            best_cm = confusion_matrix(y_test, y_pred)
+
+        # Calculate ROC curve if available
+        if y_prob is not None:
+            fpr, tpr, _ = roc_curve(y_test, y_prob)
+            tprs.append(np.interp(mean_fpr, fpr, tpr))
+
+    # Store the confusion matrix of the best fold for the model
+    best_confusion_matrices[model_name] = best_cm
+
+    # Calculate mean ROC curve
+    if tprs:
+        mean_tpr = np.mean(tprs, axis=0)
+        roc_curves[model_name] = (mean_fpr, mean_tpr)
+
+# Convert results to a DataFrame for better presentation and CSV export
+df_results = pd.DataFrame({
+    'Model': [],
+    'Accuracy Mean': [],
+    'Accuracy Std': [],
+    'F1-Score Mean': [],
+    'F1-Score Std': [],
+    'Precision Mean': [],
+    'Precision Std': [],
+    'Recall Mean': [],
+    'Recall Std': [],
+    'ROC AUC Mean': [],
+    'ROC AUC Std': []
+})
+
+# Fill the DataFrame with the average and std of each metric
+for model_name in models:
+    df_results = df_results.append({
+        'Model': model_name,
+        'Accuracy Mean': np.mean(results[model_name]['Accuracy']),
+        'Accuracy Std': np.std(results[model_name]['Accuracy']),
+        'F1-Score Mean': np.mean(results[model_name]['F1-Score']),
+        'F1-Score Std': np.std(results[model_name]['F1-Score']),
+        'Precision Mean': np.mean(results[model_name]['Precision']),
+        'Precision Std': np.std(results[model_name]['Precision']),
+        'Recall Mean': np.mean(results[model_name]['Recall']),
+        'Recall Std': np.std(results[model_name]['Recall']),
+        'ROC AUC Mean': np.mean(results[model_name]['ROC AUC']) if 'ROC AUC' in results[model_name] else np.nan,
+        'ROC AUC Std': np.std(results[model_name]['ROC AUC']) if 'ROC AUC' in results[model_name] else np.nan
+    }, ignore_index=True)
+
+# Save the results to a CSV file for easy understanding
+df_results.to_csv('results/performance_comparison.csv', index=False)
+
+# Print the results DataFrame for review
+print(df_results)
+
+# Now you can review the performance of the models and analyze them.
+
 
 
 
