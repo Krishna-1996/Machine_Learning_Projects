@@ -122,8 +122,6 @@ print(f"Preprocessing complete. Dataset saved to: {output_file_path}")
 
 
 
-
-
 # %%
 
 # Step 4: Feature Engineering and Class Assignment
@@ -195,7 +193,69 @@ imbalance_df.to_excel(excel_writer, sheet_name='Feature_Imbalance')
 print(f"Feature imbalance results saved to: {imbalance_output_file_path}")
 
 
+# %% 
+# Step 6: The Multiple Linear Regression Model
 
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# 6.1 Define and Train Multiple Linear Regression Model
+mlr_model = LinearRegression()
+
+# Train the MLR model
+mlr_model.fit(X, y)
+
+# Predict using the MLR model
+y_mlr_pred = mlr_model.predict(X)
+
+# Evaluate the MLR Model
+mlr_mae = mean_absolute_error(y, y_mlr_pred)
+mlr_mse = mean_squared_error(y, y_mlr_pred)
+mlr_r2 = r2_score(y, y_mlr_pred)
+
+print("Multiple Linear Regression Model Evaluation:")
+print(f"Mean Absolute Error (MAE): {mlr_mae:.4f}")
+print(f"Mean Squared Error (MSE): {mlr_mse:.4f}")
+print(f"R-Squared (R²): {mlr_r2:.4f}")
+
+# Plot the actual vs predicted values for MLR model
+plt.figure(figsize=(8, 6))
+plt.scatter(y, y_mlr_pred, color='blue', label='Predictions')
+plt.plot([min(y), max(y)], [min(y), max(y)], color='red', linestyle='--', label='Ideal Fit')
+plt.title("Multiple Linear Regression - Actual vs Predicted")
+plt.xlabel("Actual Values")
+plt.ylabel("Predicted Values")
+plt.legend()
+plt.show()
+
+'''
+# 6.2 Performance Comparison with LightGBM and XGBoost
+# Here, we evaluate and compare the performance of MLR with LightGBM and XGBoost
+mlr_accuracy = r2_score(y, y_mlr_pred)  # For regression tasks, R2 is a good metric
+
+# Initialize results dictionary
+model_comparison = {
+    'Model': ['Multiple Linear Regression', 'LightGBM', 'XGBoost'],
+    'R2 Score': [mlr_r2, grid_lgbm.best_score_, 0.90],  # Replace with actual results for LightGBM and XGBoost
+    'Mean Squared Error': [mlr_mse, best_lgbm.best_score_, 0.20],  # Replace with actual values
+    'Mean Absolute Error': [mlr_mae, 0.15, 0.18]  # Replace with actual values
+}
+
+# Convert to DataFrame for visualization
+comparison_df = pd.DataFrame(model_comparison)
+
+# Display the comparison table
+print("\nModel Comparison (R2, MAE, MSE):")
+print(comparison_df)
+
+# Visualize the comparison
+plt.figure(figsize=(8, 6))
+sns.barplot(x='Model', y='R2 Score', data=comparison_df, color='lightblue')
+plt.title('Model Comparison - R2 Score')
+plt.show()
+'''
 
 
 # %%
@@ -332,8 +392,32 @@ for model_name, model in models.items():
 
 
 
+# %%
+# Step new: Compare the MLR model and ML Models(Lightgbm and XGBoost)
+# 6.2 Performance Comparison with LightGBM and XGBoost
+# Here, we evaluate and compare the performance of MLR with LightGBM and XGBoost
+mlr_accuracy = r2_score(y, y_mlr_pred)  # For regression tasks, R2 is a good metric
 
+# Initialize results dictionary
+model_comparison = {
+    'Model': ['Multiple Linear Regression', 'LightGBM', 'XGBoost'],
+    'R2 Score': [mlr_r2, grid_lgbm.best_score_, 0.90],  # Replace with actual results for LightGBM and XGBoost
+    'Mean Squared Error': [mlr_mse, best_lgbm.best_score_, 0.20],  # Replace with actual values
+    'Mean Absolute Error': [mlr_mae, 0.15, 0.18]  # Replace with actual values
+}
 
+# Convert to DataFrame for visualization
+comparison_df = pd.DataFrame(model_comparison)
+
+# Display the comparison table
+print("\nModel Comparison (R2, MAE, MSE):")
+print(comparison_df)
+
+# Visualize the comparison
+plt.figure(figsize=(8, 6))
+sns.barplot(x='Model', y='R2 Score', data=comparison_df, color='lightblue')
+plt.title('Model Comparison - R2 Score')
+plt.show()
 # %%
 
 # Step 6.5 
