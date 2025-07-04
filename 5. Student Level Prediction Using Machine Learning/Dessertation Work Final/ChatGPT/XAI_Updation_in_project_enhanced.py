@@ -1153,7 +1153,7 @@ for model_name in ['LightGBM', 'XGBoost']:
             model,
             X_test,
             features=[feature],
-            kind='average',  # PDP kind: average partial dependence
+            kind='average',  # PDPkind: average partial dependence
             grid_resolution=100,  # More fine-grained resolution
         )
 
