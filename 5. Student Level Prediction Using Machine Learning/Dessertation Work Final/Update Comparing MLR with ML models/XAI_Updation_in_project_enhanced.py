@@ -493,9 +493,12 @@ df_results = pd.DataFrame({
     'ROC AUC Std': []
 })
 
-# Fill the DataFrame with the average and std of each metric
+# Create a list to hold new rows
+new_rows = []
+
+# Fill the list with the average and std of each metric
 for model_name in models:
-    df_results = df_results.append({
+    new_rows.append({
         'Model': model_name,
         'Accuracy Mean': np.mean(results[model_name]['Accuracy']),
         'Accuracy Std': np.std(results[model_name]['Accuracy']),
@@ -507,16 +510,16 @@ for model_name in models:
         'Recall Std': np.std(results[model_name]['Recall']),
         'ROC AUC Mean': np.mean(results[model_name]['ROC AUC']) if 'ROC AUC' in results[model_name] else np.nan,
         'ROC AUC Std': np.std(results[model_name]['ROC AUC']) if 'ROC AUC' in results[model_name] else np.nan
-    }, ignore_index=True)
+    })
+
+# Use pd.concat to append the rows to the DataFrame
+df_results = pd.concat([df_results, pd.DataFrame(new_rows)], ignore_index=True)
 
 # Save the results to a CSV file for easy understanding
 df_results.to_csv('results/performance_comparison.csv', index=False)
 
 # Print the results DataFrame for review
 print(df_results)
-
-# Now you can review the performance of the models and analyze them.
-
 
 
 
