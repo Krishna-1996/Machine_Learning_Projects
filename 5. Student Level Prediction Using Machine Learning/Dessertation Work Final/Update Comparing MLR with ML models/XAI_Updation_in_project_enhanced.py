@@ -261,7 +261,7 @@ plt.show()
 
 # %%
 
-# Step 6: Model Definition and K-Fold Cross-Validation
+# Step 7: Model Definition and K-Fold Cross-Validation
 from sklearn.model_selection import GridSearchCV, StratifiedKFold
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, roc_auc_score, roc_curve, confusion_matrix
 from sklearn.ensemble import StackingClassifier
