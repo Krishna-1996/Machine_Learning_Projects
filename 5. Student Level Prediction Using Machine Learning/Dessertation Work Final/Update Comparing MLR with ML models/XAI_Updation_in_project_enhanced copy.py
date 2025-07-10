@@ -194,7 +194,7 @@ imbalance_df.to_excel(excel_writer, sheet_name='Feature_Imbalance')
 print(f"Feature imbalance results saved to: {imbalance_output_file_path}")
 
 # %% 
-# %% Step 6: Multi-Linear Regression Model
+# Step 6: Multi-Linear Regression Model
 
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
