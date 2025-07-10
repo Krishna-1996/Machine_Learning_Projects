@@ -1,4 +1,5 @@
 # %%
+# Step 0: Import necessary files to start
 import os
 import pandas as pd
 from openpyxl import Workbook
