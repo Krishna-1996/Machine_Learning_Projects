@@ -191,46 +191,105 @@ imbalance_df.to_excel(excel_writer, sheet_name='Feature_Imbalance')
 print(f"Feature imbalance results saved to: {imbalance_output_file_path}")
 
 # %% 
-# Step 6: Multi-Linear Regression Model
-
+# Step 6: Modify MLR Model to predict 2019 and 2020 average scores
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
+import matplotlib.pyplot as plt
 
-# 6.1 Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# Step 6.1: Calculate the Average Scores for 2019 and 2020 for each subject
 
-# 6.2 Initialize the Linear Regression model
-mlr_model = LinearRegression()
+# 2019 Average Scores
+df['Math_2019'] = df[['Math19-1', 'Math19-2', 'Math19-3']].mean(axis=1)
+df['Science_2019'] = df[['Science19-1', 'Science19-2', 'Science19-3']].mean(axis=1)
+df['English_2019'] = df[['English19-1', 'English19-2', 'English19-3']].mean(axis=1)
 
-# 6.3 Fit the model to the training data
-mlr_model.fit(X_train, y_train)
+# 2020 Average Scores
+df['Math_2020'] = df[['Math20-1', 'Math20-2', 'Math20-3']].mean(axis=1)
+df['Science_2020'] = df[['Science20-1', 'Science20-2', 'Science20-3']].mean(axis=1)
+df['English_2020'] = df[['English20-1', 'English20-2', 'English20-3']].mean(axis=1)
 
-# 6.4 Make predictions on the test set
-y_pred = mlr_model.predict(X_test)
+# Step 6.2: Prepare Data for MLR Model
 
-# 6.5 Evaluate the model
-mse = mean_squared_error(y_test, y_pred)
-r2 = r2_score(y_test, y_pred)
+# Features: Entrance Exam Scores (Math, Science, and English)
+X = df[['Math-exam', 'Science-exam', 'English-exam']]
 
-print(f"Mean Squared Error: {mse}")
-print(f"R-squared: {r2}")
+# Targets for 2019 and 2020
+y_2019 = df[['Math_2019', 'Science_2019', 'English_2019']]
+y_2020 = df[['Math_2020', 'Science_2020', 'English_2020']]
 
-# 6.6 Plot the Predicted vs Actual values (for visual evaluation)
+# Step 6.3: Train and Test MLR Model for 2019 scores
+# 6.3.1 Split the data into training and testing sets for 2019
+X_train_2019, X_test_2019, y_train_2019, y_test_2019 = train_test_split(X, y_2019, test_size=0.2, random_state=42)
+
+# 6.3.2 Initialize and fit the Linear Regression model for 2019
+mlr_model_2019 = LinearRegression()
+mlr_model_2019.fit(X_train_2019, y_train_2019)
+
+# 6.3.3 Make predictions on the test set for 2019
+y_pred_2019 = mlr_model_2019.predict(X_test_2019)
+
+# 6.3.4 Evaluate the 2019 model performance
+mse_2019 = mean_squared_error(y_test_2019, y_pred_2019)
+r2_2019 = r2_score(y_test_2019, y_pred_2019)
+
+print(f"2019 Model - Mean Squared Error: {mse_2019}")
+print(f"2019 Model - R-squared: {r2_2019}")
+
+# Plotting Actual vs Predicted for 2019
 plt.figure(figsize=(10, 6))
-plt.scatter(y_test, y_pred, color='blue', edgecolor='black')
-plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)
-plt.xlabel('Actual Values')
-plt.ylabel('Predicted Values')
-plt.title('Actual vs Predicted Values (MLR)')
+plt.scatter(y_test_2019['Math_2019'], y_pred_2019[:, 0], color='blue', label='Math')
+plt.scatter(y_test_2019['Science_2019'], y_pred_2019[:, 1], color='green', label='Science')
+plt.scatter(y_test_2019['English_2019'], y_pred_2019[:, 2], color='red', label='English')
+plt.plot([0, 100], [0, 100], 'k--', lw=2)
+plt.xlabel('Actual Scores')
+plt.ylabel('Predicted Scores')
+plt.title('Actual vs Predicted Scores (2019)')
+plt.legend()
 plt.tight_layout()
 plt.show()
 
-# 6.7 Save the model for future use
-import joblib
-joblib.dump(mlr_model, 'results/mlr_model.pkl')
+# Step 6.4: Train and Test MLR Model for 2020 scores
 
-print("MLR model saved successfully!")
+# 6.4.1 Split the data into training and testing sets for 2020
+X_train_2020, X_test_2020, y_train_2020, y_test_2020 = train_test_split(X, y_2020, test_size=0.2, random_state=42)
+
+# 6.4.2 Initialize and fit the Linear Regression model for 2020
+mlr_model_2020 = LinearRegression()
+mlr_model_2020.fit(X_train_2020, y_train_2020)
+
+# 6.4.3 Make predictions on the test set for 2020
+y_pred_2020 = mlr_model_2020.predict(X_test_2020)
+
+# 6.4.4 Evaluate the 2020 model performance
+mse_2020 = mean_squared_error(y_test_2020, y_pred_2020)
+r2_2020 = r2_score(y_test_2020, y_pred_2020)
+
+print(f"2020 Model - Mean Squared Error: {mse_2020}")
+print(f"2020 Model - R-squared: {r2_2020}")
+
+# Plotting Actual vs Predicted for 2020
+plt.figure(figsize=(10, 6))
+plt.scatter(y_test_2020['Math_2020'], y_pred_2020[:, 0], color='blue', label='Math')
+plt.scatter(y_test_2020['Science_2020'], y_pred_2020[:, 1], color='green', label='Science')
+plt.scatter(y_test_2020['English_2020'], y_pred_2020[:, 2], color='red', label='English')
+plt.plot([0, 100], [0, 100], 'k--', lw=2)
+plt.xlabel('Actual Scores')
+plt.ylabel('Predicted Scores')
+plt.title('Actual vs Predicted Scores (2020)')
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+# Step 6.5: Save the Models for Future Predictions
+import joblib
+joblib.dump(mlr_model_2019, 'results/mlr_model_2019.pkl')
+joblib.dump(mlr_model_2020, 'results/mlr_model_2020.pkl')
+
+print("MLR Models for 2019 and 2020 saved successfully!")
+
+
+
 
 
 
