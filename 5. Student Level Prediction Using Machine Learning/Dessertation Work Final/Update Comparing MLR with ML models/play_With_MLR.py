@@ -25,7 +25,7 @@ from sklearn.preprocessing import LabelEncoder
 file_path = 'The_Student_Dataset.csv'
 df = pd.read_csv(file_path)
 df.drop(columns=['Age as of Academic Year 17/18','Current Year (17/18)',
-                 'Proposed Year/Grade (18/19)','Current School','Current Curriculum','Previous year/Grade '], inplace=True)
+                 'Proposed Year/Grade (18/19)','Current School ','Current Curriculum ','Previous year/Grade '], inplace=True)
 
 # 1.2 Clean column names: remove leading/trailing spaces, replace spaces with underscores, remove non-alphanumeric characters
 df.columns = df.columns.str.strip()  # Remove leading/trailing spaces from column names
