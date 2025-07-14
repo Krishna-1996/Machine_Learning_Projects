@@ -75,3 +75,49 @@ print(f"Preprocessing complete. Dataset saved to: {output_file_path}")
 
 
 # %%
+# Step 4: Calculate average for each subject in 2019
+df['Math_2019'] = df[['Math191_', 'Math192_', 'Math193_']].mean(axis=1)
+df['Science_2019'] = df[['Science191_', 'Science192_', 'Science193_']].mean(axis=1)
+df['English_2019'] = df[['English191_', 'English192_', 'English193_']].mean(axis=1)
+
+# %%
+# Step 5: Investigate correlation between entrance exam score and 2019 average score
+# 5.1 For Math
+math_corr = df[['Mathexam', 'Math_2019']].corr().iloc[0, 1]
+
+# 5.2 For Science
+science_corr = df[['Scienceexam_', 'Science_2019']].corr().iloc[0, 1]
+
+# 5.3 For English
+english_corr = df[['Englishexam_', 'English_2019']].corr().iloc[0, 1]
+
+# Print the correlation coefficients
+print(f"Correlation between Entrance Math Exam and 2019 Math Average: {math_corr}")
+print(f"Correlation between Entrance Science Exam and 2019 Science Average: {science_corr}")
+print(f"Correlation between Entrance English Exam and 2019 English Average: {english_corr}")
+
+# %%
+# Step 6: Visualize the data (optional but useful)
+# 6.1 Scatter plot for Math
+plt.figure(figsize=(10, 6))
+plt.scatter(df['Mathexam'], df['Math_2019'], alpha=0.5)
+plt.title('Entrance Math Exam Score vs 2019 Math Average')
+plt.xlabel('Mathexam')
+plt.ylabel('Math_2019 Average')
+plt.show()
+
+# 6.2 Scatter plot for Science
+plt.figure(figsize=(10, 6))
+plt.scatter(df['Scienceexam_'], df['Science_2019'], alpha=0.5)
+plt.title('Entrance Science Exam Score vs 2019 Science Average')
+plt.xlabel('Scienceexam_')
+plt.ylabel('Science_2019 Average')
+plt.show()
+
+# 6.3 Scatter plot for English
+plt.figure(figsize=(10, 6))
+plt.scatter(df['Englishexam_'], df['English_2019'], alpha=0.5)
+plt.title('Entrance English Exam Score vs 2019 English Average')
+plt.xlabel('Englishexam_')
+plt.ylabel('English_2019 Average')
+plt.show()
