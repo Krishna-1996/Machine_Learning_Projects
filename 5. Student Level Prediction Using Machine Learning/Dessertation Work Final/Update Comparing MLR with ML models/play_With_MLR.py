@@ -12,9 +12,6 @@ os.makedirs("results", exist_ok=True)
 # Initialize Excel writer
 excel_writer = pd.ExcelWriter("results/results_summary.xlsx", engine="openpyxl")
 
-#!/usr/bin/env python
-# coding: utf-8
-
 
 
 
