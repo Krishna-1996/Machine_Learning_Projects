@@ -54,9 +54,6 @@ df['Year_of_Admission'] = df['Year_of_Admission'].replace({'School 1 Current Stu
 df['Year_of_Admission'] = df['Year_of_Admission'].replace({'School 2 Current Student':'Current Student'})
 
 
-
-
-
 # %%
 
 # Step 2: Handle missing values: fill categorical with mode, numerical with mean
@@ -68,9 +65,6 @@ for col in df.columns:
         else:  # For numerical columns
             mean_value = df[col].mean()  # Get the mean value
             df[col].fillna(mean_value, inplace=True)
-
-
-
 
 
 # %%
