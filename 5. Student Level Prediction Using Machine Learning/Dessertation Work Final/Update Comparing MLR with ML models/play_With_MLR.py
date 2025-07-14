@@ -286,6 +286,126 @@ plt.tight_layout()
 plt.show()
 
 # %% 
+# Step 6.6: Evaluate the model for 2019 and 2020
+
+# 6.6.1: Evaluation for 2019
+
+# Calculate error metrics for 2019
+mse_2019 = mean_squared_error(y_test_2019, y_pred_2019)
+rmse_2019 = mse_2019 ** 0.5
+mae_2019 = mean_absolute_error(y_test_2019, y_pred_2019)
+r2_2019 = r2_score(y_test_2019, y_pred_2019)
+
+print(f"2019 Model Evaluation:")
+print(f"Mean Squared Error (MSE): {mse_2019}")
+print(f"Root Mean Squared Error (RMSE): {rmse_2019}")
+print(f"Mean Absolute Error (MAE): {mae_2019}")
+print(f"R-squared (R²): {r2_2019}")
+
+# 6.6.2: Evaluation for 2020
+mse_2020 = mean_squared_error(y_test_2020, y_pred_2020)
+rmse_2020 = mse_2020 ** 0.5
+mae_2020 = mean_absolute_error(y_test_2020, y_pred_2020)
+r2_2020 = r2_score(y_test_2020, y_pred_2020)
+
+print(f"\n2020 Model Evaluation:")
+print(f"Mean Squared Error (MSE): {mse_2020}")
+print(f"Root Mean Squared Error (RMSE): {rmse_2020}")
+print(f"Mean Absolute Error (MAE): {mae_2020}")
+print(f"R-squared (R²): {r2_2020}")
+
+# Step 6.7: Visualization of Actual vs Predicted Scores
+
+# Plotting Actual vs Predicted for 2019
+plt.figure(figsize=(12, 6))
+plt.subplot(1, 2, 1)
+plt.scatter(y_test_2019['Math_2019'], y_pred_2019[:, 0], color='blue', label='Math')
+plt.scatter(y_test_2019['Science_2019'], y_pred_2019[:, 1], color='green', label='Science')
+plt.scatter(y_test_2019['English_2019'], y_pred_2019[:, 2], color='red', label='English')
+plt.plot([0, 100], [0, 100], 'k--', lw=2)
+plt.xlabel('Actual Scores')
+plt.ylabel('Predicted Scores')
+plt.title('Actual vs Predicted Scores (2019)')
+plt.legend()
+
+# Plotting Actual vs Predicted for 2020
+plt.subplot(1, 2, 2)
+plt.scatter(y_test_2020['Math_2020'], y_pred_2020[:, 0], color='blue', label='Math')
+plt.scatter(y_test_2020['Science_2020'], y_pred_2020[:, 1], color='green', label='Science')
+plt.scatter(y_test_2020['English_2020'], y_pred_2020[:, 2], color='red', label='English')
+plt.plot([0, 100], [0, 100], 'k--', lw=2)
+plt.xlabel('Actual Scores')
+plt.ylabel('Predicted Scores')
+plt.title('Actual vs Predicted Scores (2020)')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
+
+# Step 6.8: Residual Plot for 2019 and 2020
+
+# 2019 Residual Plot
+residuals_2019 = y_test_2019 - y_pred_2019
+plt.figure(figsize=(12, 6))
+plt.subplot(1, 2, 1)
+plt.scatter(y_pred_2019[:, 0], residuals_2019['Math_2019'], color='blue', label='Math')
+plt.scatter(y_pred_2019[:, 1], residuals_2019['Science_2019'], color='green', label='Science')
+plt.scatter(y_pred_2019[:, 2], residuals_2019['English_2019'], color='red', label='English')
+plt.axhline(y=0, color='black', linestyle='--')
+plt.xlabel('Predicted Scores')
+plt.ylabel('Residuals')
+plt.title('Residuals vs Predicted (2019)')
+plt.legend()
+
+# 2020 Residual Plot
+residuals_2020 = y_test_2020 - y_pred_2020
+plt.subplot(1, 2, 2)
+plt.scatter(y_pred_2020[:, 0], residuals_2020['Math_2020'], color='blue', label='Math')
+plt.scatter(y_pred_2020[:, 1], residuals_2020['Science_2020'], color='green', label='Science')
+plt.scatter(y_pred_2020[:, 2], residuals_2020['English_2020'], color='red', label='English')
+plt.axhline(y=0, color='black', linestyle='--')
+plt.xlabel('Predicted Scores')
+plt.ylabel('Residuals')
+plt.title('Residuals vs Predicted (2020)')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
+
+# Step 6.9: Histogram of Residuals
+
+# 2019 Histogram of Residuals
+plt.figure(figsize=(12, 6))
+plt.subplot(1, 2, 1)
+plt.hist(residuals_2019['Math_2019'], bins=30, alpha=0.6, color='blue', label='Math')
+plt.hist(residuals_2019['Science_2019'], bins=30, alpha=0.6, color='green', label='Science')
+plt.hist(residuals_2019['English_2019'], bins=30, alpha=0.6, color='red', label='English')
+plt.xlabel('Residuals')
+plt.ylabel('Frequency')
+plt.title('Residuals Histogram (2019)')
+plt.legend()
+
+# 2020 Histogram of Residuals
+plt.subplot(1, 2, 2)
+plt.hist(residuals_2020['Math_2020'], bins=30, alpha=0.6, color='blue', label='Math')
+plt.hist(residuals_2020['Science_2020'], bins=30, alpha=0.6, color='green', label='Science')
+plt.hist(residuals_2020['English_2020'], bins=30, alpha=0.6, color='red', label='English')
+plt.xlabel('Residuals')
+plt.ylabel('Frequency')
+plt.title('Residuals Histogram (2020)')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
+
+# Step 6.10: Save the Models for Future Predictions
+import joblib
+joblib.dump(mlr_model_2019, 'results/mlr_model_2019.pkl')
+joblib.dump(mlr_model_2020, 'results/mlr_model_2020.pkl')
+
+print("MLR Models for 2019 and 2020 saved successfully!")
+
+
 # %% 
 # %% 
 # Step 7: Save the Models for Future Predictions
