@@ -197,6 +197,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 import matplotlib.pyplot as plt
 
+# %% 
 # Step 6.1: Calculate the Average Scores for 2019 and 2020 for each subject
 
 # 2019 Average Scores
@@ -209,6 +210,7 @@ df['Math_2020'] = df[['Math20-1', 'Math20-2', 'Math20-3']].mean(axis=1)
 df['Science_2020'] = df[['Science20-1', 'Science20-2', 'Science20-3']].mean(axis=1)
 df['English_2020'] = df[['English20-1', 'English20-2', 'English20-3']].mean(axis=1)
 
+# %% 
 # Step 6.2: Prepare Data for MLR Model
 
 # Features: Entrance Exam Scores (Math, Science, and English)
@@ -218,6 +220,7 @@ X = df[['Math-exam', 'Science-exam', 'English-exam']]
 y_2019 = df[['Math_2019', 'Science_2019', 'English_2019']]
 y_2020 = df[['Math_2020', 'Science_2020', 'English_2020']]
 
+# %% 
 # Step 6.3: Train and Test MLR Model for 2019 scores
 # 6.3.1 Split the data into training and testing sets for 2019
 X_train_2019, X_test_2019, y_train_2019, y_test_2019 = train_test_split(X, y_2019, test_size=0.2, random_state=42)
@@ -249,6 +252,7 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
+# %% 
 # Step 6.4: Train and Test MLR Model for 2020 scores
 
 # 6.4.1 Split the data into training and testing sets for 2020
@@ -281,7 +285,10 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
-# Step 6.5: Save the Models for Future Predictions
+# %% 
+# %% 
+# %% 
+# Step 7: Save the Models for Future Predictions
 import joblib
 joblib.dump(mlr_model_2019, 'results/mlr_model_2019.pkl')
 joblib.dump(mlr_model_2020, 'results/mlr_model_2020.pkl')
