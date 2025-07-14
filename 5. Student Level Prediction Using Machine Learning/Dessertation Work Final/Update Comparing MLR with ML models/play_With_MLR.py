@@ -68,7 +68,6 @@ for col in df.columns:
 
 
 # %%
-
 # Step 3: Encode Categorical Data to Numerical
 categorical_columns = df.select_dtypes(include=['object']).columns
 label_encoders = {}
@@ -99,78 +98,6 @@ with pd.ExcelWriter(output_file_path) as writer:
     mapping_df.to_excel(writer, sheet_name='Mappings')
 
 print(f"Preprocessing complete. Dataset saved to: {output_file_path}")
-
-
-
-# %%
-
-# Step 4: Feature Engineering and Class Assignment
-# 4.1 Load the preprocessed dataset
-df = pd.read_excel(output_file_path, sheet_name='Data')
-
-# Calculate the average score for the relevant subjects
-columns_to_avg = ['Mathexam', 'Scienceexam_', 'Englishexam_', 'Math191_', 'Science191_', 'English191_',
-                  'Math192_', 'Science192_', 'English192_', 'Math193_', 'Science193_', 'English193_',
-                  'Math201_', 'Science201_', 'English201_', 'Math202_', 'Science202_', 'English202_',
-                  'Math203_', 'Science203_', 'English203_']
-df['average'] = df[columns_to_avg].mean(axis=1)
-
-# 4.2 Assign class based on the average score
-def assign_class(row):
-    if row['average'] >= 79.9999:
-        return 0  # Above 79.9999
-    else:
-        return 1  # Below 80
-
-df['class'] = df.apply(assign_class, axis=1)
-# 4.3 Save the dataset with the average and class columns to CSV
-df.to_csv('results/The_Student_Dataset_Final.csv', index=False)
-df.to_excel(excel_writer, sheet_name='Final_Dataset', index=False)
-
-print("Dataset saved to final_dataset_file.csv")
-
-# 4.4 Define input features (X) and target (y)
-X = df.drop(columns=['class', 'average'])
-y = df['class']
-
-# Step 4.5: Plot the Correlation Heatmap to see feature dependencies
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-# 4.5.1 Calculate the correlation matrix
-correlation_matrix = df.corr()
-
-# 4.5.2 Plot the heatmap
-plt.figure(figsize=(30, 25))
-sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5)
-plt.title('Correlation Heatmap of Features', fontsize=16)
-plt.tight_layout()
-plt.show()
-
-
-
-# %%
-
-# Step 5: Check Imbalance in Features
-feature_imbalance = {col: df[col].value_counts(normalize=True) for col in X.columns}
-
-# Create a DataFrame to show imbalance in tabular form
-imbalance_df = pd.DataFrame(feature_imbalance)
-print("Feature Imbalance (Tabular View):")
-
-# Step 5.1: Check Imbalance in Features
-feature_imbalance = {col: df[col].value_counts(normalize=True) for col in X.columns}
-
-# Create a DataFrame to show imbalance in tabular form
-imbalance_df = pd.DataFrame(feature_imbalance)
-
-# Save the imbalance DataFrame to an Excel file
-imbalance_output_file_path = 'The_Student_Dataset_Feature_Imbalance_Results.xlsx'
-imbalance_df.to_excel(excel_writer, sheet_name='Feature_Imbalance')
-
-print(f"Feature imbalance results saved to: {imbalance_output_file_path}")
-
-
 
 
 
