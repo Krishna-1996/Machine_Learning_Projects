@@ -286,9 +286,9 @@ plt.tight_layout()
 plt.show()
 
 # %% 
-# Step 6.6: Evaluate the model for 2019 and 2020
+# Step 6.5: Evaluate the model for 2019 and 2020
 
-# 6.6.1: Evaluation for 2019
+# 6.5.1: Evaluation for 2019
 
 # Calculate error metrics for 2019
 mse_2019 = mean_squared_error(y_test_2019, y_pred_2019)
@@ -302,7 +302,7 @@ print(f"Root Mean Squared Error (RMSE): {rmse_2019}")
 print(f"Mean Absolute Error (MAE): {mae_2019}")
 print(f"R-squared (R²): {r2_2019}")
 
-# 6.6.2: Evaluation for 2020
+# 6.5.2: Evaluation for 2020
 mse_2020 = mean_squared_error(y_test_2020, y_pred_2020)
 rmse_2020 = mse_2020 ** 0.5
 mae_2020 = mean_absolute_error(y_test_2020, y_pred_2020)
