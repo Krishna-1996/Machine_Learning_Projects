@@ -201,20 +201,20 @@ import matplotlib.pyplot as plt
 # Step 6.1: Calculate the Average Scores for 2019 and 2020 for each subject
 
 # 2019 Average Scores
-df['Math_2019'] = df[['Math19-1', 'Math19-2', 'Math19-3']].mean(axis=1)
-df['Science_2019'] = df[['Science19-1', 'Science19-2', 'Science19-3']].mean(axis=1)
-df['English_2019'] = df[['English19-1', 'English19-2', 'English19-3']].mean(axis=1)
+df['Math_2019'] = df[['Math191_', 'Math192_', 'Math193_']].mean(axis=1)
+df['Science_2019'] = df[['Science191_', 'Science192_', 'Science193_']].mean(axis=1)
+df['English_2019'] = df[['English191_', 'English192_', 'English193_']].mean(axis=1)
 
 # 2020 Average Scores
-df['Math_2020'] = df[['Math20-1', 'Math20-2', 'Math20-3']].mean(axis=1)
-df['Science_2020'] = df[['Science20-1', 'Science20-2', 'Science20-3']].mean(axis=1)
-df['English_2020'] = df[['English20-1', 'English20-2', 'English20-3']].mean(axis=1)
+df['Math_2020'] = df[['Math201_', 'Math202_', 'Math203_']].mean(axis=1)
+df['Science_2020'] = df[['Science201_', 'Science202_', 'Science203_']].mean(axis=1)
+df['English_2020'] = df[['English201_', 'English202_', 'English203_']].mean(axis=1)
 
 # %% 
 # Step 6.2: Prepare Data for MLR Model
 
 # Features: Entrance Exam Scores (Math, Science, and English)
-X = df[['Math-exam', 'Science-exam', 'English-exam']]
+X = df[['Mathexam', 'Scienceexam_', 'Englishexam_']]
 
 # Targets for 2019 and 2020
 y_2019 = df[['Math_2019', 'Science_2019', 'English_2019']]
