@@ -136,7 +136,6 @@ plt.xlabel('Englishexam_')
 plt.ylabel('English_2019 Average')
 plt.show()
 
-# %%
 # %% Step 7: Prepare target variable (classification based on 2019 average)
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
