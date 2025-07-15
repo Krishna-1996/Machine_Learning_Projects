@@ -149,8 +149,6 @@ df['Overall_2019'] = df[['Math_2019', 'Science_2019', 'English_2019']].mean(axis
 def categorize_performance(score):
     if score >= 80:
         return 'High'
-    elif score >= 60:
-        return 'Medium'
     else:
         return 'Low'
 
@@ -210,3 +208,5 @@ evaluate_model("LightGBM", lgbm_model)
 from sklearn.svm import SVC
 svm_model = SVC(kernel='rbf', C=1, gamma='scale', random_state=42)
 evaluate_model("Support Vector Machine", svm_model)
+
+# %%
