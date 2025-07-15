@@ -53,7 +53,7 @@ df['clean_text'] = df['text'].apply(clean_text)
 # 3.2 Chunking
 import nltk
 # Download the missing resource
-nltk.download('punkt_tab')
+# nltk.download('punkt_tab') This is replaced with 'punkt' as 'punkt_tab' is not a valid resource.
 nltk.download('punkt') # Ensure 'punkt' is also downloaded
 
 from nltk.tokenize import sent_tokenize
@@ -179,8 +179,8 @@ model_save_path = "./models/openchat/openchat-3.5-0106"
 os.makedirs(model_save_path, exist_ok=True)
  
 # Load tokenizer and model
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForCausalLM.from_pretrained(model_name)
+tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+model = AutoModelForCausalLM.from_pretrained(model_name, trust_remote_code=True)
  
 # Save tokenizer and model locally
 tokenizer.save_pretrained(model_save_path)
