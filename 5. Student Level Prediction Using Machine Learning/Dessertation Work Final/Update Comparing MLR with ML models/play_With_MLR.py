@@ -80,8 +80,7 @@ df['Math_2019'] = df[['Math191_', 'Math192_', 'Math193_']].mean(axis=1)
 df['Science_2019'] = df[['Science191_', 'Science192_', 'Science193_']].mean(axis=1)
 df['English_2019'] = df[['English191_', 'English192_', 'English193_']].mean(axis=1)
 
-# %%
-# Step 5: Investigate correlation between entrance exam score and 2019 average score
+# %% Step 5: Compute correlation coefficients
 # 5.1 For Math
 math_corr = df[['Mathexam', 'Math_2019']].corr().iloc[0, 1]
 
@@ -91,27 +90,42 @@ science_corr = df[['Scienceexam_', 'Science_2019']].corr().iloc[0, 1]
 # 5.3 For English
 english_corr = df[['Englishexam_', 'English_2019']].corr().iloc[0, 1]
 
-# Print the correlation coefficients
-print(f"Correlation between Entrance Math Exam and 2019 Math Average: {math_corr}")
-print(f"Correlation between Entrance Science Exam and 2019 Science Average: {science_corr}")
-print(f"Correlation between Entrance English Exam and 2019 English Average: {english_corr}")
+# Print the correlation coefficients clearly
+print("Correlation Coefficients:")
+print(f"Math:    {math_corr:.3f}")
+print(f"Science: {science_corr:.3f}")
+print(f"English: {english_corr:.3f}")
 
-# %%
-# Step 6: Visualize the data (optional but useful)
+# %% 
+# Step 6: Visualize the data with correlation in titles
+
+import matplotlib.pyplot as plt
+
 # 6.1 Scatter plot for Math
 plt.figure(figsize=(10, 6))
-plt.scatter(df['Mathexam'], df['Math_2019'], alpha=0.5)
-plt.title('Entrance Math Exam Score vs 2019 Math Average')
-plt.xlabel('Mathexam')
-plt.ylabel('Math_2019 Average')
+plt.scatter(df['Mathexam'], df['Math_2019'], alpha=0.5, color='dodgerblue')
+plt.title(f'Entrance Math Exam vs 2019 Math Avg\nCorrelation: {math_corr:.3f}')
+plt.xlabel('Entrance Math Exam Score')
+plt.ylabel('2019 Math Average Score')
+plt.grid(True)
 plt.show()
 
 # 6.2 Scatter plot for Science
 plt.figure(figsize=(10, 6))
-plt.scatter(df['Scienceexam_'], df['Science_2019'], alpha=0.5)
-plt.title('Entrance Science Exam Score vs 2019 Science Average')
-plt.xlabel('Scienceexam_')
-plt.ylabel('Science_2019 Average')
+plt.scatter(df['Scienceexam_'], df['Science_2019'], alpha=0.5, color='forestgreen')
+plt.title(f'Entrance Science Exam vs 2019 Science Avg\nCorrelation: {science_corr:.3f}')
+plt.xlabel('Entrance Science Exam Score')
+plt.ylabel('2019 Science Average Score')
+plt.grid(True)
+plt.show()
+
+# 6.3 Scatter plot for English
+plt.figure(figsize=(10, 6))
+plt.scatter(df['Englishexam_'], df['English_2019'], alpha=0.5, color='tomato')
+plt.title(f'Entrance English Exam vs 2019 English Avg\nCorrelation: {english_corr:.3f}')
+plt.xlabel('Entrance English Exam Score')
+plt.ylabel('2019 English Average Score')
+plt.grid(True)
 plt.show()
 
 # 6.3 Scatter plot for English
@@ -121,3 +135,77 @@ plt.title('Entrance English Exam Score vs 2019 English Average')
 plt.xlabel('Englishexam_')
 plt.ylabel('English_2019 Average')
 plt.show()
+
+# %%
+# %% Step 7: Prepare target variable (classification based on 2019 average)
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+import seaborn as sns
+
+# 7.1 Create Overall Average Score
+df['Overall_2019'] = df[['Math_2019', 'Science_2019', 'English_2019']].mean(axis=1)
+
+# 7.2 Create class labels: Low (<60), Medium (60–79), High (80+)
+def categorize_performance(score):
+    if score >= 80:
+        return 'High'
+    elif score >= 60:
+        return 'Medium'
+    else:
+        return 'Low'
+
+df['Performance_Class'] = df['Overall_2019'].apply(categorize_performance)
+
+# 7.3 Features and target
+feature_cols = ['Mathexam', 'Scienceexam_', 'Englishexam_']
+X = df[feature_cols]
+y = df['Performance_Class']
+
+# 7.4 Encode labels
+from sklearn.preprocessing import LabelEncoder
+le_perf = LabelEncoder()
+y_encoded = le_perf.fit_transform(y)
+
+# 7.5 Train/test split
+X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, random_state=42)
+
+# %% Step 8: Model Training and Evaluation
+
+def evaluate_model(name, model):
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+
+    print(f"\n--- {name} ---")
+    print("Accuracy:", accuracy_score(y_test, y_pred))
+    print("Classification Report:\n", classification_report(y_test, y_pred, target_names=le_perf.classes_))
+
+    # Confusion Matrix
+    cm = confusion_matrix(y_test, y_pred)
+    plt.figure(figsize=(6, 4))
+    sns.heatmap(cm, annot=True, fmt="d", xticklabels=le_perf.classes_, yticklabels=le_perf.classes_, cmap="Blues")
+    plt.title(f"{name} - Confusion Matrix")
+    plt.xlabel("Predicted")
+    plt.ylabel("Actual")
+    plt.tight_layout()
+    plt.show()
+
+
+# 8.1 Random Forest
+from sklearn.ensemble import RandomForestClassifier
+rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+evaluate_model("Random Forest", rf_model)
+
+# 8.2 XGBoost
+from xgboost import XGBClassifier
+xgb_model = XGBClassifier(use_label_encoder=False, eval_metric='mlogloss', random_state=42)
+evaluate_model("XGBoost", xgb_model)
+
+# 8.3 LightGBM
+from lightgbm import LGBMClassifier
+lgbm_model = LGBMClassifier(random_state=42)
+evaluate_model("LightGBM", lgbm_model)
+
+# 8.4 SVM
+from sklearn.svm import SVC
+svm_model = SVC(kernel='rbf', C=1, gamma='scale', random_state=42)
+evaluate_model("Support Vector Machine", svm_model)
