@@ -191,32 +191,43 @@ print(f"Model and tokenizer saved to {model_save_path}")
 
 
 # %%
-# 📍 Phase 5: Small Language Model (SLM) Inference using mpt-7b
+# 🎯 Phase 5: Small Language Model (SLM) Inference using OpenChat 3.5‑7B
 
-# from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 
-# 🔄 Load FLAN-T5-large model (1.2B parameters, ~1.4GB size)
-model_save_path = "./models/mosaicml/mpt-7b"
-tokenizer = AutoTokenizer.from_pretrained(model_save_path)
-model = AutoModelForCausalLM.from_pretrained(model_save_path)
+model_name = "openchat/openchat-3.5-0106"  # You can pick 3.5-1210 or 3.5-16k variants
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
 
+# Optional: Set up a chat-style pipeline
+chat = pipeline(
+    "text-generation",
+    model=model,
+    tokenizer=tokenizer,
+    max_length=512,
+    do_sample=True,
+    temperature=0.7,
+    top_k=50,
+    top_p=0.9,
+    eos_token_id=tokenizer.eos_token_id,
+)
 
-# 🚀 Create text2text-generation pipeline (optional, not used here)
-# qa_pipeline = pipeline("text2text-generation", model=model, tokenizer=tokenizer)
-
-# 🔁 Use top 2 chunks from your FAISS search
-# NOTE: Ensure `metadata` and `indices` are already defined from previous FAISS code
+# 🔁 Use top 2 FAISS chunks as context
 top_k_texts = [metadata.loc[idx, 'text'] for idx in indices[0][:2]]
-
-# 🧠 Prompt template
 question = "How is open data used in agriculture?"
-base_prompt_template = """You are an agricultural data expert. Based only on the context below, summarize how open data is used in agriculture in a clear, structured way using bullet points.
+context = "\n".join(top_k_texts)
+
+prompt = f"""You are an agricultural data expert. Based only on the context below, summarize how open data is used in agriculture in a clear, structured way using bullet points.
 
 Context:
 {context}
 
 Question: {question}
-"""
+Answer:"""
+
+answer = chat(prompt)[0]['generated_text']
+print(answer)
+
 
 # ✂️ Truncate context if total prompt exceeds 512 tokens
 def truncate_prompt(tokenizer, context_chunks, base_template, question, max_tokens=512):
