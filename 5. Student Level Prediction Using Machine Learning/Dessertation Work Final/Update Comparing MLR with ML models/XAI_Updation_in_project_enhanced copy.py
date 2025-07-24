@@ -69,6 +69,7 @@ df = df[df['Previous_Curriculum_17182'].isin(valid_curricula)]
 df['Year_of_Admission'] = df['Year_of_Admission'].replace({'School 1 Current Student':'Current Student'})
 df['Year_of_Admission'] = df['Year_of_Admission'].replace({'School 2 Current Student':'Current Student'})
 
+
 # %%
 
 # Step 2: Handle missing values: fill categorical with mode, numerical with mean
@@ -160,10 +161,6 @@ sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f', linewidt
 plt.title('Correlation Heatmap of Features', fontsize=16)
 plt.tight_layout()
 plt.show()
-
-
-
-
 
 # %%
 
