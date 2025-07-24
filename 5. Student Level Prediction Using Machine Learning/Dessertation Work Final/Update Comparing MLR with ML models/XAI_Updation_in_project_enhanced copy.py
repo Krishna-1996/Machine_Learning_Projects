@@ -1,9 +1,4 @@
-# %%
-x = "1"
-y = "2"
-z = x+y
-x = z+y
-print(x)
+
 # %%
 # Step 0: Import necessary files to start
 import os
