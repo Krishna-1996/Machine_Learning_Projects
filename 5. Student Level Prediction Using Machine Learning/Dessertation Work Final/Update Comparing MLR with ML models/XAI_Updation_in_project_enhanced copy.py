@@ -338,9 +338,6 @@ print("\nEvaluation Metrics for All Models:")
 print(metrics_df)
 
 
-
-
-
 # %%
 
 # Step 10: Plot confusion matrices for each model separately
