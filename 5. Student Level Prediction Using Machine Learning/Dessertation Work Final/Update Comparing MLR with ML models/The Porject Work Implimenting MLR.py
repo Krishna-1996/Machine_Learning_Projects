@@ -158,12 +158,27 @@ print(f"Feature imbalance results saved to: {imbalance_output_file_path}")
 
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 
 print("Fitting Multiple Linear Regression (MLR) Model...")
+# Remove columns that were used to compute the average
+columns_to_remove = ['Mathexam', 'Scienceexam_', 'Englishexam_',
+                     'Math191_', 'Science191_', 'English191_',
+                     'Math192_', 'Science192_', 'English192_',
+                     'Math193_', 'Science193_', 'English193_',
+                     'Math201_', 'Science201_', 'English201_',
+                     'Math202_', 'Science202_', 'English202_',
+                     'Math203_', 'Science203_', 'English203_']
 
+X_reg = df.drop(columns=columns_to_remove + ['average', 'class'])  # Remove target and leakage
+y_reg = df['average']
+
+
+
+'''This section implements Multiple Linear Regression (MLR) on the dataset.
 # Define target for regression as the average score (not classification label)
 y_reg = df['average']
 X_reg = X.copy()  # Use same features as classification
@@ -213,7 +228,54 @@ mlr_results['MLR_Predicted_Average'] = y_pred_mlr
 mlr_results.to_csv('The_Student_Dataset_MLR_Predictions.csv', index=False)
 print("MLR predictions saved to The_Student_Dataset_MLR_Predictions.csv")
 
+'''
 
+
+
+X_train_mlr, X_test_mlr, y_train_mlr, y_test_mlr = train_test_split(X_reg, y_reg, test_size=0.2, random_state=42)
+
+mlr_model = LinearRegression()
+mlr_model.fit(X_train_mlr, y_train_mlr)
+
+y_pred_mlr = mlr_model.predict(X_test_mlr)
+
+r2 = r2_score(y_test_mlr, y_pred_mlr)
+mse = mean_squared_error(y_test_mlr, y_pred_mlr)
+rmse = np.sqrt(mse)
+mae = mean_absolute_error(y_test_mlr, y_pred_mlr)
+
+print(f"\nMLR Performance on Test Data (No Leakage):")
+print(f"R² Score   : {r2:.4f}")
+print(f"MAE        : {mae:.4f}")
+print(f"MSE        : {mse:.4f}")
+print(f"RMSE       : {rmse:.4f}")
+
+# Plot 1: Actual vs Predicted (Test Set Only)
+plt.figure(figsize=(8,6))
+sns.scatterplot(x=y_test_mlr, y=y_pred_mlr, alpha=0.6)
+plt.plot([y_test_mlr.min(), y_test_mlr.max()], [y_test_mlr.min(), y_test_mlr.max()], 'r--')
+plt.xlabel("Actual Average Score")
+plt.ylabel("Predicted Average Score")
+plt.title("MLR - Actual vs Predicted (Test Set)")
+plt.tight_layout()
+plt.show()
+
+# Plot 2: Residuals Plot (Test Set Only)
+residuals = y_test_mlr - y_pred_mlr
+plt.figure(figsize=(8,6))
+sns.histplot(residuals, kde=True, bins=30, color='purple')
+plt.title("Distribution of Residuals (MLR - Test Set)")
+plt.xlabel("Residuals")
+plt.ylabel("Frequency")
+plt.tight_layout()
+plt.show()
+
+# Save predictions
+mlr_results = X_test_mlr.copy()
+mlr_results['Actual_Average'] = y_test_mlr
+mlr_results['Predicted_Average'] = y_pred_mlr
+mlr_results.to_csv('The_Student_Dataset_MLR_Test_Predictions.csv', index=False)
+print("MLR test predictions saved to The_Student_Dataset_MLR_Test_Predictions.csv")
 
 
 
