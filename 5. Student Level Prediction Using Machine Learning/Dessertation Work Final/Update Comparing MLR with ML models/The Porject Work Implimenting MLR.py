@@ -153,6 +153,68 @@ imbalance_df.to_excel(imbalance_output_file_path, index=True)
 
 print(f"Feature imbalance results saved to: {imbalance_output_file_path}")
 # %%
+# %% 
+# Step 6A: Baseline - Multiple Linear Regression (MLR)
+
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+
+print("Fitting Multiple Linear Regression (MLR) Model...")
+
+# Define target for regression as the average score (not classification label)
+y_reg = df['average']
+X_reg = X.copy()  # Use same features as classification
+
+# Initialize and fit MLR model
+mlr_model = LinearRegression()
+mlr_model.fit(X_reg, y_reg)
+
+# Predict
+y_pred_mlr = mlr_model.predict(X_reg)
+
+# Evaluation Metrics
+r2 = r2_score(y_reg, y_pred_mlr)
+mse = mean_squared_error(y_reg, y_pred_mlr)
+rmse = np.sqrt(mse)
+mae = mean_absolute_error(y_reg, y_pred_mlr)
+
+print(f"\nMLR Performance on Full Data:")
+print(f"R² Score   : {r2:.4f}")
+print(f"MAE        : {mae:.4f}")
+print(f"MSE        : {mse:.4f}")
+print(f"RMSE       : {rmse:.4f}")
+
+# Plot 1: Actual vs Predicted
+plt.figure(figsize=(8,6))
+sns.scatterplot(x=y_reg, y=y_pred_mlr, alpha=0.6)
+plt.plot([y_reg.min(), y_reg.max()], [y_reg.min(), y_reg.max()], 'r--')
+plt.xlabel("Actual Average Score")
+plt.ylabel("Predicted Average Score")
+plt.title("MLR - Actual vs Predicted")
+plt.tight_layout()
+plt.show()
+
+# Plot 2: Residuals Plot
+residuals = y_reg - y_pred_mlr
+plt.figure(figsize=(8,6))
+sns.histplot(residuals, kde=True, bins=30, color='purple')
+plt.title("Distribution of Residuals (MLR)")
+plt.xlabel("Residuals")
+plt.ylabel("Frequency")
+plt.tight_layout()
+plt.show()
+
+# Optional: Save predictions
+mlr_results = df.copy()
+mlr_results['MLR_Predicted_Average'] = y_pred_mlr
+mlr_results.to_csv('The_Student_Dataset_MLR_Predictions.csv', index=False)
+print("MLR predictions saved to The_Student_Dataset_MLR_Predictions.csv")
+
+
+
 
 
 # %%
