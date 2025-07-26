@@ -181,7 +181,7 @@ grid_lgbm.fit(X, y)
 best_lgbm = grid_lgbm.best_estimator_
 print("Best LightGBM Parameters:", grid_lgbm.best_params_)
 
-# Hyper-Paramter Tune XGBoost
+# Hyper-Parameter Tune XGBoost
 xgb_params = {
     'n_estimators': [100, 150],
     'max_depth': [3, 6, 10],
