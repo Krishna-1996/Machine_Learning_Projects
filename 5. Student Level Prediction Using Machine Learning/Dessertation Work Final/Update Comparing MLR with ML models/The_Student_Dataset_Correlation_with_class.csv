@@ -1,0 +1,32 @@
+Feature,Correlation_with_class,Explanation
+class,1.0,"Perfect positive correlation: As one increases, the other increases in exact proportion."
+Current_Year_1718,0.12952128601976534,Weak or no correlation: Little to no linear relationship between the feature and the target.
+Age_as_of_Academic_Year_1718,0.014394978758491156,Weak or no correlation: Little to no linear relationship between the feature and the target.
+Proposed_YearGrade_1819,-0.007851865000671787,Weak or no correlation: Little to no linear relationship between the feature and the target.
+Gender,-0.024394408968541195,Weak or no correlation: Little to no linear relationship between the feature and the target.
+Math202_,-0.03219255257823701,Weak or no correlation: Little to no linear relationship between the feature and the target.
+Science202_,-0.06303140517550863,Weak or no correlation: Little to no linear relationship between the feature and the target.
+English203_,-0.11297717005026224,Weak or no correlation: Little to no linear relationship between the feature and the target.
+Scienceexam_,-0.11548880773560477,Weak or no correlation: Little to no linear relationship between the feature and the target.
+Science203_,-0.11770419059196391,Weak or no correlation: Little to no linear relationship between the feature and the target.
+English202_,-0.12804884471137543,Weak or no correlation: Little to no linear relationship between the feature and the target.
+Mathexam,-0.168140155235106,Weak or no correlation: Little to no linear relationship between the feature and the target.
+Math203_,-0.1939103805601712,Weak or no correlation: Little to no linear relationship between the feature and the target.
+Math192_,-0.24019501254115788,Weak or no correlation: Little to no linear relationship between the feature and the target.
+Englishexam_,-0.24835186146675134,Weak or no correlation: Little to no linear relationship between the feature and the target.
+Math201_,-0.25902272243402413,Weak or no correlation: Little to no linear relationship between the feature and the target.
+English201_,-0.2880337006803528,Weak or no correlation: Little to no linear relationship between the feature and the target.
+English191_,-0.3000245394174152,Moderate negative correlation: A moderate relationship where one increases while the other decreases.
+Science193_,-0.30519733297298113,Moderate negative correlation: A moderate relationship where one increases while the other decreases.
+Science192_,-0.3232401616992433,Moderate negative correlation: A moderate relationship where one increases while the other decreases.
+Science201_,-0.3297419159154567,Moderate negative correlation: A moderate relationship where one increases while the other decreases.
+English192_,-0.3457794714678891,Moderate negative correlation: A moderate relationship where one increases while the other decreases.
+Math191_,-0.34595469268872714,Moderate negative correlation: A moderate relationship where one increases while the other decreases.
+English193_,-0.35033535916650255,Moderate negative correlation: A moderate relationship where one increases while the other decreases.
+Science191_,-0.351125031786686,Moderate negative correlation: A moderate relationship where one increases while the other decreases.
+Math193_,-0.45349475986513815,Moderate negative correlation: A moderate relationship where one increases while the other decreases.
+Current_Curriculum,-0.5462962316299234,Moderate negative correlation: A moderate relationship where one increases while the other decreases.
+Previous_yearGrade,-0.5462962316299234,Moderate negative correlation: A moderate relationship where one increases while the other decreases.
+Previous_Curriculum_17182,-0.5462962316299234,Moderate negative correlation: A moderate relationship where one increases while the other decreases.
+Current_School,-0.5462962316299234,Moderate negative correlation: A moderate relationship where one increases while the other decreases.
+average,-0.8121267574013545,Strong negative correlation: A strong relationship where one increases while the other decreases.

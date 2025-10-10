@@ -152,7 +152,6 @@ imbalance_output_file_path = 'The_Student_Dataset_Feature_Imbalance_Results.xlsx
 imbalance_df.to_excel(imbalance_output_file_path, index=True)
 
 print(f"Feature imbalance results saved to: {imbalance_output_file_path}")
-# %%
 # %% 
 # Step 6A: Baseline - Multiple Linear Regression (MLR)
 
@@ -417,7 +416,7 @@ import joblib
 for model_name, model in models.items():
     # Specify the file path where the model will be saved
     # model_filename = f'{model_name}_model.pkl'
-    model_filename = f'App/{model_name}_model.pkl'
+    model_filename = f'Models/{model_name}_model.pkl'
     
     # Save the model using joblib
     joblib.dump(model, model_filename)
