@@ -65,8 +65,11 @@ def main():
         logging.info(f"Category: {topic['category']}")
 
         # Save topic for later stages
-        with open("selected_topic.txt", "w", encoding="utf-8") as f:
+        output_path = os.path.join(os.path.dirname(__file__), "selected_topic.txt")
+
+        with open(output_path, "w", encoding="utf-8") as f:
             f.write(topic["topic"])
+
 
     except Exception as e:
         logging.error(f"Stage 2 failed: {e}")
