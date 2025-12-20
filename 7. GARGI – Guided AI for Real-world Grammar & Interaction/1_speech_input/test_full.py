@@ -1,64 +1,103 @@
-# stage1_speech.py
+"""
+Stage 1: Speech Input & Language Detection
+Author: Krishna
+Project: GARGI
+"""
+
 import sounddevice as sd
 from scipy.io.wavfile import write
 import whisper
-from langdetect import detect
+from langdetect import detect, LangDetectException
 import numpy as np
+import os
+import logging
 
 # -------------------------------
-# Step 1: Record Audio
+# Configuration
 # -------------------------------
-def record_audio(filename="speech.wav", duration=7, fs=16000):
-    print(f"Recording for {duration} seconds. Speak now...")
+AUDIO_FILE = "speech.wav"
+SAMPLE_RATE = 16000
+DURATION = 7
+WHISPER_MODEL_SIZE = "base"
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+# -------------------------------
+# Load Whisper Model ONCE
+# -------------------------------
+logging.info("Loading Whisper model...")
+WHISPER_MODEL = whisper.load_model(WHISPER_MODEL_SIZE)
+
+# -------------------------------
+# Record Audio
+# -------------------------------
+def record_audio(filename=AUDIO_FILE, duration=DURATION, fs=SAMPLE_RATE):
+    logging.info(f"Recording audio for {duration} seconds...")
     audio = sd.rec(int(duration * fs), samplerate=fs, channels=1)
     sd.wait()
-    # Convert to int16 for WAV format
-    audio_int16 = np.int16(audio / np.max(np.abs(audio)) * 32767)
+
+    max_val = np.max(np.abs(audio))
+    if max_val == 0:
+        raise ValueError("No audio detected. Please speak louder.")
+
+    audio_int16 = np.int16(audio / max_val * 32767)
     write(filename, fs, audio_int16)
-    print(f"Recording saved as {filename}")
+
+    logging.info(f"Audio saved to {filename}")
     return filename
 
 # -------------------------------
-# Step 2: Transcribe with Whisper
+# Transcribe Audio
 # -------------------------------
 def transcribe_audio(audio_file):
-    print("Loading Whisper model...")
-    model = whisper.load_model("base")  # base model is fast and accurate
-    print("Transcribing audio...")
-    result = model.transcribe(audio_file)
-    text = result['text']
-    print("Transcription complete.")
+    if not os.path.exists(audio_file):
+        raise FileNotFoundError("Audio file not found.")
+
+    logging.info("Transcribing audio...")
+    result = WHISPER_MODEL.transcribe(audio_file)
+
+    text = result.get("text", "").strip()
+    if len(text) < 3:
+        raise ValueError("Transcription too short or empty.")
+
     return text
 
 # -------------------------------
-# Step 3: Language Detection
+# Detect Language
 # -------------------------------
-def detect_language(text):
+def detect_text_language(text):
     try:
-        language = detect(text)
-    except:
-        language = "unknown"
-    return language
+        return detect(text)
+    except LangDetectException:
+        return "unknown"
 
 # -------------------------------
-# Step 4: Main Pipeline
+# Main Pipeline
 # -------------------------------
 def main():
-    # 1️⃣ Record audio
-    audio_file = record_audio(duration=7)
+    try:
+        audio_file = record_audio()
+        text = transcribe_audio(audio_file)
 
-    # 2️⃣ Transcribe
-    text_output = transcribe_audio(audio_file)
-    print("\nTranscribed Text:")
-    print(text_output)
+        language = detect_text_language(text)
 
-    # 3️⃣ Detect language
-    language = detect_language(text_output)
-    print(f"\nDetected Language: {language}")
-    if language == "en":
-        print("✅ Input is English. Ready for Stage 2!")
-    else:
-        print("❌ Please speak in English.")
+        logging.info(f"Transcription: {text}")
+        logging.info(f"Detected Language: {language}")
+
+        # Save transcription for later stages
+        with open("transcription.txt", "w", encoding="utf-8") as f:
+            f.write(text)
+
+        if language == "en":
+            logging.info("Stage 1 completed successfully. Ready for Stage 2.")
+        else:
+            logging.warning("Please speak in English.")
+
+    except Exception as e:
+        logging.error(f"Stage 1 failed: {e}")
 
 if __name__ == "__main__":
     main()
