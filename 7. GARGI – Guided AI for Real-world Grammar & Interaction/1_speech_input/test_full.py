@@ -15,9 +15,9 @@ import logging
 # -------------------------------
 # Configuration
 # -------------------------------
-AUDIO_FILE = "speech.wav"
-SAMPLE_RATE = 16000
-DURATION = 7
+AUDIO_FILE = "speech.wav" 
+SAMPLE_RATE = 16000 # Hz
+DURATION = 30  # seconds
 WHISPER_MODEL_SIZE = "base"
 
 logging.basicConfig(
