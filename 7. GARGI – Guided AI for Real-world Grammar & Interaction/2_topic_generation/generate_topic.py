@@ -4,13 +4,14 @@ Project: GARGI
 Author: Krishna
 """
 
+import os
 import csv
 import random
 import logging
 from typing import Optional, Dict
 
-TOPIC_FILE = "topics.csv"
 
+TOPIC_FILE = os.path.join(os.path.dirname(__file__), "topics.csv")
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
