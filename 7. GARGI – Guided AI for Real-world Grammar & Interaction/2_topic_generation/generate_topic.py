@@ -9,7 +9,7 @@ import csv
 import random
 import logging
 from typing import Optional, Dict
-
+import chardet
 
 TOPIC_FILE = os.path.join(os.path.dirname(__file__), "topics.csv")
 logging.basicConfig(
@@ -18,13 +18,26 @@ logging.basicConfig(
 )
 
 def load_topics(filepath: str):
+    """
+    Load topics from a CSV file with automatic encoding detection.
+    Returns a list of dictionaries with keys from the CSV header.
+    """
+    # First, detect encoding
+    with open(filepath, "rb") as f:  # read as bytes
+        raw_data = f.read()
+        result = chardet.detect(raw_data)
+        encoding = result["encoding"] if result["encoding"] else "utf-8"
+    
+    # Now read the CSV using the detected encoding
     topics = []
-    with open(filepath, newline="", encoding="utf-8") as f:
+    with open(filepath, newline="", encoding=encoding, errors="replace") as f:
         reader = csv.DictReader(f)
         for row in reader:
             topics.append(row)
+    
     if not topics:
         raise ValueError("Topic file is empty.")
+    
     return topics
 
 def get_random_topic(
