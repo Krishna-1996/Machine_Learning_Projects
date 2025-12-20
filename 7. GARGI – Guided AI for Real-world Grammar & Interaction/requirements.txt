@@ -1,0 +1,8 @@
+# pip install -r requirements.txt
+# 1. Requirements for the speech recognition project
+openai-whisper
+sounddevice
+scipy
+numpy
+langdetect
+pydub
