@@ -119,6 +119,15 @@ def main():
     for item in stage4_results["feedback"]:
         print(f"- {item}")
 
+    results = run_stage4(stage3_results)
+
+    print("\n--- Scoring Trace ---")
+    print(results["scoring_trace"])
+
+    print("\n--- Evidence ---")
+    print(results["evidence"])
+
+
     logging.info("Session completed successfully.")
 
 if __name__ == "__main__":
