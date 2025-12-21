@@ -1,12 +1,23 @@
 """
-Stage 5: Topic Relevance & Semantic Alignment (Improved Coverage + Explainability)
+Stage 5: Topic Relevance & Semantic Alignment (Robust + Explainable)
 Project: GARGI
 Author: Krishna
+
+Key design points:
+- Uses local SentenceTransformer model (offline)
+- Removes instruction/prompt wrapper text using patterns
+- Uses semantic coverage (phrase-to-phrase embedding matching), not word overlap
+- Produces explainable outputs: normalized topic content, key matches, missing concepts
 """
+
+from __future__ import annotations
+
+import re
+from typing import List, Tuple, Dict, Any
 
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-import re
+
 
 # -------------------------------
 # Local model path (offline)
@@ -14,8 +25,34 @@ import re
 MODEL_PATH = r"D:\LLM Models\all-mpnet-base-v2"
 model = SentenceTransformer(MODEL_PATH)
 
+
 # -------------------------------
-# Simple stopwords list (extend anytime)
+# Prompt wrapper patterns
+# Extend over time when you see new prompt styles.
+# -------------------------------
+INSTRUCTION_PATTERNS = [
+    r"^share\s+(tips|advice|ways|strategies)\s+(for|to)\s+",
+    r"^give\s+(tips|advice|ways|strategies)\s+(for|to)\s+",
+    r"^explain\s+",
+    r"^describe\s+",
+    r"^discuss\s+",
+    r"^talk\s+about\s+",
+    r"^tell\s+me\s+about\s+",
+    r"^compare\s+",
+    r"^contrast\s+",
+    r"^argue\s+",
+    r"^do\s+you\s+agree\s+or\s+disagree\s+that\s+",
+    r"^do\s+you\s+agree\s+that\s+",
+    r"^do\s+you\s+disagree\s+that\s+",
+    r"^what\s+are\s+the\s+(advantages|disadvantages|pros|cons)\s+of\s+",
+    r"^give\s+reasons\s+(for|why)\s+",
+    r"^why\s+",
+    r"^how\s+",
+]
+
+
+# -------------------------------
+# Stopwords (simple, extend anytime)
 # -------------------------------
 STOPWORDS = {
     "a", "an", "the", "and", "or", "but", "if", "then", "else",
@@ -31,40 +68,108 @@ STOPWORDS = {
     "so", "just", "very", "really", "also",
 }
 
+
+# -------------------------------
+# Text utilities
+# -------------------------------
 def clean_text(text: str) -> str:
     text = text.lower()
-    text = re.sub(r"[^\w\s]", " ", text)         # remove punctuation
-    text = re.sub(r"\s+", " ", text).strip()     # normalize spaces
+    text = re.sub(r"[^\w\s]", " ", text)      # punctuation -> space
+    text = re.sub(r"\s+", " ", text).strip() # normalize spaces
     return text
 
-def tokenize_meaningful(text: str):
-    """Tokenize and remove stopwords + short tokens."""
-    tokens = clean_text(text).split()
-    tokens = [t for t in tokens if t not in STOPWORDS and len(t) >= 3]
-    return tokens
 
+def tokenize_meaningful(text: str) -> List[str]:
+    tokens = clean_text(text).split()
+    # remove stopwords + short tokens
+    return [t for t in tokens if t not in STOPWORDS and len(t) >= 3]
+
+
+def normalize_topic(topic: str) -> str:
+    """
+    Remove common instruction wrappers while keeping topic content.
+    If no pattern matches, return the cleaned topic.
+    """
+    t = clean_text(topic)
+
+    for pat in INSTRUCTION_PATTERNS:
+        t_new = re.sub(pat, "", t).strip()
+        if t_new != t and len(t_new) >= 3:
+            return t_new
+
+    return t
+
+
+def ngrams(tokens: List[str], n: int) -> List[str]:
+    if len(tokens) < n:
+        return []
+    return [" ".join(tokens[i:i+n]) for i in range(len(tokens) - n + 1)]
+
+
+def keyphrase_candidates(text: str) -> List[str]:
+    """
+    Generate a compact set of candidates (unigrams, bigrams, trigrams).
+    This is a lightweight alternative to a full keyword extractor and works well for prompts.
+    """
+    tokens = tokenize_meaningful(text)
+
+    cands = set(tokens)
+    cands.update(ngrams(tokens, 2))
+    cands.update(ngrams(tokens, 3))
+
+    # keep only phrases up to 3 words, drop empty
+    phrases = [c for c in cands if c and len(c.split()) <= 3]
+
+    # sort by length (prefer longer phrases first) then alphabetically
+    phrases.sort(key=lambda x: (-len(x.split()), x))
+    return phrases
+
+
+# -------------------------------
+# Core Stage 5 metrics
+# -------------------------------
 def semantic_similarity(topic: str, transcript: str) -> float:
+    """
+    Overall semantic similarity topic <-> transcript (0..1).
+    """
     topic_emb = model.encode([topic], normalize_embeddings=True)
     transcript_emb = model.encode([transcript], normalize_embeddings=True)
     return float(cosine_similarity(topic_emb, transcript_emb)[0][0])
 
-def keyword_coverage(topic: str, transcript: str):
+
+def semantic_coverage(
+    topic_content: str,
+    transcript: str,
+    match_threshold: float = 0.60,
+    max_phrases: int = 40
+) -> Tuple[float, List[str], List[str]]:
     """
-    Coverage based on meaningful token overlap.
+    Semantic coverage:
+    - Extract keyphrase candidates from normalized topic content and transcript
+    - For each topic phrase, find best semantic match in transcript phrases
+    - Coverage = fraction of topic phrases matched above threshold
+
     Returns:
-      coverage_score (0..1), key_matches(list), missing_keywords(list)
+      coverage_score, matched_phrases, missing_phrases
     """
-    topic_tokens = set(tokenize_meaningful(topic))
-    transcript_tokens = set(tokenize_meaningful(transcript))
+    topic_phrases = keyphrase_candidates(topic_content)[:max_phrases]
+    resp_phrases = keyphrase_candidates(transcript)[:max_phrases]
 
-    if not topic_tokens:
-        return 0.0, [], []
+    if not topic_phrases or not resp_phrases:
+        return 0.0, [], topic_phrases
 
-    overlap = sorted(list(topic_tokens.intersection(transcript_tokens)))
-    missing = sorted(list(topic_tokens.difference(transcript_tokens)))
+    topic_emb = model.encode(topic_phrases, normalize_embeddings=True)
+    resp_emb = model.encode(resp_phrases, normalize_embeddings=True)
 
-    coverage = len(overlap) / len(topic_tokens)
-    return round(coverage, 2), overlap, missing
+    sims = cosine_similarity(topic_emb, resp_emb)
+    best = sims.max(axis=1)
+
+    matched = [p for p, s in zip(topic_phrases, best) if s >= match_threshold]
+    missing = [p for p, s in zip(topic_phrases, best) if s < match_threshold]
+
+    coverage = len(matched) / max(len(topic_phrases), 1)
+    return round(coverage, 2), matched[:15], missing[:15]
+
 
 def relevance_label(score: float) -> str:
     if score >= 0.85:
@@ -76,29 +181,41 @@ def relevance_label(score: float) -> str:
     else:
         return "Off-topic"
 
-def run_stage5(topic: str, transcript: str):
+
+# -------------------------------
+# Stage 5 Orchestrator
+# -------------------------------
+def run_stage5(topic: str, transcript: str) -> Dict[str, Any]:
+    """
+    Compute relevance with robust, explainable components.
+
+    Weighting rationale:
+    - Similarity is primary (robust across paraphrases)
+    - Coverage adds interpretability and catches "generic but similar" responses
+    """
+    topic_content = normalize_topic(topic)
+
     sim = semantic_similarity(topic, transcript)
-    coverage, key_matches, missing = keyword_coverage(topic, transcript)
+    cov, matched, missing = semantic_coverage(topic_content, transcript, match_threshold=0.60)
 
-    # Weighted relevance score (still simple & explainable)
-    relevance = round(0.6 * sim + 0.4 * coverage, 2)
-
-    # Better explanation for the user
-    if relevance >= 0.85:
-        explanation = "Your response strongly and directly addresses the topic."
-    elif relevance >= 0.70:
-        explanation = "Your response addresses the topic, but could include more specific topic details."
-    elif relevance >= 0.50:
-        explanation = "Your response is somewhat related, but parts may be off-topic or too general."
-    else:
-        explanation = "Your response appears largely off-topic compared to the prompt."
+    # Robust weighting
+    relevance = round(0.8 * sim + 0.2 * cov, 2)
 
     return {
+        "topic_content": topic_content,
         "relevance_score": relevance,
         "semantic_similarity": round(sim, 2),
-        "coverage_score": coverage,
-        "key_matches": key_matches,
-        "missing_keywords": missing[:10],  # keep output short (top 10)
+        "semantic_coverage": cov,
+        "key_matches": matched,
+        "missing_keywords": missing,
         "label": relevance_label(relevance),
-        "explanation": explanation
+        "explanation": (
+            "Relevance is computed using semantic similarity between the prompt and response (weight=0.8) "
+            "plus semantic coverage of key topic concepts after removing instruction wrappers (weight=0.2)."
+        ),
+        "config": {
+            "model_path": MODEL_PATH,
+            "match_threshold": 0.60,
+            "weights": {"similarity": 0.8, "coverage": 0.2}
+        }
     }
