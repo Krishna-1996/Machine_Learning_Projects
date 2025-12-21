@@ -1,6 +1,6 @@
 # GARGI — Guided AI for Real-world General Interaction
 
-GARGI is an explainable, offline-first AI system designed to evaluate spoken responses and provide actionable feedback for **real-world spoken communication**.
+**GARGI** is an explainable, offline-first AI system designed to evaluate spoken responses and provide actionable feedback for **real-world spoken communication**.
 
 The project focuses on **general interaction** rather than exam-specific scoring, helping users improve clarity, fluency, grammar, and topic alignment in everyday conversations, academic discussions, interviews, and professional settings.
 
