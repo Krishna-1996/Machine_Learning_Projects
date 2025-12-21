@@ -2,70 +2,15 @@
 Main Orchestrator for GARGI
 Author: Krishna
 """
-import subprocess
-import requests
-import os
-import sys
-
 
 import logging
 import time
 
 from topic_generation.generate_topic import get_random_topic
-from speech_input.stage1 import (
-    record_audio,
-    transcribe_audio,
-    detect_text_language
-)
-
+from speech_input.stage1 import record_audio, transcribe_audio, detect_text_language
 from speech_analysis.stage3_analysis import run_stage3
 from scoring_feedback.stage4_scoring import run_stage4
 from topic_relevance.stage5_relevance import run_stage5
-
-LANGUAGETOOL_PORT = 8081
-LANGUAGETOOL_URL = f"http://localhost:{LANGUAGETOOL_PORT}/v2/check"
-LANGUAGETOOL_JAR = r"D:\Python Automation scripts\LanguageTool-6.6\LanguageTool-6.6\languagetool-server.jar"
-def ensure_languagetool_running():
-    """Start LanguageTool server if it's not already running."""
-    try:
-        # Quick health check
-        requests.get(f"http://localhost:{LANGUAGETOOL_PORT}", timeout=0.5)
-        logging.info("LanguageTool server is already running.")
-        return None
-    except Exception:
-        pass
-
-    if not os.path.exists(LANGUAGETOOL_JAR):
-        raise FileNotFoundError(
-            f"LanguageTool jar not found at: {LANGUAGETOOL_JAR}\n"
-            "Update LANGUAGETOOL_JAR path in main.py"
-        )
-
-    logging.info("LanguageTool server not detected. Starting it now...")
-
-    # Start in background (new window optional; here: same console, background process)
-    creationflags = 0
-    if sys.platform.startswith("win"):
-        creationflags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
-
-    proc = subprocess.Popen(
-        ["java", "-jar", LANGUAGETOOL_JAR, "--port", str(LANGUAGETOOL_PORT)],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        creationflags=creationflags
-    )
-
-    # Wait briefly for server to come up
-    for _ in range(20):
-        try:
-            requests.get(f"http://localhost:{LANGUAGETOOL_PORT}", timeout=0.5)
-            logging.info("LanguageTool server started successfully.")
-            return proc
-        except Exception:
-            time.sleep(0.25)
-
-    logging.warning("Started LanguageTool process, but server did not respond yet.")
-    return proc
 
 logging.basicConfig(level=logging.INFO)
 
@@ -73,19 +18,18 @@ TRANSCRIPT_FILE = "transcription.txt"
 
 
 def main():
-    ensure_languagetool_running()
-
     logging.info("Welcome to GARGI")
 
     # -------------------------------------------------
     # Stage 2: Topic Selection
     # -------------------------------------------------
-    category = input(
-        "Enter topic category (or press Enter for random): "
-    ).strip() or None
-
+    category = input("Enter topic category (or press Enter for random): ").strip() or None
     topic_data = get_random_topic(category=category)
-    topic_text = topic_data["topic"]
+
+    topic_text = topic_data.get("topic", "").strip()
+    if not topic_text:
+        logging.error("Topic generation returned empty topic text.")
+        return
 
     print("\nYour Speaking Topic:")
     print(f"👉 {topic_text}\n")
@@ -122,12 +66,12 @@ def main():
     stage4_results = run_stage4(stage3_results)
 
     # -------------------------------------------------
-    # Stage 5: Topic Relevance (Local MPNet Model)
+    # Stage 5: Topic Relevance (Local MPNet)
     # -------------------------------------------------
     stage5_results = run_stage5(topic_text, transcript)
 
     # -------------------------------------------------
-    # Final Output (User-Facing)
+    # Final Output
     # -------------------------------------------------
     print("\n================ GARGI Evaluation ================\n")
 
@@ -139,21 +83,22 @@ def main():
     print(f"   • Grammar: {stage4_results['scores']['grammar']}/10")
     print(f"   • Fillers: {stage4_results['scores']['fillers']}/10\n")
 
+    # -------- Stage 5 printing (schema-robust) --------
     print("🔹 Topic Relevance:")
-    print(f"   • Relevance Score: {stage5_results['relevance_score']}")
-    print(f"   • Label: {stage5_results['label']}")
-    print(f"   • Semantic Similarity: {stage5_results['semantic_similarity']}")
-    print(f"   • Coverage Score: {stage5_results['coverage_score']}")
+    print(f"   • Relevance Score: {stage5_results.get('relevance_score', 'N/A')}")
+    print(f"   • Label: {stage5_results.get('label', 'N/A')}")
+    print(f"   • Semantic Similarity: {stage5_results.get('semantic_similarity', 'N/A')}")
 
-    if stage5_results["key_matches"]:
-        print(
-            f"   • Key Matches: {', '.join(stage5_results['key_matches'])}"
-        )
-    else:
-        print("   • Key Matches: None")
-    print(f"   • Missing Keywords (top): {', '.join(stage5_results['missing_keywords']) if stage5_results['missing_keywords'] else 'None'}")
+    coverage_val = stage5_results.get("semantic_coverage", stage5_results.get("coverage_score", "N/A"))
+    print(f"   • Semantic Coverage: {coverage_val}")
 
-    print("\n🔹 Feedback:")
+    key_matches = stage5_results.get("key_matches", [])
+    missing = stage5_results.get("missing_keywords", [])
+
+    print(f"   • Key Matches: {', '.join(key_matches) if key_matches else 'None'}")
+    print(f"   • Missing Concepts (top): {', '.join(missing) if missing else 'None'}\n")
+
+    print("🔹 Feedback:")
     for item in stage4_results["feedback"]:
         print(f"   - {item}")
 
@@ -167,9 +112,14 @@ def main():
         print(f"  {k}: {v}")
 
     print("\n🧠 Topic Relevance Explanation:")
-    print(f"   {stage5_results['explanation']}")
+    print(f"   {stage5_results.get('explanation', 'N/A')}")
 
-    
+    # Helpful debugging context (topic content after wrapper removal)
+    topic_content = stage5_results.get("topic_content")
+    if topic_content:
+        print("\n🧾 Topic content used for coverage:")
+        print(f"   {topic_content}")
+
     print("\n=================================================\n")
 
     logging.info("Session completed successfully.")
