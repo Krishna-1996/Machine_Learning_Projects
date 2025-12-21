@@ -38,6 +38,7 @@ model = SentenceTransformer(MODEL_PATH)
 # Prompt wrapper patterns (extend)
 # -------------------------------
 INSTRUCTION_PATTERNS = [
+    r"^share\s+your\s+perspective\s+on\s+",
     r"^share\s+(tips|advice|ways|strategies)\s+(for|to)\s+",
     r"^give\s+(tips|advice|ways|strategies)\s+(for|to)\s+",
     r"^explain\s+",
