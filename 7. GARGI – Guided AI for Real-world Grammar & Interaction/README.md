@@ -64,7 +64,9 @@ All components are **free**, **local-first**, and compatible with **Windows**.
    pip install -r requirements.txt
 
 2. Start LanguageTool server:
+    ```bash
     java -jar languagetool-server.jar --port 8081
 
 3. Run GARGI:
+    ```bash
     python main.py
