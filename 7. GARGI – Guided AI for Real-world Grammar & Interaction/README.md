@@ -1,16 +1,16 @@
-# GARGI — Guided AI for Real-World General Interaction
+# GARGI — Guided AI for Real-world General Interaction
 
-GARGI is an end-to-end, offline-first AI system designed to evaluate spoken responses and provide explainable, learning-oriented feedback on **fluency, grammar, fillers, and topic relevance**.
+GARGI is an explainable, offline-first AI system designed to evaluate spoken responses and provide actionable feedback for **real-world spoken communication**.
 
-The project is built with a strong emphasis on **interpretability**, **trust**, and **human-centric feedback**, making it suitable for speaking practice, interview preparation, and language assessment research.
+The project focuses on **general interaction** rather than exam-specific scoring, helping users improve clarity, fluency, grammar, and topic alignment in everyday conversations, academic discussions, interviews, and professional settings.
 
 ---
 
-## 🔍 Key Features
+## 🔍 Key Capabilities
 
 - 🎙️ **Speech Input & Transcription**
-  - Records user speech locally
-  - Transcribes using OpenAI Whisper (offline-capable)
+  - Local audio recording
+  - Speech-to-text using Whisper
 
 - 🗣️ **Fluency Analysis**
   - Speaking rate (WPM)
@@ -18,26 +18,53 @@ The project is built with a strong emphasis on **interpretability**, **trust**, 
   - Filler word detection
 
 - ✍️ **Grammar Analysis**
-  - Rule-based grammar checking (LanguageTool)
-  - Error density and explainable error categories
+  - Rule-based grammar checking via LanguageTool
+  - Error density and explainable grammar feedback
 
-- 🎯 **Topic Relevance Evaluation**
+- 🎯 **Topic Relevance & Alignment**
   - Semantic similarity using Sentence Transformers
-  - Concept coverage analysis
-  - Sentence-level relevance ratio
-  - Explainable relevance feedback
+  - Concept-level coverage analysis
+  - Sentence-level on-topic ratio
+  - Explainable relevance diagnostics
 
-- 🧠 **Explainability & Trust (XAI-inspired)**
-  - Scoring traces
+- 🧠 **Explainability & Trust Layer**
+  - Transparent scoring logic
   - Evidence-based feedback
-  - Clear reasoning for every score
+  - XAI-inspired scoring traces
 
 - 📈 **Learning-Oriented Feedback**
-  - Actionable suggestions
-  - Priority improvement areas
+  - Priority improvement suggestions
+  - Coaching-style guidance
   - Reflection prompts for self-assessment
 
 ---
 
 ## 🧩 System Architecture
 
+
+---
+
+## 🛠️ Technology Stack
+
+- Python 3.10 / 3.13
+- Whisper (speech-to-text)
+- LanguageTool (grammar analysis)
+- Sentence Transformers (`all-mpnet-base-v2`)
+- YAKE (keyword extraction)
+- NumPy, SciPy, scikit-learn
+
+All components are **free**, **local-first**, and compatible with **Windows**.
+
+---
+
+## 🚀 Running the Project
+
+1. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+
+2. Start LanguageTool server:
+    java -jar languagetool-server.jar --port 8081
+
+3. Run GARGI:
+    python main.py
