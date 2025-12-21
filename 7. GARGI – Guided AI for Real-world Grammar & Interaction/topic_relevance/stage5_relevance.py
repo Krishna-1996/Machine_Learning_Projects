@@ -34,7 +34,7 @@ MODEL_PATH = r"D:\LLM Models\all-mpnet-base-v2"
 model = SentenceTransformer(MODEL_PATH)
 
 # -------------------------------
-# YAKE response phrases
+# YAKE keyphrases
 # -------------------------------
 def yake_keyphrases(text: str, top_k: int = 10) -> List[str]:
     text = (text or "").strip()
@@ -86,7 +86,7 @@ def sentence_on_topic_ratio(topic_content: str, transcript: str, threshold: floa
     return round(on / len(sents), 2), per
 
 # -------------------------------
-# Coverage: topic_keyphrases vs response_keyphrases
+# Coverage: topic phrases vs response phrases
 # -------------------------------
 def semantic_coverage(topic_phrases: List[str], response_phrases: List[str], match_threshold: float = 0.60):
     topic_phrases = [p for p in (topic_phrases or []) if p]
@@ -107,7 +107,7 @@ def semantic_coverage(topic_phrases: List[str], response_phrases: List[str], mat
     return round(cov, 2), matched[:10], missing[:10]
 
 # -------------------------------
-# Rubric checks (anchors)
+# Anchor rubric (improved "implicit example")
 # -------------------------------
 TIME_PATTERNS = [
     r"\b(last|past)\s+(week|month|year)\b",
@@ -116,31 +116,44 @@ TIME_PATTERNS = [
     r"\byesterday\b",
     r"\btoday\b",
     r"\bin\s+20\d{2}\b",
-    r"\b(january|february|march|april|may|june|july|august|september|october|november|december)\b",
 ]
 
 EVENT_MARKERS = {"announced", "passed", "voted", "elected", "resigned", "protested", "signed", "sanction", "approved", "rejected"}
 PLACE_HINTS = {"india", "bangladesh", "pakistan", "uk", "united kingdom", "usa", "united states", "china", "russia", "europe"}
 
-def anchor_score(expected_anchors: List[str], transcript: str) -> Dict[str, Any]:
+def has_implicit_example(original_transcript: str, response_keyphrases: List[str]) -> bool:
     """
-    Heuristic presence checks for anchors. Not a fact checker.
+    Accepts an implicit example if:
+    - transcript contains multi-word capitalized phrases (rough proxy for titles/names), OR
+    - YAKE extracted at least one multi-word keyphrase (e.g., 'harry potter', 'sorcerer stone').
     """
-    t = (transcript or "").lower()
+    if response_keyphrases:
+        if any(len(p.split()) >= 2 for p in response_keyphrases[:10]):
+            return True
+
+    # Capitalized phrase heuristic (works on raw transcript, not lowercased)
+    # Example: "Harry Potter", "Sorcerer's Stone", "J. K. Rowling"
+    cap = re.findall(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3}\b", original_transcript or "")
+    return len(cap) > 0
+
+def anchor_score(expected_anchors: List[str], transcript: str, response_keyphrases: List[str]) -> Dict[str, Any]:
+    t_low = (transcript or "").lower()
     components = {}
 
     if "time" in expected_anchors:
-        components["time"] = any(re.search(p, t) for p in TIME_PATTERNS)
+        components["time"] = any(re.search(p, t_low) for p in TIME_PATTERNS)
     if "place" in expected_anchors:
-        components["place"] = any(ph in t for ph in PLACE_HINTS)
+        components["place"] = any(ph in t_low for ph in PLACE_HINTS)
     if "what_happened" in expected_anchors:
-        components["what_happened"] = any(m in t for m in EVENT_MARKERS)
+        components["what_happened"] = any(m in t_low for m in EVENT_MARKERS)
     if "your_view" in expected_anchors or "position" in expected_anchors:
-        components["your_view"] = any(p in t for p in ["i think", "i believe", "in my view", "my perspective", "i feel", "i support", "i disagree"])
+        components["your_view"] = any(p in t_low for p in ["i think", "i believe", "in my view", "my perspective", "i feel", "i support", "i disagree"])
     if "example" in expected_anchors:
-        components["example"] = any(p in t for p in ["for example", "for instance", "such as"])
+        # explicit example marker OR implicit example
+        explicit = any(p in t_low for p in ["for example", "for instance", "such as"])
+        implicit = has_implicit_example(transcript or "", response_keyphrases or [])
+        components["example"] = explicit or implicit
 
-    # score
     if not components:
         return {"score": None, "components": {}, "explanation": "No anchor rubric for this topic type."}
 
@@ -149,7 +162,6 @@ def anchor_score(expected_anchors: List[str], transcript: str) -> Dict[str, Any]
 
     missing = [k for k, v in components.items() if not v]
     explanation = "Anchor coverage missing: " + ", ".join(missing) if missing else "Anchors well covered."
-
     return {"score": score, "components": components, "explanation": explanation}
 
 # -------------------------------
@@ -166,7 +178,7 @@ def relevance_label(score: float) -> str:
         return "Off-topic"
 
 # -------------------------------
-# Stage 5 Orchestrator (metadata-aware)
+# Stage 5 Orchestrator (metadata-aware + robust)
 # -------------------------------
 def run_stage5(topic_obj: Dict[str, Any], transcript: str) -> Dict[str, Any]:
     topic_raw = topic_obj.get("topic_raw", "")
@@ -178,38 +190,47 @@ def run_stage5(topic_obj: Dict[str, Any], transcript: str) -> Dict[str, Any]:
     # Response keyphrases (YAKE)
     resp_phrases = yake_keyphrases(transcript, top_k=10)
 
-    # Similarity should use topic_content (meaning), not topic_raw (instruction)
+    # Similarity uses topic_content
     sim = semantic_similarity(topic_content, transcript)
 
-    # Coverage uses precomputed topic keyphrases (stable)
-    cov, matched, missing = semantic_coverage(topic_keyphrases, resp_phrases, match_threshold=0.60)
+    # Coverage:
+    # If topic_keyphrases missing/too small, fallback to YAKE on topic_content
+    effective_topic_phrases = topic_keyphrases
+    if not effective_topic_phrases or len(effective_topic_phrases) < 3:
+        effective_topic_phrases = yake_keyphrases(topic_content, top_k=8)
 
-    # Sentence ratio (dynamic threshold by type)
-    # generic experience/advice prompts are broader => lower threshold
+    cov, matched, missing = semantic_coverage(effective_topic_phrases, resp_phrases, match_threshold=0.60)
+
+    # Sentence ratio threshold by type (more forgiving for general/experience/story)
     if topic_type in ("general", "experience", "story"):
-        sent_th = 0.50
+        sent_th = 0.45
     elif topic_type in ("event", "opinion", "compare", "explain", "advice"):
         sent_th = 0.55
     else:
-        sent_th = 0.50
+        sent_th = 0.45
 
     on_ratio, per_sentence = sentence_on_topic_ratio(topic_content, transcript, threshold=sent_th)
 
     # Anchor rubric bonus (small)
-    anchors = anchor_score(expected_anchors, transcript)
+    anchors = anchor_score(expected_anchors, transcript, resp_phrases)
     bonus = 0.0
     if anchors["score"] is not None:
         bonus = 0.10 * float(anchors["score"])  # max +0.10
 
-    # Final relevance score (balanced)
+    # Relevance score:
+    # IMPORTANT: similarity already says 0.61; avoid "Off-topic" if similarity is decent.
     relevance = 0.65 * sim + 0.15 * cov + 0.20 * on_ratio + bonus
-    relevance = round(max(0.0, min(1.0, relevance)), 2)
 
+    # Guardrail: if similarity is moderate-high, don't collapse relevance too far
+    if sim >= 0.55:
+        relevance = max(relevance, 0.55)
+
+    relevance = round(max(0.0, min(1.0, relevance)), 2)
     label = relevance_label(relevance)
 
     explanation = (
-        "Relevance uses semantic similarity against topic_content, semantic coverage using topic_keyphrases, "
-        "sentence-level on-topic ratio, and a small anchor bonus based on expected_anchors."
+        "Relevance uses semantic similarity against topic_content, semantic coverage using topic phrases (CSV keyphrases with fallback), "
+        "sentence-level on-topic ratio (type-based threshold), and a small anchor bonus based on expected_anchors."
     )
 
     return {
@@ -217,12 +238,12 @@ def run_stage5(topic_obj: Dict[str, Any], transcript: str) -> Dict[str, Any]:
         "topic_content": topic_content,
         "topic_type": topic_type,
         "expected_anchors": expected_anchors,
-        "topic_keyphrases": topic_keyphrases,
+        "topic_keyphrases": effective_topic_phrases,
 
         "relevance_score": relevance,
         "semantic_similarity": round(sim, 2),
         "semantic_coverage": cov,
-        "coverage_score": cov,  # alias
+        "coverage_score": cov,
 
         "key_matches": matched,
         "missing_keywords": missing,
@@ -239,6 +260,8 @@ def run_stage5(topic_obj: Dict[str, Any], transcript: str) -> Dict[str, Any]:
         "config": {
             "weights": {"similarity": 0.65, "coverage": 0.15, "sentence_ratio": 0.20, "anchor_bonus_max": 0.10},
             "match_threshold": 0.60,
-            "sentence_threshold": sent_th
+            "sentence_threshold": sent_th,
+            "topic_phrase_fallback": True,
+            "similarity_guardrail": 0.55
         }
     }
