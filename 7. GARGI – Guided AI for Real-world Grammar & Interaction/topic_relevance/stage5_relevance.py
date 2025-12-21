@@ -79,7 +79,8 @@ STOPWORDS = {
 FRAME_WORDS = {
     "describe", "explain", "discuss", "talk", "share", "tell", "compare", "contrast",
     "scientific", "science", "discovery", "discoveries", "excite", "excites", "exciting",
-    "meaningful", "topic", "example"
+    "meaningful", "topic", "example", "recent", "perspective", "event", "political"
+
 }
 
 # -------------------------------
