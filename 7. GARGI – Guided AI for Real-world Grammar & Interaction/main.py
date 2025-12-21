@@ -126,6 +126,15 @@ def main():
 
     print("\nRelevance Explanation:")
     print(stage5_results.get("explanation", "N/A"))
+    event_spec = stage5_results.get("event_specificity")
+    if event_spec:
+        print("\nEvent Specificity (for event prompts):")
+        print(f"• Score: {event_spec.get('score')}")
+        print(f"• Components: {event_spec.get('components')}")
+        print(f"• Explanation: {event_spec.get('explanation')}")
+    
+    print(f"• Topic Keyphrases (YAKE): {safe_join(stage5_results.get('topic_keyphrases', []))}")
+
 
 
     # -------------------------------------------------

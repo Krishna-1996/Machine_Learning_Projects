@@ -1,32 +1,36 @@
 """
-Stage 5: Topic Relevance & Semantic Alignment (Robust + Explainable)
-Project: GARGI
+Stage 5: Topic Relevance & Semantic Alignment (Upgraded for "Event" prompts)
+Project: GARGI — Guided AI for Real-world General Interaction
 Author: Krishna
 
-Upgrades:
-1) YAKE keyphrase extraction for response explainability
-2) Sentence-level on-topic ratio (measures % of content relevant)
+Key upgrades:
+- Strong topic normalization (includes "share your perspective on ...")
+- YAKE keyphrase extraction for BOTH topic and response (robust for short prompts)
+- Semantic coverage computed between topic keyphrases and response keyphrases
+- Sentence-level on-topic ratio (dynamic threshold by prompt specificity)
+- Event-specificity rubric:
+    - checks for time anchor, place anchor, and concrete event description markers
+    - reduces false "Off-topic" for event prompts while still penalizing vague answers
 
-Core scoring:
-- relevance_score = 0.8 * semantic_similarity + 0.2 * semantic_coverage
-
-Outputs (schema-stable):
+Schema-stable outputs:
 - relevance_score, semantic_similarity
 - semantic_coverage (+ alias coverage_score)
 - key_matches, missing_keywords
-- response_keyphrases (YAKE)
+- response_keyphrases (YAKE), topic_keyphrases (YAKE)
 - on_topic_sentence_ratio, sentence_similarities
-- label, explanation
+- event_specificity (if event prompt)
+- label, explanation, config
 """
 
 from __future__ import annotations
 
 import re
-from typing import List, Tuple, Dict, Any
+from typing import List, Dict, Any, Tuple
 
 import yake
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+
 
 # -------------------------------
 # Local model path (offline)
@@ -34,11 +38,17 @@ from sklearn.metrics.pairwise import cosine_similarity
 MODEL_PATH = r"D:\LLM Models\all-mpnet-base-v2"
 model = SentenceTransformer(MODEL_PATH)
 
+
 # -------------------------------
-# Prompt wrapper patterns (extend)
+# Prompt wrapper patterns
 # -------------------------------
 INSTRUCTION_PATTERNS = [
+    # High-value additions for your current prompt style:
     r"^share\s+your\s+perspective\s+on\s+",
+    r"^share\s+your\s+view\s+on\s+",
+    r"^share\s+your\s+opinion\s+on\s+",
+
+    # Existing patterns
     r"^share\s+(tips|advice|ways|strategies)\s+(for|to)\s+",
     r"^give\s+(tips|advice|ways|strategies)\s+(for|to)\s+",
     r"^explain\s+",
@@ -58,6 +68,7 @@ INSTRUCTION_PATTERNS = [
     r"^how\s+",
 ]
 
+
 # -------------------------------
 # Stopwords (simple)
 # -------------------------------
@@ -75,24 +86,30 @@ STOPWORDS = {
     "so", "just", "very", "really", "also",
 }
 
-# Words common in prompts that are not useful as "topic concepts"
-FRAME_WORDS = {
-    "describe", "explain", "discuss", "talk", "share", "tell", "compare", "contrast",
-    "scientific", "science", "discovery", "discoveries", "excite", "excites", "exciting",
-    "meaningful", "topic", "example", "recent", "perspective", "event", "political"
 
+# Words common in prompts; we do NOT remove these from similarity,
+# but we may avoid showing them as "concepts" in explainability.
+FRAME_WORDS_FOR_DISPLAY = {
+    "share", "discuss", "describe", "explain", "talk", "tell",
+    "perspective", "opinion", "view",
+    "recent", "event"
 }
+
 
 # -------------------------------
 # Text utilities
 # -------------------------------
 def clean_text(text: str) -> str:
-    text = text.lower()
+    text = (text or "").lower()
     text = re.sub(r"[^\w\s]", " ", text)
     text = re.sub(r"\s+", " ", text).strip()
     return text
 
+
 def normalize_topic(topic: str) -> str:
+    """
+    Remove instruction wrappers while keeping actual topic content.
+    """
     t = clean_text(topic)
     for pat in INSTRUCTION_PATTERNS:
         t_new = re.sub(pat, "", t).strip()
@@ -100,45 +117,32 @@ def normalize_topic(topic: str) -> str:
             return t_new
     return t
 
+
 def tokenize_meaningful(text: str) -> List[str]:
     tokens = clean_text(text).split()
     return [t for t in tokens if t not in STOPWORDS and len(t) >= 3]
 
-def ngrams(tokens: List[str], n: int) -> List[str]:
-    if len(tokens) < n:
+
+def split_sentences(text: str) -> List[str]:
+    text = (text or "").strip()
+    if not text:
         return []
-    return [" ".join(tokens[i:i+n]) for i in range(len(tokens) - n + 1)]
+    parts = re.split(r"(?<=[.!?])\s+", text)
+    return [p.strip() for p in parts if len(p.strip().split()) >= 4]
 
-def dedupe_phrases(phrases: List[str]) -> List[str]:
-    phrases = sorted(set(phrases), key=lambda x: (-len(x.split()), x))
-    kept = []
-    for p in phrases:
-        if not any(p != k and p in k for k in kept):
-            kept.append(p)
-    return kept
-
-def keyphrase_candidates(text: str, remove_frame_words: bool = True) -> List[str]:
-    tokens = tokenize_meaningful(text)
-    if remove_frame_words:
-        tokens = [t for t in tokens if t not in FRAME_WORDS]
-
-    cands = set(tokens)
-    cands.update(ngrams(tokens, 2))
-    cands.update(ngrams(tokens, 3))
-
-    phrases = [c for c in cands if c and len(c.split()) <= 3]
-    phrases = dedupe_phrases(phrases)
-    phrases.sort(key=lambda x: (-len(x.split()), x))
-    return phrases
 
 # -------------------------------
-# YAKE keyphrases for response explainability
+# YAKE keyphrases (topic + response)
 # -------------------------------
 def yake_keyphrases(text: str, top_k: int = 10) -> List[str]:
     """
-    Extract meaningful keyphrases from the transcript using YAKE.
+    Extract keyphrases using YAKE.
+    Returns phrases lowercased; lower score => more important.
     """
-    # YAKE expects natural text; do not heavily clean it
+    text = (text or "").strip()
+    if not text:
+        return []
+
     kw_extractor = yake.KeywordExtractor(
         lan="en",
         n=3,
@@ -146,91 +150,180 @@ def yake_keyphrases(text: str, top_k: int = 10) -> List[str]:
         top=top_k
     )
     keywords = kw_extractor.extract_keywords(text)
-    # keywords = [(phrase, score), ...] -> lower score = more important
-    phrases = [k[0].strip().lower() for k in keywords]
-    # basic cleanup + de-dupe
+    phrases = [k[0].strip().lower() for k in keywords if k and k[0]]
     phrases = [re.sub(r"\s+", " ", p) for p in phrases if p]
-    return list(dict.fromkeys(phrases))
+    # de-dupe while keeping order
+    seen = set()
+    out = []
+    for p in phrases:
+        if p not in seen:
+            seen.add(p)
+            out.append(p)
+    return out
+
+
+def filter_display_phrases(phrases: List[str]) -> List[str]:
+    """
+    For readability: remove prompt frame words from phrases like 'recent event'
+    when showing missing/matched lists.
+    """
+    out = []
+    for p in phrases:
+        toks = p.split()
+        toks = [t for t in toks if t not in FRAME_WORDS_FOR_DISPLAY]
+        p2 = " ".join(toks).strip()
+        if p2:
+            out.append(p2)
+    # de-dupe
+    seen = set()
+    final = []
+    for p in out:
+        if p not in seen:
+            seen.add(p)
+            final.append(p)
+    return final
+
 
 # -------------------------------
-# Sentence-level relevance (% on-topic)
-# -------------------------------
-def split_sentences(text: str) -> List[str]:
-    """
-    Simple sentence splitter; robust enough for your current use.
-    """
-    text = text.strip()
-    if not text:
-        return []
-    parts = re.split(r"(?<=[.!?])\s+", text)
-    # remove very short noise fragments
-    return [p.strip() for p in parts if len(p.strip().split()) >= 4]
-
-def sentence_on_topic_ratio(topic: str, transcript: str, threshold: float = 0.60):
-    """
-    Returns:
-      ratio (0..1), per_sentence_sims [{sentence, sim, on_topic}, ...]
-    """
-    sentences = split_sentences(transcript)
-    if not sentences:
-        return 0.0, []
-
-    topic_emb = model.encode([topic], normalize_embeddings=True)
-    sent_embs = model.encode(sentences, normalize_embeddings=True)
-
-    sims = cosine_similarity(topic_emb, sent_embs)[0]  # shape: (num_sentences,)
-    per = []
-    on_topic_count = 0
-
-    for s, sim in zip(sentences, sims):
-        sim_f = float(sim)
-        on_topic = sim_f >= threshold
-        if on_topic:
-            on_topic_count += 1
-        per.append({
-            "sentence": s,
-            "similarity": round(sim_f, 2),
-            "on_topic": on_topic
-        })
-
-    ratio = on_topic_count / len(sentences)
-    return round(ratio, 2), per
-
-# -------------------------------
-# Core metrics
+# Core semantic metrics
 # -------------------------------
 def semantic_similarity(topic: str, transcript: str) -> float:
     topic_emb = model.encode([topic], normalize_embeddings=True)
-    transcript_emb = model.encode([transcript], normalize_embeddings=True)
-    return float(cosine_similarity(topic_emb, transcript_emb)[0][0])
+    tr_emb = model.encode([transcript], normalize_embeddings=True)
+    return float(cosine_similarity(topic_emb, tr_emb)[0][0])
 
-def semantic_coverage(
-    topic_content: str,
-    transcript: str,
-    match_threshold: float = 0.60,
-    max_phrases: int = 40
+
+def semantic_coverage_keyphrases(
+    topic_phrases: List[str],
+    response_phrases: List[str],
+    match_threshold: float = 0.60
 ) -> Tuple[float, List[str], List[str]]:
     """
-    For each topic phrase, find best semantic match in transcript phrases.
+    Coverage between YAKE topic phrases and YAKE response phrases using embeddings.
+    Returns:
+      coverage_score, matched_topic_phrases, missing_topic_phrases
     """
-    topic_phrases = keyphrase_candidates(topic_content, remove_frame_words=True)[:max_phrases]
-    resp_phrases = keyphrase_candidates(transcript, remove_frame_words=True)[:max_phrases]
+    topic_phrases = [p for p in topic_phrases if p]
+    response_phrases = [p for p in response_phrases if p]
 
-    if not topic_phrases or not resp_phrases:
+    if not topic_phrases or not response_phrases:
         return 0.0, [], topic_phrases[:10]
 
-    topic_emb = model.encode(topic_phrases, normalize_embeddings=True)
-    resp_emb = model.encode(resp_phrases, normalize_embeddings=True)
+    t_emb = model.encode(topic_phrases, normalize_embeddings=True)
+    r_emb = model.encode(response_phrases, normalize_embeddings=True)
 
-    sims = cosine_similarity(topic_emb, resp_emb)
+    sims = cosine_similarity(t_emb, r_emb)
     best = sims.max(axis=1)
 
-    matched = [p for p, s in zip(topic_phrases, best) if s >= match_threshold]
-    missing = [p for p, s in zip(topic_phrases, best) if s < match_threshold]
+    matched = [p for p, s in zip(topic_phrases, best) if float(s) >= match_threshold]
+    missing = [p for p, s in zip(topic_phrases, best) if float(s) < match_threshold]
 
     coverage = len(matched) / max(len(topic_phrases), 1)
     return round(coverage, 2), matched[:10], missing[:10]
 
+
+def sentence_on_topic_ratio(topic_content: str, transcript: str, threshold: float) -> Tuple[float, List[Dict[str, Any]]]:
+    sentences = split_sentences(transcript)
+    if not sentences:
+        return 0.0, []
+
+    topic_emb = model.encode([topic_content], normalize_embeddings=True)
+    sent_embs = model.encode(sentences, normalize_embeddings=True)
+    sims = cosine_similarity(topic_emb, sent_embs)[0]
+
+    per = []
+    on_count = 0
+    for s, sim in zip(sentences, sims):
+        simv = float(sim)
+        on = simv >= threshold
+        if on:
+            on_count += 1
+        per.append({
+            "sentence": s,
+            "similarity": round(simv, 2),
+            "on_topic": on
+        })
+
+    ratio = on_count / len(sentences)
+    return round(ratio, 2), per
+
+
+# -------------------------------
+# Event prompt rubric (specificity)
+# -------------------------------
+EVENT_WORDS = {"event", "incident", "election", "vote", "law", "bill", "protest", "conflict", "summit", "speech", "court", "decision", "policy"}
+
+TIME_PATTERNS = [
+    r"\b(last|past)\s+(week|month|year)\b",
+    r"\b(this)\s+(week|month|year)\b",
+    r"\brecently\b",
+    r"\byesterday\b",
+    r"\btoday\b",
+    r"\bin\s+20\d{2}\b",
+    r"\b(january|february|march|april|may|june|july|august|september|october|november|december)\b",
+]
+
+PLACE_HINTS = {
+    "india", "bangladesh", "pakistan", "uk", "united kingdom", "usa", "united states",
+    "europe", "china", "russia", "israel", "gaza", "palestine", "ukraine"
+}
+
+EVENT_DESCRIPTION_MARKERS = {
+    "announced", "passed", "voted", "elected", "resigned", "protested", "signed", "ban", "sanction",
+    "released", "arrested", "declared", "approved", "rejected", "launched"
+}
+
+
+def is_event_prompt(topic_content: str) -> bool:
+    t = clean_text(topic_content)
+    toks = set(t.split())
+    return len(toks.intersection(EVENT_WORDS)) > 0
+
+
+def event_specificity_score(topic_content: str, transcript: str) -> Dict[str, Any]:
+    """
+    Measures whether the response anchors an "event" with enough specifics.
+    Not a fact checker—only checks presence of anchors (time/place/what happened).
+    """
+    tr = clean_text(transcript)
+
+    # time anchor
+    time_hit = any(re.search(pat, tr) for pat in TIME_PATTERNS)
+
+    # place anchor (simple heuristic; no NER dependency)
+    place_hit = any(ph in tr for ph in PLACE_HINTS)
+
+    # event description markers
+    desc_hit = any(m in tr for m in EVENT_DESCRIPTION_MARKERS)
+
+    # event noun presence
+    event_noun_hit = any(w in tr.split() for w in EVENT_WORDS)
+
+    # score: 0..1
+    components = {
+        "time_anchor": bool(time_hit),
+        "place_anchor": bool(place_hit),
+        "event_marker": bool(desc_hit),
+        "event_noun": bool(event_noun_hit),
+    }
+
+    raw = sum(1 for v in components.values() if v) / 4.0
+    score = round(raw, 2)
+
+    # feedback
+    missing = [k for k, v in components.items() if not v]
+    explanation = "Event specificity checks for time/place/what-happened anchors. Missing: " + ", ".join(missing) if missing else "Good event anchoring detected."
+
+    return {
+        "score": score,
+        "components": components,
+        "explanation": explanation
+    }
+
+
+# -------------------------------
+# Labeling
+# -------------------------------
 def relevance_label(score: float) -> str:
     if score >= 0.85:
         return "Highly relevant"
@@ -241,54 +334,93 @@ def relevance_label(score: float) -> str:
     else:
         return "Off-topic"
 
+
 # -------------------------------
 # Stage 5 Orchestrator
 # -------------------------------
 def run_stage5(topic: str, transcript: str) -> Dict[str, Any]:
+    # Normalize topic to content
     topic_content = normalize_topic(topic)
 
+    # YAKE phrases
+    topic_phrases_raw = yake_keyphrases(topic_content, top_k=8)  # topic usually short; keep smaller
+    resp_phrases_raw = yake_keyphrases(transcript, top_k=10)
+
+    # Semantic similarity (prompt vs response)
     sim = semantic_similarity(topic, transcript)
-    cov, matched, missing = semantic_coverage(topic_content, transcript, match_threshold=0.60)
 
-    # % on-topic (sentence-level)
-    on_topic_ratio, per_sentence = sentence_on_topic_ratio(topic, transcript, threshold=0.60)
+    # Semantic coverage (topic keyphrases vs response keyphrases)
+    cov, matched, missing = semantic_coverage_keyphrases(
+        topic_phrases_raw, resp_phrases_raw, match_threshold=0.60
+    )
 
-    # Response keyphrases (YAKE)
-    response_phrases = yake_keyphrases(transcript, top_k=10)
+    # Dynamic sentence threshold (generic short topics need lower threshold)
+    t_tokens = tokenize_meaningful(topic_content)
+    sent_threshold = 0.50 if len(t_tokens) <= 6 else 0.60
+    on_ratio, per_sentence = sentence_on_topic_ratio(topic_content, transcript, threshold=sent_threshold)
 
-    relevance = round(0.8 * sim + 0.2 * cov, 2)
+    # Event specificity rubric (only if event prompt)
+    event_spec = None
+    event_bonus = 0.0
+    if is_event_prompt(topic_content):
+        event_spec = event_specificity_score(topic_content, transcript)
+        # bonus is modest; it prevents unfair "off-topic" for valid but vague event framing
+        event_bonus = 0.10 * float(event_spec["score"])  # max +0.10
+
+    # Final relevance formula
+    # similarity is core; coverage + sentence ratio confirm topical focus; event bonus helps event prompts.
+    relevance = (
+        0.65 * float(sim) +
+        0.15 * float(cov) +
+        0.20 * float(on_ratio) +
+        float(event_bonus)
+    )
+    relevance = round(max(0.0, min(1.0, relevance)), 2)
+
     label = relevance_label(relevance)
 
-    explanation = (
-        "Relevance uses semantic similarity (topic vs full response) and semantic coverage of topic concepts. "
-        "On-topic ratio is computed by sentence-level similarity to the prompt."
+    # Improve display of matches/missing by removing frame words
+    matched_disp = filter_display_phrases(matched)
+    missing_disp = filter_display_phrases(missing)
+
+    # Explanation
+    expl = (
+        "Relevance uses semantic similarity (prompt vs response), semantic coverage (topic keyphrases vs response keyphrases), "
+        "and sentence-level on-topic ratio. For event-style prompts, an additional specificity check rewards time/place/what-happened anchors."
     )
 
     return {
         "topic_content": topic_content,
 
         "relevance_score": relevance,
-        "semantic_similarity": round(sim, 2),
+        "semantic_similarity": round(float(sim), 2),
 
         # coverage fields (schema-stable)
         "semantic_coverage": cov,
-        "coverage_score": cov,  # alias for compatibility
+        "coverage_score": cov,  # alias
 
-        # explainability
-        "key_matches": matched,
-        "missing_keywords": missing,
-        "response_keyphrases": response_phrases,
+        # explainability fields
+        "topic_keyphrases": topic_phrases_raw,
+        "response_keyphrases": resp_phrases_raw,
 
-        # your requested % relevance signal
-        "on_topic_sentence_ratio": on_topic_ratio,
+        "key_matches": matched_disp,
+        "missing_keywords": missing_disp,
+
+        # sentence level
+        "on_topic_sentence_ratio": on_ratio,
         "sentence_similarities": per_sentence,
 
+        # event rubric
+        "event_specificity": event_spec,  # None if not event prompt
+
         "label": label,
-        "explanation": explanation,
+        "explanation": expl,
         "config": {
             "model_path": MODEL_PATH,
+            "weights": {"similarity": 0.65, "coverage": 0.15, "sentence_ratio": 0.20, "event_bonus_max": 0.10},
             "match_threshold": 0.60,
-            "weights": {"similarity": 0.8, "coverage": 0.2},
-            "sentence_threshold": 0.60
+            "sentence_threshold": sent_threshold,
+            "topic_phrases_top_k": 8,
+            "response_phrases_top_k": 10
         }
     }
