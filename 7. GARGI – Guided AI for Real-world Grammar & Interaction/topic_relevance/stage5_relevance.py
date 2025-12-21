@@ -1,5 +1,5 @@
 """
-Stage 5: Topic Relevance & Semantic Alignment
+Stage 5: Topic Relevance & Semantic Alignment (Improved Coverage + Explainability)
 Project: GARGI
 Author: Krishna
 """
@@ -9,43 +9,64 @@ from sklearn.metrics.pairwise import cosine_similarity
 import re
 
 # -------------------------------
-# Load Local Model (Offline)
+# Local model path (offline)
 # -------------------------------
-
 MODEL_PATH = r"D:\LLM Models\all-mpnet-base-v2"
 model = SentenceTransformer(MODEL_PATH)
 
-
 # -------------------------------
-# Utility Functions
+# Simple stopwords list (extend anytime)
 # -------------------------------
+STOPWORDS = {
+    "a", "an", "the", "and", "or", "but", "if", "then", "else",
+    "to", "of", "in", "on", "at", "for", "with", "from", "by", "as",
+    "is", "am", "are", "was", "were", "be", "been", "being",
+    "it", "this", "that", "these", "those",
+    "i", "you", "he", "she", "we", "they", "me", "him", "her", "us", "them",
+    "my", "your", "his", "her", "our", "their",
+    "do", "does", "did", "doing",
+    "have", "has", "had", "having",
+    "can", "could", "will", "would", "should", "may", "might", "must",
+    "not", "no", "yes",
+    "so", "just", "very", "really", "also",
+}
 
-def clean_text(text):
-    return re.sub(r"[^\w\s]", "", text.lower())
+def clean_text(text: str) -> str:
+    text = text.lower()
+    text = re.sub(r"[^\w\s]", " ", text)         # remove punctuation
+    text = re.sub(r"\s+", " ", text).strip()     # normalize spaces
+    return text
 
+def tokenize_meaningful(text: str):
+    """Tokenize and remove stopwords + short tokens."""
+    tokens = clean_text(text).split()
+    tokens = [t for t in tokens if t not in STOPWORDS and len(t) >= 3]
+    return tokens
 
-# -------------------------------
-# Core Metrics
-# -------------------------------
-
-def semantic_similarity(topic, transcript):
+def semantic_similarity(topic: str, transcript: str) -> float:
     topic_emb = model.encode([topic], normalize_embeddings=True)
     transcript_emb = model.encode([transcript], normalize_embeddings=True)
-
     return float(cosine_similarity(topic_emb, transcript_emb)[0][0])
 
+def keyword_coverage(topic: str, transcript: str):
+    """
+    Coverage based on meaningful token overlap.
+    Returns:
+      coverage_score (0..1), key_matches(list), missing_keywords(list)
+    """
+    topic_tokens = set(tokenize_meaningful(topic))
+    transcript_tokens = set(tokenize_meaningful(transcript))
 
-def keyword_coverage(topic, transcript):
-    topic_words = set(clean_text(topic).split())
-    transcript_words = set(clean_text(transcript).split())
+    if not topic_tokens:
+        return 0.0, [], []
 
-    overlap = topic_words.intersection(transcript_words)
-    coverage = len(overlap) / max(len(topic_words), 1)
+    overlap = sorted(list(topic_tokens.intersection(transcript_tokens)))
+    missing = sorted(list(topic_tokens.difference(transcript_tokens)))
 
-    return round(coverage, 2), sorted(list(overlap))
+    coverage = len(overlap) / len(topic_tokens)
+    return round(coverage, 2), overlap, missing
 
-
-def relevance_label(score):
+def relevance_label(score: float) -> str:
     if score >= 0.85:
         return "Highly relevant"
     elif score >= 0.70:
@@ -55,28 +76,29 @@ def relevance_label(score):
     else:
         return "Off-topic"
 
+def run_stage5(topic: str, transcript: str):
+    sim = semantic_similarity(topic, transcript)
+    coverage, key_matches, missing = keyword_coverage(topic, transcript)
 
-# -------------------------------
-# Stage 5 Orchestrator
-# -------------------------------
+    # Weighted relevance score (still simple & explainable)
+    relevance = round(0.6 * sim + 0.4 * coverage, 2)
 
-def run_stage5(topic, transcript):
-    similarity = semantic_similarity(topic, transcript)
-    coverage_score, matches = keyword_coverage(topic, transcript)
-
-    final_score = round(0.6 * similarity + 0.4 * coverage_score, 2)
-
-    explanation = (
-        "Your response strongly aligns with the topic."
-        if final_score >= 0.7
-        else "Your response partially or weakly addresses the topic."
-    )
+    # Better explanation for the user
+    if relevance >= 0.85:
+        explanation = "Your response strongly and directly addresses the topic."
+    elif relevance >= 0.70:
+        explanation = "Your response addresses the topic, but could include more specific topic details."
+    elif relevance >= 0.50:
+        explanation = "Your response is somewhat related, but parts may be off-topic or too general."
+    else:
+        explanation = "Your response appears largely off-topic compared to the prompt."
 
     return {
-        "relevance_score": final_score,
-        "semantic_similarity": round(similarity, 2),
-        "coverage_score": coverage_score,
-        "key_matches": matches,
-        "label": relevance_label(final_score),
+        "relevance_score": relevance,
+        "semantic_similarity": round(sim, 2),
+        "coverage_score": coverage,
+        "key_matches": key_matches,
+        "missing_keywords": missing[:10],  # keep output short (top 10)
+        "label": relevance_label(relevance),
         "explanation": explanation
     }
