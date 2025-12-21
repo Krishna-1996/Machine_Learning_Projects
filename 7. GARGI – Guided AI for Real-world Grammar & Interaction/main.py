@@ -17,6 +17,18 @@ logging.basicConfig(level=logging.INFO)
 TRANSCRIPT_FILE = "transcription.txt"
 
 
+def safe_join(items):
+    if not items:
+        return "None"
+    return ", ".join(items)
+
+
+def print_section(title: str):
+    print("\n" + "=" * 60)
+    print(title)
+    print("=" * 60 + "\n")
+
+
 def main():
     logging.info("Welcome to GARGI")
 
@@ -31,10 +43,10 @@ def main():
         logging.error("Topic generation returned empty topic text.")
         return
 
-    print("\nYour Speaking Topic:")
-    print(f"👉 {topic_text}\n")
+    print_section("TOPIC")
+    print(f"Your Speaking Topic:\n👉 {topic_text}")
 
-    input("Press ENTER when you are ready to start speaking...")
+    input("\nPress ENTER when you are ready to start speaking...")
 
     # -------------------------------------------------
     # Stage 1: Speech Input
@@ -55,6 +67,12 @@ def main():
 
     logging.info("Stage 1 completed successfully.")
 
+    print_section("TRANSCRIPT (Saved to transcription.txt)")
+    preview = transcript.strip().replace("\n", " ")
+    if len(preview) > 350:
+        preview = preview[:350] + "..."
+    print(preview)
+
     # -------------------------------------------------
     # Stage 3: Speech Analysis (Fluency + Grammar)
     # -------------------------------------------------
@@ -69,59 +87,94 @@ def main():
     # Stage 5: Topic Relevance (Local MPNet)
     # -------------------------------------------------
     stage5_results = run_stage5(topic_text, transcript)
+    print_section("TOPIC RELEVANCE (Stage 5)")
+
+    print("Relevance Metrics:")
+    print(f"• Relevance Score: {stage5_results.get('relevance_score', 'N/A')}")
+    print(f"• Label: {stage5_results.get('label', 'N/A')}")
+    print(f"• Semantic Similarity: {stage5_results.get('semantic_similarity', 'N/A')}")
+
+    cov_val = stage5_results.get("semantic_coverage", stage5_results.get("coverage_score", "N/A"))
+    print(f"• Semantic Coverage: {cov_val}")
+
+    # New: % on-topic content
+    print(f"• On-topic Sentence Ratio: {stage5_results.get('on_topic_sentence_ratio', 'N/A')}")
+
+    print("\nExplainability:")
+    print(f"• Topic Content Used: {stage5_results.get('topic_content', 'N/A')}")
+    print(f"• Key Matches (topic concepts matched): {safe_join(stage5_results.get('key_matches', []))}")
+    print(f"• Missing Concepts (top): {safe_join(stage5_results.get('missing_keywords', []))}")
+
+    # New: YAKE response keyphrases
+    print(f"• Response Keyphrases (YAKE): {safe_join(stage5_results.get('response_keyphrases', []))}")
+
+    # New: Sentence-level breakdown (compact)
+    print("\nSentence-level Similarities (compact):")
+    sent_sims = stage5_results.get("sentence_similarities", [])
+    if not sent_sims:
+        print("• None")
+    else:
+        for i, item in enumerate(sent_sims[:6], start=1):  # show up to 6 sentences
+            flag = "ON" if item.get("on_topic") else "OFF"
+            simv = item.get("similarity", "N/A")
+            s = item.get("sentence", "")
+            if len(s) > 90:
+                s = s[:90] + "..."
+            print(f"• S{i} [{flag}] sim={simv}: {s}")
+
+    print("\nRelevance Explanation:")
+    print(stage5_results.get("explanation", "N/A"))
+
 
     # -------------------------------------------------
-    # Final Output
+    # OUTPUT: Stage 4 (Quality)
     # -------------------------------------------------
-    print("\n================ GARGI Evaluation ================\n")
+    print_section("GARGI QUALITY EVALUATION (Stage 4)")
 
-    print("🔹 Overall Quality Score:")
-    print(f"   {stage4_results['scores']['overall']} / 10\n")
+    scores = stage4_results.get("scores", {})
+    print("Scores (0–10):")
+    print(f"• Overall: {scores.get('overall', 'N/A')} / 10")
+    print(f"• Fluency: {scores.get('fluency', 'N/A')} / 10")
+    print(f"• Grammar: {scores.get('grammar', 'N/A')} / 10")
+    print(f"• Fillers: {scores.get('fillers', 'N/A')} / 10")
 
-    print("🔹 Detailed Quality Scores:")
-    print(f"   • Fluency: {stage4_results['scores']['fluency']}/10")
-    print(f"   • Grammar: {stage4_results['scores']['grammar']}/10")
-    print(f"   • Fillers: {stage4_results['scores']['fillers']}/10\n")
+    print("\nFeedback:")
+    for item in stage4_results.get("feedback", []):
+        print(f"- {item}")
 
-    # -------- Stage 5 printing (schema-robust) --------
-    print("🔹 Topic Relevance:")
-    print(f"   • Relevance Score: {stage5_results.get('relevance_score', 'N/A')}")
-    print(f"   • Label: {stage5_results.get('label', 'N/A')}")
-    print(f"   • Semantic Similarity: {stage5_results.get('semantic_similarity', 'N/A')}")
-
-    coverage_val = stage5_results.get("semantic_coverage", stage5_results.get("coverage_score", "N/A"))
-    print(f"   • Semantic Coverage: {coverage_val}")
-
-    key_matches = stage5_results.get("key_matches", [])
-    missing = stage5_results.get("missing_keywords", [])
-
-    print(f"   • Key Matches: {', '.join(key_matches) if key_matches else 'None'}")
-    print(f"   • Missing Concepts (top): {', '.join(missing) if missing else 'None'}\n")
-
-    print("🔹 Feedback:")
-    for item in stage4_results["feedback"]:
-        print(f"   - {item}")
-
-    print("\n🔹 Explainability (Why these scores?):")
-    print("Scoring Trace:")
-    for k, v in stage4_results["scoring_trace"].items():
-        print(f"  {k}: {v}")
+    print("\nScoring Trace (XAI):")
+    trace = stage4_results.get("scoring_trace", {})
+    for dim, detail in trace.items():
+        print(f"• {dim}: {detail}")
 
     print("\nEvidence Used:")
-    for k, v in stage4_results["evidence"].items():
-        print(f"  {k}: {v}")
+    evidence = stage4_results.get("evidence", {})
+    for k, v in evidence.items():
+        print(f"• {k}: {v}")
 
-    print("\n🧠 Topic Relevance Explanation:")
-    print(f"   {stage5_results.get('explanation', 'N/A')}")
+    # -------------------------------------------------
+    # OUTPUT: Stage 5 (Relevance)
+    # -------------------------------------------------
+    print_section("TOPIC RELEVANCE (Stage 5)")
 
-    # Helpful debugging context (topic content after wrapper removal)
-    topic_content = stage5_results.get("topic_content")
-    if topic_content:
-        print("\n🧾 Topic content used for coverage:")
-        print(f"   {topic_content}")
+    print("Relevance Metrics:")
+    print(f"• Relevance Score: {stage5_results.get('relevance_score', 'N/A')}")
+    print(f"• Label: {stage5_results.get('label', 'N/A')}")
+    print(f"• Semantic Similarity: {stage5_results.get('semantic_similarity', 'N/A')}")
 
-    print("\n=================================================\n")
+    cov_val = stage5_results.get("semantic_coverage", stage5_results.get("coverage_score", "N/A"))
+    print(f"• Semantic Coverage: {cov_val}")
 
+    print("\nExplainability:")
+    print(f"• Topic Content Used: {stage5_results.get('topic_content', 'N/A')}")
+    print(f"• Key Matches (topic concepts matched): {safe_join(stage5_results.get('key_matches', []))}")
+    print(f"• Missing Concepts (top): {safe_join(stage5_results.get('missing_keywords', []))}")
+    print(f"• Response Keyphrases (what you talked about): {safe_join(stage5_results.get('response_keyphrases', []))}")
+
+    print("\nRelevance Explanation:")
+    print(stage5_results.get("explanation", "N/A"))
+
+    print("\n" + "=" * 60)
     logging.info("Session completed successfully.")
 
 
