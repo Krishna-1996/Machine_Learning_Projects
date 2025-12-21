@@ -1,78 +1,43 @@
-"""
-Stage 2: Topic Generation
-Project: GARGI
-Author: Krishna
-"""
-
 import os
-import csv
-import random
-import logging
-from typing import Optional, Dict
-import chardet
+import pandas as pd
 
-TOPIC_FILE = os.path.join(os.path.dirname(__file__), "topics.csv")
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
+TOPICS_FILE = "topics_enriched.csv"
 
-def load_topics(filepath: str):
-    """
-    Load topics from a CSV file with automatic encoding detection.
-    Returns a list of dictionaries with keys from the CSV header.
-    """
-    # First, detect encoding
-    with open(filepath, "rb") as f:  # read as bytes
-        raw_data = f.read()
-        result = chardet.detect(raw_data)
-        encoding = result["encoding"] if result["encoding"] else "utf-8"
-    
-    # Now read the CSV using the detected encoding
-    topics = []
-    with open(filepath, newline="", encoding=encoding, errors="replace") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            topics.append(row)
-    
-    if not topics:
-        raise ValueError("Topic file is empty.")
-    
-    return topics
+def load_topics() -> pd.DataFrame:
+    if not os.path.exists(TOPICS_FILE):
+        raise FileNotFoundError(
+            f"Missing {TOPICS_FILE}. Run: python tools/enrich_topics.py"
+        )
+    return pd.read_csv(TOPICS_FILE, encoding="utf-8")
 
-def get_random_topic(
-    category: Optional[str] = None,
-    seed: Optional[int] = None
-) -> Dict:
-    topics = load_topics(TOPIC_FILE)
+def get_categories() -> list[str]:
+    df = load_topics()
+    cats = sorted(df["category"].dropna().unique().tolist())
+    return cats
+
+def get_random_topic(category: str | None = None) -> dict:
+    df = load_topics()
 
     if category:
-        topics = [t for t in topics if t["category"] == category]
-        if not topics:
-            raise ValueError(f"No topics found for category: {category}")
+        df2 = df[df["category"].str.lower() == category.lower()]
+        if len(df2) == 0:
+            df2 = df
+    else:
+        df2 = df
 
-    if seed is not None:
-        random.seed(seed)
+    row = df2.sample(1).iloc[0].to_dict()
 
-    selected = random.choice(topics)
-    return selected
+    # Normalize pipe-separated fields to Python lists
+    def to_list(val):
+        if val is None:
+            return []
+        s = str(val).strip()
+        if not s:
+            return []
+        return [x.strip() for x in s.split("|") if x.strip()]
 
-def main():
-    try:
-        topic = get_random_topic()
-        logging.info("Selected Topic:")
-        logging.info(f"Topic: {topic['topic']}")
-        logging.info(f"Category: {topic['category']}")
+    row["constraints"] = to_list(row.get("constraints", ""))
+    row["expected_anchors"] = to_list(row.get("expected_anchors", ""))
+    row["topic_keyphrases"] = to_list(row.get("topic_keyphrases", ""))
 
-        # Save topic for later stages
-        output_path = os.path.join(os.path.dirname(__file__), "selected_topic.txt")
-
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(topic["topic"])
-
-
-    except Exception as e:
-        logging.error(f"Stage 2 failed: {e}")
-
-if __name__ == "__main__":
-    main()
+    return row

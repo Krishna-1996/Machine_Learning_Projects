@@ -37,9 +37,9 @@ def main():
     # Stage 2: Topic Selection
     # -------------------------------------------------
     category = input("Enter topic category (or press Enter for random): ").strip() or None
-    topic_data = get_random_topic(category=category)
+    topic_obj = get_random_topic(category=category)
 
-    topic_text = topic_data.get("topic", "").strip()
+    topic_text = topic_obj.get("topic_raw", "").strip()
     if not topic_text:
         logging.error("Topic generation returned empty topic text.")
         return
@@ -87,108 +87,44 @@ def main():
     # -------------------------------------------------
     # Stage 5: Topic Relevance (Local MPNet)
     # -------------------------------------------------
-    stage5_results = run_stage5(topic_text, transcript)
+    stage5_results = run_stage5(topic_obj, transcript)  # pass full topic object
     print_section("TOPIC RELEVANCE (Stage 5)")
-    
 
     print("Relevance Metrics:")
     print(f"• Relevance Score: {stage5_results.get('relevance_score', 'N/A')}")
     print(f"• Label: {stage5_results.get('label', 'N/A')}")
     print(f"• Semantic Similarity: {stage5_results.get('semantic_similarity', 'N/A')}")
-
     cov_val = stage5_results.get("semantic_coverage", stage5_results.get("coverage_score", "N/A"))
     print(f"• Semantic Coverage: {cov_val}")
-
-    # New: % on-topic content
     print(f"• On-topic Sentence Ratio: {stage5_results.get('on_topic_sentence_ratio', 'N/A')}")
 
     print("\nExplainability:")
     print(f"• Topic Content Used: {stage5_results.get('topic_content', 'N/A')}")
     print(f"• Key Matches (topic concepts matched): {safe_join(stage5_results.get('key_matches', []))}")
     print(f"• Missing Concepts (top): {safe_join(stage5_results.get('missing_keywords', []))}")
-
-    # New: YAKE response keyphrases
     print(f"• Response Keyphrases (YAKE): {safe_join(stage5_results.get('response_keyphrases', []))}")
 
-    # New: Sentence-level breakdown (compact)
-    print("\nSentence-level Similarities (compact):")
-    sent_sims = stage5_results.get("sentence_similarities", [])
-    if not sent_sims:
-        print("• None")
-    else:
-        for i, item in enumerate(sent_sims[:6], start=1):  # show up to 6 sentences
-            flag = "ON" if item.get("on_topic") else "OFF"
-            simv = item.get("similarity", "N/A")
-            s = item.get("sentence", "")
-            if len(s) > 90:
-                s = s[:90] + "..."
-            print(f"• S{i} [{flag}] sim={simv}: {s}")
-
     print("\nRelevance Explanation:")
     print(stage5_results.get("explanation", "N/A"))
-    event_spec = stage5_results.get("event_specificity")
-    if event_spec:
-        print("\nEvent Specificity (for event prompts):")
-        print(f"• Score: {event_spec.get('score')}")
-        print(f"• Components: {event_spec.get('components')}")
-        print(f"• Explanation: {event_spec.get('explanation')}")
-    
-    print(f"• Topic Keyphrases (YAKE): {safe_join(stage5_results.get('topic_keyphrases', []))}")
 
-
-
-    # -------------------------------------------------
-    # OUTPUT: Stage 4 (Quality)
-    # -------------------------------------------------
-    print_section("GARGI QUALITY EVALUATION (Stage 4)")
-
-    scores = stage4_results.get("scores", {})
-    print("Scores (0–10):")
-    print(f"• Overall: {scores.get('overall', 'N/A')} / 10")
-    print(f"• Fluency: {scores.get('fluency', 'N/A')} / 10")
-    print(f"• Grammar: {scores.get('grammar', 'N/A')} / 10")
-    print(f"• Fillers: {scores.get('fillers', 'N/A')} / 10")
-
-    print("\nFeedback:")
-    for item in stage4_results.get("feedback", []):
-        print(f"- {item}")
-
-    print("\nScoring Trace (XAI):")
-    trace = stage4_results.get("scoring_trace", {})
-    for dim, detail in trace.items():
-        print(f"• {dim}: {detail}")
-
-    print("\nEvidence Used:")
-    evidence = stage4_results.get("evidence", {})
-    for k, v in evidence.items():
-        print(f"• {k}: {v}")
-
-    # -------------------------------------------------
-    # OUTPUT: Stage 5 (Relevance)
-    # -------------------------------------------------
-    print_section("TOPIC RELEVANCE (Stage 5)")
-
-    print("Relevance Metrics:")
-    print(f"• Relevance Score: {stage5_results.get('relevance_score', 'N/A')}")
-    print(f"• Label: {stage5_results.get('label', 'N/A')}")
-    print(f"• Semantic Similarity: {stage5_results.get('semantic_similarity', 'N/A')}")
-
-    cov_val = stage5_results.get("semantic_coverage", stage5_results.get("coverage_score", "N/A"))
-    print(f"• Semantic Coverage: {cov_val}")
-
-    print("\nExplainability:")
-    print(f"• Topic Content Used: {stage5_results.get('topic_content', 'N/A')}")
-    print(f"• Key Matches (topic concepts matched): {safe_join(stage5_results.get('key_matches', []))}")
-    print(f"• Missing Concepts (top): {safe_join(stage5_results.get('missing_keywords', []))}")
-    print(f"• Response Keyphrases (what you talked about): {safe_join(stage5_results.get('response_keyphrases', []))}")
-
-    print("\nRelevance Explanation:")
-    print(stage5_results.get("explanation", "N/A"))
+    # Print anchor rubric if available
+    ar = stage5_results.get("anchor_rubric", {})
+    if ar and ar.get("score") is not None:
+        print("\nAnchor Rubric:")
+        print(f"• Score: {ar.get('score')}")
+        print(f"• Components: {ar.get('components')}")
+        print(f"• Explanation: {ar.get('explanation')}")
 
     # -------------------------------------------------
     # Stage 6: Coaching + Trust + Progress Tracking
     # -------------------------------------------------
-    stage6_results = run_stage6(topic_text, transcript, stage4_results, stage5_results, save_history=True)
+    stage6_results = run_stage6(
+        topic_text,  # topic_raw
+        transcript,
+        stage4_results,
+        stage5_results,
+        save_history=True
+    )
     print_section("LEARNING GUIDANCE & TRUST (Stage 6)")
 
     conf = stage6_results.get("confidence", {})
@@ -214,7 +150,6 @@ def main():
     log_path = stage6_results.get("history_log_path")
     if log_path:
         print(f"\nSession saved to: {log_path}")
-
 
     print("\n" + "=" * 60)
     logging.info("Session completed successfully.")

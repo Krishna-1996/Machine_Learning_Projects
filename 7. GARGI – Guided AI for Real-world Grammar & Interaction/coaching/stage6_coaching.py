@@ -50,6 +50,20 @@ def safe_get(d: Dict[str, Any], path: List[str], default=None):
         cur = cur[k]
     return cur
 
+# -----------------------------
+# Topic Structure Hint
+# -----------------------------
+def topic_structure_hint(topic_type: str, expected_anchors: list[str]) -> str:
+    if topic_type == "event":
+        return "Use: (1) name the event + place, (2) what happened, (3) your perspective, (4) impact/conclusion."
+    if topic_type == "advice":
+        return "Use: (1) direct answer, (2) 2–3 steps, (3) one example, (4) short closing."
+    if topic_type == "opinion":
+        return "Use: (1) your position, (2) 2 reasons, (3) a real example, (4) conclusion."
+    if topic_type == "compare":
+        return "Use: (1) define both items, (2) similarities, (3) differences, (4) conclusion."
+    return "Use: 1-sentence answer → 2 points → 1 example → 1 closing sentence."
+
 
 # -----------------------------
 # Confidence Model (heuristic, explainable)
@@ -190,11 +204,15 @@ def generate_priority_actions(stage4: Dict[str, Any], stage5: Dict[str, Any]) ->
 
     # 1) Relevance priority (if weak or if sentence ratio low)
     if label in ("Off-topic", "Partially relevant") or (isinstance(on_topic_ratio, (int, float)) and float(on_topic_ratio) < 0.50):
+        topic_type = stage5.get("topic_type", "general")
+        expected_anchors = stage5.get("expected_anchors", [])
+        action_text = topic_structure_hint(topic_type, expected_anchors)
+
         priorities.append({
             "area": "Topic alignment",
             "severity": "High" if label == "Off-topic" else "Medium",
             "reason": f"Relevance is {relevance} ({label})." + (f" On-topic ratio: {on_topic_ratio}." if on_topic_ratio is not None else ""),
-            "action": "State your answer in one clear sentence first, then support it with 2–3 focused points and an example. Avoid unrelated tangents."
+            "action": action_text
         })
 
     # 2) Penalty-driven priorities (fluency, fillers, grammar)
@@ -221,7 +239,7 @@ def generate_priority_actions(stage4: Dict[str, Any], stage5: Dict[str, Any]) ->
             })
 
         elif area == "fillers":
-            fillers = evidence.get("filler_words", {})
+            fillers = evidence.get("filler_words", {} )
             top = sorted(fillers.items(), key=lambda x: x[1], reverse=True)[:3] if isinstance(fillers, dict) else []
             priorities.append({
                 "area": "Fillers",
@@ -256,6 +274,7 @@ def generate_priority_actions(stage4: Dict[str, Any], stage5: Dict[str, Any]) ->
 
     # Keep at most 3
     return priorities[:3]
+
 
 
 # -----------------------------
