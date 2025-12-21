@@ -71,5 +71,3 @@ All components are **free**, **local-first**, and compatible with **Windows**.
     ```bash
     python main.py
 
-  ```bash
-   pip install -r requirements.txt
