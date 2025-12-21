@@ -11,6 +11,7 @@ from speech_input.stage1 import record_audio, transcribe_audio, detect_text_lang
 from speech_analysis.stage3_analysis import run_stage3
 from scoring_feedback.stage4_scoring import run_stage4
 from topic_relevance.stage5_relevance import run_stage5
+from coaching.stage6_coaching import run_stage6
 
 logging.basicConfig(level=logging.INFO)
 
@@ -88,6 +89,7 @@ def main():
     # -------------------------------------------------
     stage5_results = run_stage5(topic_text, transcript)
     print_section("TOPIC RELEVANCE (Stage 5)")
+    
 
     print("Relevance Metrics:")
     print(f"• Relevance Score: {stage5_results.get('relevance_score', 'N/A')}")
@@ -173,6 +175,37 @@ def main():
 
     print("\nRelevance Explanation:")
     print(stage5_results.get("explanation", "N/A"))
+
+    # -------------------------------------------------
+    # Stage 6: Coaching + Trust + Progress Tracking
+    # -------------------------------------------------
+    stage6_results = run_stage6(topic_text, transcript, stage4_results, stage5_results, save_history=True)
+    print_section("LEARNING GUIDANCE & TRUST (Stage 6)")
+
+    conf = stage6_results.get("confidence", {})
+    print("Confidence:")
+    print(f"• Confidence Score: {conf.get('confidence_score', 'N/A')}")
+    print(f"• Confidence Label: {conf.get('confidence_label', 'N/A')}")
+    print(f"• Explanation: {conf.get('confidence_explanation', 'N/A')}")
+
+    print("\nTop Priorities (next attempt):")
+    for i, p in enumerate(stage6_results.get("priorities", []), start=1):
+        print(f"{i}. {p.get('area')} [{p.get('severity')}]")
+        print(f"   Reason: {p.get('reason')}")
+        print(f"   Action: {p.get('action')}")
+
+    print("\nCoaching Feedback:")
+    for line in stage6_results.get("coaching_feedback", []):
+        print(f"- {line}")
+
+    print("\nReflection Prompts:")
+    for q in stage6_results.get("reflection_prompts", []):
+        print(f"- {q}")
+
+    log_path = stage6_results.get("history_log_path")
+    if log_path:
+        print(f"\nSession saved to: {log_path}")
+
 
     print("\n" + "=" * 60)
     logging.info("Session completed successfully.")
