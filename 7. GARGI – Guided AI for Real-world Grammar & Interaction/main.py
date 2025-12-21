@@ -2,25 +2,27 @@
 Main Orchestrator for GARGI
 Author: Krishna
 """
-
+import logging
+import time
 from topic_generation.generate_topic import get_random_topic
-from speech_input.stage1 import record_audio, transcribe_audio, detect_text_language
+from speech_input.stage1 import (
+    record_audio, 
+    transcribe_audio, 
+    detect_text_language)
 from speech_analysis.fluency_analysis import (
     analyze_pauses,
     analyze_fillers,
     calculate_wpm,
-    load_audio
-)
+    load_audio)
 from speech_analysis.grammar_analysis import (
     load_transcript,
     check_grammar,
-    analyze_sentences
-)
+    analyze_sentences)
 from speech_analysis.stage3_analysis import run_stage3
 from scoring_feedback.stage4_scoring import run_stage4
+from topic_relevance.stage5_relevance import run_stage5
 
-import logging
-import time
+
 
 logging.basicConfig(level=logging.INFO)
 
@@ -34,6 +36,7 @@ def main():
     # -------------------------------
     category = input("Enter topic category (or press Enter for random): ").strip() or None
     topic = get_random_topic(category=category)
+    topic_text = topic_data["topic"]
 
     print("\nYour Speaking Topic:")
     print(f"👉 {topic['topic']}\n")
