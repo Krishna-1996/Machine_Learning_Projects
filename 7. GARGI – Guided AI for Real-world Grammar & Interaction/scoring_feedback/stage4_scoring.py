@@ -3,7 +3,9 @@ Stage 4: Scoring & Feedback Engine
 Project: GARGI
 Author: Krishna
 """
-
+# -------------------------------
+# Scoring Functions (Pure Rules)
+# -------------------------------
 def score_fluency(wpm, pause_ratio):
     score = 10
 
