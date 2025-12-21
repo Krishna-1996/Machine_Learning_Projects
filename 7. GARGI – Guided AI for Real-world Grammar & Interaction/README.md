@@ -70,3 +70,6 @@ All components are **free**, **local-first**, and compatible with **Windows**.
 3. Run GARGI:
     ```bash
     python main.py
+
+  ```bash
+   pip install -r requirements.txt
