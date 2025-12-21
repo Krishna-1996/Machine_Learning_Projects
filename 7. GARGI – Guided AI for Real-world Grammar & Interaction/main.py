@@ -100,6 +100,7 @@ def main():
         )
     else:
         print("   • Key Matches: None")
+    print(f"   • Missing Keywords (top): {', '.join(stage5_results['missing_keywords']) if stage5_results['missing_keywords'] else 'None'}")
 
     print("\n🔹 Feedback:")
     for item in stage4_results["feedback"]:
@@ -117,6 +118,7 @@ def main():
     print("\n🧠 Topic Relevance Explanation:")
     print(f"   {stage5_results['explanation']}")
 
+    
     print("\n=================================================\n")
 
     logging.info("Session completed successfully.")
