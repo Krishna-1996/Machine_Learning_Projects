@@ -22,6 +22,50 @@ from speech_analysis.stage3_analysis import run_stage3
 from scoring_feedback.stage4_scoring import run_stage4
 from topic_relevance.stage5_relevance import run_stage5
 
+LANGUAGETOOL_PORT = 8081
+LANGUAGETOOL_URL = f"http://localhost:{LANGUAGETOOL_PORT}/v2/check"
+LANGUAGETOOL_JAR = r"D:\Python Automation scripts\LanguageTool-6.6\LanguageTool-6.6\languagetool-server.jar"
+def ensure_languagetool_running():
+    """Start LanguageTool server if it's not already running."""
+    try:
+        # Quick health check
+        requests.get(f"http://localhost:{LANGUAGETOOL_PORT}", timeout=0.5)
+        logging.info("LanguageTool server is already running.")
+        return None
+    except Exception:
+        pass
+
+    if not os.path.exists(LANGUAGETOOL_JAR):
+        raise FileNotFoundError(
+            f"LanguageTool jar not found at: {LANGUAGETOOL_JAR}\n"
+            "Update LANGUAGETOOL_JAR path in main.py"
+        )
+
+    logging.info("LanguageTool server not detected. Starting it now...")
+
+    # Start in background (new window optional; here: same console, background process)
+    creationflags = 0
+    if sys.platform.startswith("win"):
+        creationflags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
+
+    proc = subprocess.Popen(
+        ["java", "-jar", LANGUAGETOOL_JAR, "--port", str(LANGUAGETOOL_PORT)],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        creationflags=creationflags
+    )
+
+    # Wait briefly for server to come up
+    for _ in range(20):
+        try:
+            requests.get(f"http://localhost:{LANGUAGETOOL_PORT}", timeout=0.5)
+            logging.info("LanguageTool server started successfully.")
+            return proc
+        except Exception:
+            time.sleep(0.25)
+
+    logging.warning("Started LanguageTool process, but server did not respond yet.")
+    return proc
 
 logging.basicConfig(level=logging.INFO)
 
@@ -29,6 +73,8 @@ TRANSCRIPT_FILE = "transcription.txt"
 
 
 def main():
+    ensure_languagetool_running()
+
     logging.info("Welcome to GARGI")
 
     # -------------------------------------------------
