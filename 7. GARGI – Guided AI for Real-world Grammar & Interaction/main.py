@@ -16,6 +16,8 @@ from speech_analysis.grammar_analysis import (
     check_grammar,
     analyze_sentences
 )
+from speech_analysis.stage3_analysis import run_stage3
+from scoring_feedback.stage4_scoring import run_stage4
 
 import logging
 import time
@@ -93,6 +95,29 @@ def main():
     logging.info(f"Average Sentence Length: {avg_sentence_length:.2f}")
     logging.info(f"Grammar Errors: {error_count}")
     logging.info(f"Error Density: {error_density:.2f} errors / 100 words")
+
+    logging.info("Session completed successfully.")
+    # -------------------------------
+    # Stage 3: Analysis
+    # -------------------------------
+    stage3_results = run_stage3()
+
+    # -------------------------------
+    # Stage 4: Scoring & Feedback
+    # -------------------------------
+    stage4_results = run_stage4(stage3_results)
+
+    print("\n====== GARGI Evaluation ======")
+    print(f"Overall Score: {stage4_results['scores']['overall']} / 10\n")
+
+    print("Detailed Scores:")
+    print(f"• Fluency: {stage4_results['scores']['fluency']}/10")
+    print(f"• Grammar: {stage4_results['scores']['grammar']}/10")
+    print(f"• Fillers: {stage4_results['scores']['fillers']}/10")
+
+    print("\nFeedback:")
+    for item in stage4_results["feedback"]:
+        print(f"- {item}")
 
     logging.info("Session completed successfully.")
 
