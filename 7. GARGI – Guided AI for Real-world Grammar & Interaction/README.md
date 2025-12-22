@@ -8,6 +8,12 @@ The project focuses on **general interaction** rather than exam-specific scoring
 
 ## 🔍 Key Capabilities
 
+- **Topic-driven speaking practice** (700+ prompts supported)
+- **Offline-first pipeline**
+  - Local audio recording
+  - Local transcription (Whisper)
+  - Local semantic relevance (Sentence Transformers)
+
 - 🎙️ **Speech Input & Transcription**
   - Local audio recording
   - Speech-to-text using Whisper

@@ -6,3 +6,26 @@ scipy
 numpy
 langdetect
 pydub
+
+# Core
+numpy
+pandas
+scikit-learn
+
+# Audio
+sounddevice
+librosa
+
+# Speech-to-text
+openai-whisper
+
+# NLP & Semantics
+sentence-transformers
+yake
+
+# Grammar
+language-tool-python
+
+# Utilities
+tqdm
+regex
