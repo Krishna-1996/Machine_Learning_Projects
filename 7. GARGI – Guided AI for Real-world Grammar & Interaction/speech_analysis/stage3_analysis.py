@@ -1,4 +1,4 @@
-"""
+""" 
 Stage 3: Speech Analysis (Fluency + Grammar)
 Project: GARGI
 Author: Krishna
@@ -53,26 +53,67 @@ def calculate_wpm(text, duration):
 # Grammar
 # -------------------------------
 def analyze_grammar(text: str) -> dict:
+    """
+    Always returns a stable schema, even when LanguageTool is unavailable.
+    Required keys for downstream stages:
+      - total_errors
+      - error_density
+      - rules_count
+      - errors
+    """
+    text = (text or "").strip()
+    total_words = len(text.split()) if text else 0
+
+    fallback = {
+        "total_errors": 0,
+        "error_density": 0.0,
+        "rules_count": {},
+        "errors": [],
+        "warning": None
+    }
+
+    if not text:
+        return fallback
+
     try:
-        response = requests.post(
+        resp = requests.post(
             LANGUAGETOOL_URL,
             data={"text": text, "language": "en-US"},
-            timeout=5
+            timeout=6
         )
-        response.raise_for_status()
-        data = response.json()
-        # parse matches...
-        return parsed_results
-    except Exception as e:
-        # Graceful fallback
+        resp.raise_for_status()
+        data = resp.json()
+
+        matches = data.get("matches", []) or []
+        errors = []
+        rules_count = {}
+
+        for m in matches:
+            rule_id = (m.get("rule") or {}).get("id", "UNKNOWN")
+            msg = m.get("message", "")
+            suggestions = [r.get("value") for r in (m.get("replacements") or []) if "value" in r]
+
+            rules_count[rule_id] = rules_count.get(rule_id, 0) + 1
+            errors.append({
+                "rule": rule_id,
+                "message": msg,
+                "suggestions": suggestions[:5]
+            })
+
+        total_errors = len(errors)
+        error_density = (total_errors / total_words) * 100 if total_words > 0 else 0.0
+
         return {
-            "errors": [],
-            "error_count": 0,
-            "error_density": 0.0,
-            "rules_count": {},
-            "warning": f"LanguageTool unavailable: {e}"
+            "total_errors": total_errors,
+            "error_density": round(error_density, 2),
+            "rules_count": rules_count,
+            "errors": errors,
+            "warning": None
         }
 
+    except Exception as e:
+        fallback["warning"] = f"LanguageTool unavailable: {e}"
+        return fallback
 # -------------------------------
 # Orchestrator
 # -------------------------------

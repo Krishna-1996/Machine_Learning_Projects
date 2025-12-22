@@ -1,8 +1,10 @@
 import json
 import pandas as pd
 from pathlib import Path
+from core.paths import sessions_file
 
-SESSIONS_FILE = Path("sessions/sessions.jsonl")
+SESSIONS_FILE = sessions_file()
+
 
 def load_sessions() -> pd.DataFrame:
     if not SESSIONS_FILE.exists():

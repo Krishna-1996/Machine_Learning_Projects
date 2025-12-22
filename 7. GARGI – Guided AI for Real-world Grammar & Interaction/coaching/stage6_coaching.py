@@ -23,6 +23,7 @@ from __future__ import annotations
 import os
 import json
 from datetime import datetime
+import logging 
 from typing import Dict, Any, List, Tuple
 
 
@@ -318,13 +319,19 @@ def generate_reflection_prompts(stage5: Dict[str, Any]) -> List[str]:
 # -----------------------------
 # Session logging
 # -----------------------------
-def write_session_log(session_obj: Dict[str, Any], out_dir: str = "sessions", filename: str = "sessions.jsonl") -> str:
-    os.makedirs(out_dir, exist_ok=True)
-    path = os.path.join(out_dir, filename)
-    with open(path, "a", encoding="utf-8") as f:
-        f.write(json.dumps(session_obj, ensure_ascii=False) + "\n")
-    return path
+def write_session_log(session_obj: dict) -> str:
+    path = sessions_file()
 
+    line = json.dumps(session_obj, ensure_ascii=False) + "\n"
+
+    # Append-only + crash-safe
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(line)
+        f.flush()
+        os.fsync(f.fileno())
+
+    return str(path)
+    
 
 # -----------------------------
 # Public API

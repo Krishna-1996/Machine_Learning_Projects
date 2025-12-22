@@ -1,6 +1,7 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 import pandas as pd
+import math
 
 from utils import load_sessions
 
@@ -14,6 +15,49 @@ df = load_sessions()
 if df.empty:
     st.warning("No session data found. Run GARGI sessions first to generate sessions/sessions.jsonl.")
     st.stop()
+
+# -------------------------------
+# Helpers (convert numpy -> python types)
+# -------------------------------
+def to_py(x, ndigits: int | None = 2):
+    """Convert pandas/numpy scalars to native Python types, handle NaN."""
+    if x is None:
+        return None
+    try:
+        # pandas may store as numpy scalars
+        if pd.isna(x):
+            return None
+    except Exception:
+        pass
+
+    # Convert numpy scalars to Python
+    if hasattr(x, "item"):
+        try:
+            x = x.item()
+        except Exception:
+            pass
+
+    # Round floats if requested
+    if isinstance(x, float) and ndigits is not None:
+        if math.isnan(x):
+            return None
+        return round(x, ndigits)
+
+    return x
+
+
+def delta(curr, prev, ndigits: int = 2):
+    if prev is None:
+        return None
+    c = to_py(curr, ndigits=None)
+    p = to_py(prev, ndigits=None)
+    if c is None or p is None:
+        return None
+    try:
+        return to_py(c - p, ndigits=ndigits)
+    except Exception:
+        return None
+
 
 # -------------------------------
 # Sidebar Filters
@@ -43,14 +87,38 @@ latest = df.iloc[-1]
 prev = df.iloc[-2] if len(df) >= 2 else None
 
 c1, c2, c3, c4, c5 = st.columns(5)
-c1.metric("Latest Overall", round(latest["scores.overall"], 2), None if prev is None else round(latest["scores.overall"] - prev["scores.overall"], 2))
-c2.metric("Latest Relevance", round(latest["relevance.relevance_score"], 2), None if prev is None else round(latest["relevance.relevance_score"] - prev["relevance.relevance_score"], 2))
-c3.metric("Latest Grammar", round(latest["scores.grammar"], 2), None if prev is None else round(latest["scores.grammar"] - prev["scores.grammar"], 2))
-c4.metric("Latest Fillers", round(latest["scores.fillers"], 2), None if prev is None else round(latest["scores.fillers"] - prev["scores.fillers"], 2))
-c5.metric("Confidence", round(latest["confidence.confidence_score"], 2), None if prev is None else round(latest["confidence.confidence_score"] - prev["confidence.confidence_score"], 2))
 
-st.write(f"**Latest Topic:** {latest['topic_raw']}")
-st.write(f"**Relevance Label:** {latest.get('relevance.label', 'N/A')} | **Confidence Label:** {latest.get('confidence.label', 'N/A')}")
+c1.metric(
+    "Latest Overall",
+    to_py(latest.get("scores.overall")),
+    delta(to_py(latest.get("scores.overall"), ndigits=None), None if prev is None else prev.get("scores.overall"))
+)
+c2.metric(
+    "Latest Relevance",
+    to_py(latest.get("relevance.relevance_score")),
+    delta(to_py(latest.get("relevance.relevance_score"), ndigits=None), None if prev is None else prev.get("relevance.relevance_score"))
+)
+c3.metric(
+    "Latest Grammar",
+    to_py(latest.get("scores.grammar")),
+    delta(to_py(latest.get("scores.grammar"), ndigits=None), None if prev is None else prev.get("scores.grammar"))
+)
+c4.metric(
+    "Latest Fillers",
+    to_py(latest.get("scores.fillers")),
+    delta(to_py(latest.get("scores.fillers"), ndigits=None), None if prev is None else prev.get("scores.fillers"))
+)
+c5.metric(
+    "Confidence",
+    to_py(latest.get("confidence.confidence_score")),
+    delta(to_py(latest.get("confidence.confidence_score"), ndigits=None), None if prev is None else prev.get("confidence.confidence_score"))
+)
+
+st.write(f"**Latest Topic:** {latest.get('topic_raw', '')}")
+st.write(
+    f"**Relevance Label:** {latest.get('relevance.label', 'N/A')} | "
+    f"**Confidence Label:** {latest.get('confidence.label', 'N/A')}"
+)
 
 # -------------------------------
 # Overall Summary
@@ -58,10 +126,10 @@ st.write(f"**Relevance Label:** {latest.get('relevance.label', 'N/A')} | **Confi
 st.subheader("Progress Summary")
 
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("Total Sessions", len(df))
-col2.metric("Avg Overall", round(df["scores.overall"].mean(), 2))
-col3.metric("Avg Relevance", round(df["relevance.relevance_score"].mean(), 2))
-col4.metric("Avg Confidence", round(df["confidence.confidence_score"].mean(), 2))
+col1.metric("Total Sessions", int(len(df)))
+col2.metric("Avg Overall", to_py(df["scores.overall"].mean()))
+col3.metric("Avg Relevance", to_py(df["relevance.relevance_score"].mean()))
+col4.metric("Avg Confidence", to_py(df["confidence.confidence_score"].mean()))
 
 # -------------------------------
 # Weakest area recommendation
@@ -72,11 +140,10 @@ areas = {
     "Fluency": df["scores.fluency"].mean(),
     "Grammar": df["scores.grammar"].mean(),
     "Fillers": df["scores.fillers"].mean(),
-    "Topic Relevance": df["relevance.relevance_score"].mean() * 10.0,  # scale to 0–10 for comparison
+    "Topic Relevance": df["relevance.relevance_score"].mean() * 10.0,  # scale to 0–10
 }
-
-weak_area = min(areas, key=areas.get)
-st.info(f"**Recommended focus:** {weak_area} (lowest average in selected range)")
+weak_area = min(areas, key=lambda k: (areas[k] if not pd.isna(areas[k]) else 999))
+st.info(f"Recommended focus: **{weak_area}** (lowest average in selected range).")
 
 # -------------------------------
 # Rolling averages
@@ -172,7 +239,11 @@ with e4:
     ax7.grid(True)
     st.pyplot(fig7)
 
+# -------------------------------
+# Session Table
+# -------------------------------
 st.subheader("Session History")
+
 cols = [
     "timestamp",
     "topic_raw",
