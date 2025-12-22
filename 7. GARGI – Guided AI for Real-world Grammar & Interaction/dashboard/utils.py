@@ -21,40 +21,42 @@ def load_sessions() -> pd.DataFrame:
 
     df = pd.json_normalize(records)
 
-    # -------------------------------
-    # Timestamp normalization
-    # -------------------------------
     if "timestamp_utc" not in df.columns:
         return pd.DataFrame()
 
+    # Timestamp normalization
     df["timestamp"] = pd.to_datetime(df["timestamp_utc"], utc=True)
 
-    # -------------------------------
-    # Schema mapping (RAW → DASHBOARD)
-    # -------------------------------
-    df["scores.overall"] = df["overall_quality_score"]
-    df["scores.fluency"] = df["fluency_score"]
-    df["scores.grammar"] = df["grammar_score"]
-    df["scores.fillers"] = df["fillers_score"]
-    
-    df["relevance.relevance_score"] = df["relevance_score"]
-    df["confidence.confidence_score"] = df["confidence_score"]
+    # Schema mapping
+    df["topic_raw"] = df.get("topic")
 
-    df["topic_raw"] = df["topic"]
+    df["scores.overall"] = df.get("overall_quality_score")
+    df["scores.fluency"] = df.get("fluency_score")
+    df["scores.grammar"] = df.get("grammar_score")
+    df["scores.fillers"] = df.get("fillers_score")
 
-    # -------------------------------
-    # REAL evidence-driven error metrics
-    # -------------------------------
-    df["grammar.error_count"] = df.get("grammar_error_count", 0)
-    df["fillers.total"] = df.get("filler_total", 0)
+    df["relevance.relevance_score"] = df.get("relevance_score")
+    df["relevance.label"] = df.get("relevance_label")
+    df["relevance.on_topic_ratio"] = df.get("on_topic_sentence_ratio")
 
-    # -------------------------------
-    # Optional: placeholders to avoid future crashes
-    # -------------------------------
-    if "wpm" in df.columns:
-        df["wpm"] = df["wpm"]
-    if "pause_ratio" in df.columns:
-        df["pause_ratio"] = df["pause_ratio"]
+    df["confidence.confidence_score"] = df.get("confidence_score")
+    df["confidence.label"] = df.get("confidence_label")
 
-    
-    return df
+    # Evidence metrics (Stage 6 upgrade)
+    df["evidence.wpm"] = df.get("wpm")
+    df["evidence.pause_ratio"] = df.get("pause_ratio")
+    df["evidence.error_density"] = df.get("error_density")
+    df["grammar.error_count"] = df.get("grammar_error_count")
+    df["fillers.total"] = df.get("filler_total")
+
+    # Fill missing values with safe defaults for charts
+    for col in [
+        "scores.overall", "scores.fluency", "scores.grammar", "scores.fillers",
+        "relevance.relevance_score", "confidence.confidence_score",
+        "evidence.wpm", "evidence.pause_ratio", "evidence.error_density",
+        "grammar.error_count", "fillers.total"
+    ]:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    return df.sort_values("timestamp")
