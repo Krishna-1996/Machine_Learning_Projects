@@ -1,10 +1,19 @@
+import sys
+from pathlib import Path
 import json
 import pandas as pd
-from pathlib import Path
-from core.paths import sessions_file
+
+# -------------------------------------------------
+# Ensure project root is on sys.path (Streamlit-safe)
+# -------------------------------------------------
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from core.paths import sessions_file  # now this will work
+
 
 SESSIONS_FILE = sessions_file()
-
 
 def load_sessions() -> pd.DataFrame:
     if not SESSIONS_FILE.exists():
@@ -26,7 +35,6 @@ def load_sessions() -> pd.DataFrame:
     if "timestamp_utc" not in df.columns:
         return pd.DataFrame()
 
-    # Timestamp normalization
     df["timestamp"] = pd.to_datetime(df["timestamp_utc"], utc=True)
 
     # Schema mapping
@@ -51,7 +59,7 @@ def load_sessions() -> pd.DataFrame:
     df["grammar.error_count"] = df.get("grammar_error_count")
     df["fillers.total"] = df.get("filler_total")
 
-    # Fill missing values with safe defaults for charts
+    # Numeric coercion for charts
     for col in [
         "scores.overall", "scores.fluency", "scores.grammar", "scores.fillers",
         "relevance.relevance_score", "confidence.confidence_score",
