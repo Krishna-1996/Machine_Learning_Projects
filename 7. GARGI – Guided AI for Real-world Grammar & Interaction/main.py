@@ -12,6 +12,7 @@ from speech_analysis.stage3_analysis import run_stage3
 from scoring_feedback.stage4_scoring import run_stage4
 from topic_relevance.stage5_relevance import run_stage5
 from coaching.stage6_coaching import run_stage6
+from services.languagetool_service import ensure_languagetool
 
 logging.basicConfig(level=logging.INFO)
 
@@ -73,6 +74,13 @@ def main():
     if len(preview) > 350:
         preview = preview[:350] + "..."
     print(preview)
+
+    LT_JAR = r"D:\Python Automation scripts\LanguageTool-6.6\LanguageTool-6.6\languagetool-server.jar"
+    lt_ok = ensure_languagetool(jar_path=LT_JAR, port=8081)
+
+    if not lt_ok:
+        logging.warning("LanguageTool is not running. Grammar stage will run in fallback mode (no errors detected).")
+
 
     # -------------------------------------------------
     # Stage 3: Speech Analysis (Fluency + Grammar)

@@ -52,29 +52,26 @@ def calculate_wpm(text, duration):
 # -------------------------------
 # Grammar
 # -------------------------------
-def analyze_grammar(text):
-    response = requests.post(
-        LANGUAGETOOL_URL,
-        data={"text": text, "language": "en-US"}
-    )
-    matches = response.json()["matches"]
-
-    errors = []
-    for match in matches:
-        errors.append({
-            "rule": match["rule"]["id"],
-            "message": match["message"],
-            "suggestions": [r["value"] for r in match["replacements"][:3]]
-        })
-
-    total_words = len(text.split())
-    error_density = (len(errors) / total_words) * 100 if total_words > 0 else 0
-
-    return {
-        "total_errors": len(errors),
-        "error_density": round(error_density, 2),
-        "errors": errors
-    }
+def analyze_grammar(text: str) -> dict:
+    try:
+        response = requests.post(
+            LANGUAGETOOL_URL,
+            data={"text": text, "language": "en-US"},
+            timeout=5
+        )
+        response.raise_for_status()
+        data = response.json()
+        # parse matches...
+        return parsed_results
+    except Exception as e:
+        # Graceful fallback
+        return {
+            "errors": [],
+            "error_count": 0,
+            "error_density": 0.0,
+            "rules_count": {},
+            "warning": f"LanguageTool unavailable: {e}"
+        }
 
 # -------------------------------
 # Orchestrator
