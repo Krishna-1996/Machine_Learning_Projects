@@ -29,3 +29,8 @@ language-tool-python
 # Utilities
 tqdm
 regex
+
+# Visualization 
+streamlit
+matplotlib
+
