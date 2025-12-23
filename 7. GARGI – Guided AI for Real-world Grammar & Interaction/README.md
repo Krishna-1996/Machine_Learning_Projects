@@ -179,4 +179,10 @@ GARGI uses **transparent evidence** (WPM, pause ratio, grammar rules, semantic s
 Future improvements include benchmarking against human ratings and automated regression tests to ensure scoring stability.
 
 ## License
-Add a license of your choice (MIT is common for open-source prototypes).
+This project is licensed under the MIT License.
+
+You are free to use, modify, and distribute this software for personal or commercial purposes, provided that the original copyright
+and license notice are included.
+
+See the `LICENSE` file for full details.
+
