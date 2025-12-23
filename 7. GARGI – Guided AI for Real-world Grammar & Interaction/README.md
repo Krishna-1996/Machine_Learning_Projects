@@ -186,23 +186,56 @@ Users can audit *why* they received a particular score.
 
 ```text
 GARGI/
-├── api/ # FastAPI application
-├── coaching/ # Stage 6 coaching logic
-├── core/ # Shared configuration
-├── dashboard/ # Stage 7 Streamlit dashboard
-├── scoring_feedback/ # Stage 4 scoring logic
-├── services/ # External services (LanguageTool)
-├── sessions/ # Persistent learning history
-├── speech_analysis/ # Stage 3 analysis
-├── speech_input/ # Stage 1 audio capture
-├── topic_generation/ # Topic creation & enrichment
-├── topic_relevance/ # Stage 5 semantic evaluation
-├── tools/ # Topic enrichment utilities
-├── Dockerfile
-├── docker-compose.yml
-├── main.py # CLI pipeline
-├── README.md
-└── requirements.txt
+├── api/                      # FastAPI service layer (REST API, schemas, dependencies)
+│   ├── app.py                # API entry point
+│   ├── deps.py               # Shared dependencies & environment setup
+│   └── schemas.py            # Request/response validation models
+│
+├── speech_input/             # Stage 1: Speech capture & input handling
+│   └── stage1.py
+│
+├── speech_analysis/          # Stage 3: Fluency & grammar signal extraction
+│   ├── fluency_analysis.py
+│   ├── grammar_analysis.py
+│   └── stage3_analysis.py
+│
+├── scoring_feedback/         # Stage 4: Scoring logic & explainability layer
+│   └── stage4_scoring.py
+│
+├── topic_relevance/          # Stage 5: Semantic relevance & embedding-based evaluation
+│   └── stage5_relevance.py
+│
+├── coaching/                 # Stage 6: Coaching, confidence scoring & guidance engine
+│   └── stage6_coaching.py
+│
+├── dashboard/                # Stage 7: Learning analytics & progress dashboard (Streamlit)
+│   ├── stage7_dashboard.py
+│   └── utils.py
+│
+├── topic_generation/         # Topic generation, enrichment & metadata management
+│   ├── generate_topic.py
+│   └── topics_enriched.csv
+│
+├── services/                 # External service integrations
+│   └── languagetool_service.py
+│
+├── sessions/                 # Persistent session history (append-only logs)
+│   ├── sessions.jsonl
+│   └── backup_manager.py
+│
+├── tools/                    # Offline utilities (topic enrichment, preprocessing)
+│   └── enrich_topics.py
+│
+├── ui/                       # Optional UI layer (future extensions)
+│   └── dashboard.py
+│
+├── Dockerfile                # Containerized API build definition
+├── docker-compose.yml        # Multi-service orchestration (API + LanguageTool)
+├── main.py                   # End-to-end CLI pipeline runner
+├── requirements.txt          # Python dependencies
+├── README.md                 # Project overview & usage guide
+└── GARGI_Documentation_Updated.docx
+
 ```
 
 ---
