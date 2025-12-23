@@ -65,21 +65,6 @@ GARGI System
 └── Future Extensions
     └── Stage 9: Cloud, Auth, Multi-user
 ```
-## System Overview
-
-```text
-User
- └── Speech / Text Input
-     └── Stage 1: Speech Capture (CLI)
-         └── Stage 2: Transcription (Whisper)
-             └── Stage 3: Fluency + Grammar Analysis
-                 └── Stage 4: Scoring & Explainability
-                     └── Stage 5: Topic Relevance (Embeddings)
-                         └── Stage 6: Coaching & Confidence
-                             └── Stage 7: Learning Dashboard
-                                 └── Stage 8: FastAPI + Docker
-                                     └── Stage 9 (Optional): Cloud, Auth, Multi-user
-```
 ---
 
 ## Detailed Pipeline Explanation
@@ -199,6 +184,7 @@ Users can audit *why* they received a particular score.
 
 ## Project Structure (Suggested)
 
+```text
 GARGI/
 ├── api/ # FastAPI application
 ├── coaching/ # Stage 6 coaching logic
@@ -217,7 +203,7 @@ GARGI/
 ├── main.py # CLI pipeline
 ├── README.md
 └── requirements.txt
-
+```
 
 ---
 
