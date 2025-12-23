@@ -67,7 +67,7 @@ GARGI System
     └── Stage 10: CI/CD with GitHub Actions
     └── Stage 11: Android app
     └── Stage 12+: Personalization, agentic coaching, IaC(Infrastructure as Code) via Terraform
-    
+
 ```
 ---
 
@@ -317,4 +317,4 @@ This project is licensed under the MIT License.
 You are free to use, modify, and distribute this software for personal or commercial purposes, provided that the original copyright
 and license notice are included.
 
-See the <LICENSE> file for full details.
+See the **LICENSE** file for full details.
