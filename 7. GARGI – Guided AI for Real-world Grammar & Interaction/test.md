@@ -204,36 +204,36 @@ Python 3.10 is recommended.
 ```bash
     python -m venv .venv
     .venv\Scripts\activate
-    ```
-
+---
 ### 2) Install dependencies
 ```bash
-    Copy code
-    pip install -r requirements.txt
+Copy code
+pip install -r requirements.txt
+```
 ### 3) (Optional) Start LanguageTool server
-bash
+```bash
 Copy code
 java -jar languagetool-server.jar --port 8081
+```
 If LanguageTool is not running, GARGI continues in fallback grammar mode and reports this in the evidence.
 
 Run the CLI Pipeline
-bash
-Copy code
+```bash
 python main.py
+```
 Records audio
-
 Transcribes speech
-
 Evaluates Stages 3–6
-
 Appends a session entry to sessions/sessions.jsonl
 
-Run the Dashboard (Stage 7)
-bash
+### 4) Run the Dashboard (Stage 7)
+```bash
 Copy code
 streamlit run dashboard/stage7_dashboard.py
-Run the API (Stage 8.1)
-bash
+```
+
+### 5) Run the API (Stage 8.1)
+```bash
 Copy code
 uvicorn api.app:app --reload --port 8000
 Swagger UI: http://127.0.0.1:8000/docs
@@ -245,29 +245,32 @@ Recommended workflow:
 GET /topics
 
 POST /evaluate/text
+```
 
-Run with Docker (Stage 8.2)
-bash
+### 6) Run with Docker (Stage 8.2)
+```bash
 Copy code
 docker compose up --build
-Roadmap
-Stage 9 (Optional): Cloud deployment (GCP / Cloud Run), authentication, multi-user support
+```
+
+## Roadmap
+**Stage 9 (Optional):** Cloud deployment (GCP / Cloud Run), authentication, multi-user support
 Deferred by design — GARGI is fully functional without paid cloud services
 
-Stage 10: CI/CD with GitHub Actions (tests, linting, Docker build)
+**Stage 10:** CI/CD with GitHub Actions (tests, linting, Docker build)
 
-Stage 11: Android app (local-first mode, optional cloud sync later)
+**Stage 11:** Android app (local-first mode, optional cloud sync later)
 
-Stage 12+: Personalization, agentic coaching, long-term learner modeling, and infrastructure-as-code (Terraform)
+**Stage 12+:** Personalization, agentic coaching, long-term learner modeling, and infrastructure-as-code (Terraform)
 
-Notes on Trust & Correctness
+## Notes on Trust & Correctness
 GARGI emphasizes transparent evidence, auditable scoring traces, and explainable metrics (WPM, pause ratio, grammar rules, semantic similarity and coverage).
 Future improvements include benchmarking against human ratings and automated regression tests to ensure scoring stability.
 
-License
+## License
 This project is licensed under the MIT License.
 
 You are free to use, modify, and distribute this software for personal or commercial purposes, provided that the original copyright
 and license notice are included.
 
-See the LICENSE file for full details.
+See the <LICENSE> file for full details.
