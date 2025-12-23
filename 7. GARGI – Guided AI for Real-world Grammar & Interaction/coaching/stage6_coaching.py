@@ -2,20 +2,6 @@
 Stage 6: Learning Guidance & Trust Layer (General Interaction)
 Project: GARGI
 Author: Krishna
-
-Inputs:
-- topic_text (str)
-- transcript (str)
-- stage4_results (dict): scores, scoring_trace, evidence, feedback
-- stage5_results (dict): relevance metrics + sentence on-topic ratio + keyphrases
-
-Outputs (dict):
-- confidence: score/label/explanation + components
-- priorities: top improvement actions
-- coaching_feedback: short, actionable guidance
-- reflection_prompts: questions for self-improvement
-- session_summary: compact summary suitable for logging
-- (optional) writes session log to sessions/sessions.jsonl
 """
 
 from __future__ import annotations
@@ -23,8 +9,9 @@ from __future__ import annotations
 import os
 import json
 from datetime import datetime
-import logging 
 from typing import Dict, Any, List, Tuple
+
+from core.paths import sessions_file  # ✅ FIX
 
 
 # -----------------------------
@@ -321,17 +308,15 @@ def generate_reflection_prompts(stage5: Dict[str, Any]) -> List[str]:
 # -----------------------------
 def write_session_log(session_obj: dict) -> str:
     path = sessions_file()
-
     line = json.dumps(session_obj, ensure_ascii=False) + "\n"
 
-    # Append-only + crash-safe
     with open(path, "a", encoding="utf-8") as f:
         f.write(line)
         f.flush()
         os.fsync(f.fileno())
 
     return str(path)
-    
+
 
 # -----------------------------
 # Public API
@@ -350,9 +335,7 @@ def run_stage6(
     coaching_feedback = generate_coaching_feedback(stage4_results, stage5_results)
     reflection_prompts = generate_reflection_prompts(stage5_results)
 
-    # --------- NEW: rich evidence fields for Stage 7 ---------
     evidence = stage4_results.get("evidence", {}) or {}
-
     grammar_errors = evidence.get("grammar_errors", []) or []
     filler_words = evidence.get("filler_words", {}) or {}
 
@@ -360,7 +343,6 @@ def run_stage6(
     if isinstance(filler_words, dict):
         filler_total = int(sum(filler_words.values()))
 
-    # Compact summary for tracking (stable, dashboard-friendly)
     scores = stage4_results.get("scores", {}) or {}
     session_summary = {
         "timestamp_utc": now,
@@ -378,7 +360,6 @@ def run_stage6(
         "confidence_score": confidence.get("confidence_score"),
         "confidence_label": confidence.get("confidence_label"),
 
-        # Evidence for dashboards
         "wpm": evidence.get("wpm"),
         "pause_ratio": evidence.get("pause_ratio"),
         "error_density": evidence.get("error_density"),
