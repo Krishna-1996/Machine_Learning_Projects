@@ -204,7 +204,7 @@ Python 3.10 is recommended.
 ```bash
     python -m venv .venv
     .venv\Scripts\activate
----
+```
 ### 2) Install dependencies
 ```bash
 
