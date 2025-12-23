@@ -64,7 +64,7 @@ GARGI System
 │
 └── Future Extensions
     └── Stage 9: Cloud, Auth, Multi-user
-
+```
 ---
 
 ## Detailed Pipeline Explanation
