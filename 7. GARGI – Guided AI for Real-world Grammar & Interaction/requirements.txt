@@ -34,3 +34,7 @@ regex
 streamlit
 matplotlib
 
+#FastAPI
+fastapi
+uvicorn
+pydantic
