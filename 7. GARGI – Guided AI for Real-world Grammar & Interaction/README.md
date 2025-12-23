@@ -1,8 +1,21 @@
 # GARGI — Guided AI for Real-world General Interaction
 
-GARGI is a **local-first**, **explainable** AI coach that evaluates spoken responses and provides actionable feedback for real-world communication (not exam-only speaking).  
-It focuses on: **fluency**, **grammar**, **filler usage**, **topic alignment**, and **guided improvement over time**.
+🎯GARGI (USER PoV) is a **local-first**, **explainable** AI coach that evaluates spoken responses and provides actionable feedback for real-world communication (not exam-only speaking). It focuses on **fluency**, **grammar**, **filler usage**, **topic alignment**, and **guided improvement over time**.
 
+🎯GARGI (DEVELOPER PoV) does:
+
+1. Generates realistic speaking topics
+2. Captures speech and converts it to text
+3. Analyzes:
+   - Fluency (speed, pauses)
+   - Grammar (LanguageTool)
+   - Fillers and hesitation
+4. Evaluates topic relevance using embeddings
+5. Provides explainable scores and coaching
+6. Logs learning sessions over time
+7. Visualizes progress via a dashboard
+8. Exposes all functionality through an API
+9. Runs fully containerized using Docker
 **🚀 Core Capabilities**
 
 - 🎤 Speech & Text Evaluation
