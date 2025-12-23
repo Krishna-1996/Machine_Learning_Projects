@@ -262,7 +262,7 @@ pip install -r requirements.txt
 
 java -jar languagetool-server.jar --port 8081
 ```
-If LanguageTool is not running, GARGI continues in fallback grammar mode and reports this in the evidence.
+If LanguageTool is not running, **GARGI** continues in fallback grammar mode and reports this in the evidence.
 
 Run the CLI Pipeline
 ```bash
@@ -299,7 +299,7 @@ docker compose up --build
 
 ## Roadmap
 **Stage 9 (Optional):** Cloud deployment (GCP / Cloud Run), authentication, multi-user support
-Deferred by design — GARGI is fully functional without paid cloud services
+Deferred by design — **GARGI** is fully functional without paid cloud services
 
 **Stage 10:** CI/CD with GitHub Actions (tests, linting, Docker build)
 
@@ -308,7 +308,7 @@ Deferred by design — GARGI is fully functional without paid cloud services
 **Stage 12+:** Personalization, agentic coaching, long-term learner modeling, and infrastructure-as-code (Terraform)
 
 ## Notes on Trust & Correctness
-GARGI emphasizes transparent evidence, auditable scoring traces, and explainable metrics (WPM, pause ratio, grammar rules, semantic similarity and coverage).
+**GARGI** emphasizes transparent evidence, auditable scoring traces, and explainable metrics (WPM, pause ratio, grammar rules, semantic similarity and coverage).
 Future improvements include benchmarking against human ratings and automated regression tests to ensure scoring stability.
 
 ## License
