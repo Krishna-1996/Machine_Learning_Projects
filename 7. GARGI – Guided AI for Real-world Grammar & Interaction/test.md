@@ -43,20 +43,18 @@ It focuses on **fluency**, **grammar**, **filler usage**, **topic alignment**, a
 ## System Overview
 
 User
-├─ Speech / Text Input
-│
-├─ Stage 1: Speech Capture (CLI)
-├─ Stage 2: Transcription (Whisper)
-├─ Stage 3: Fluency + Grammar Analysis
-├─ Stage 4: Scoring & Explainability
-├─ Stage 5: Topic Relevance (Embeddings)
-├─ Stage 6: Coaching & Confidence
-├─ Stage 7: Learning Dashboard
-├─ Stage 8: FastAPI + Docker
-└─ Stage 9: (Optional) Cloud, Auth, Multi-user
-
-yaml
-Copy code
+|
++-- Speech / Text Input
+|
++-- Stage 1: Speech Capture (CLI)
++-- Stage 2: Transcription (Whisper)
++-- Stage 3: Fluency + Grammar Analysis
++-- Stage 4: Scoring & Explainability
++-- Stage 5: Topic Relevance (Embeddings)
++-- Stage 6: Coaching & Confidence
++-- Stage 7: Learning Dashboard
++-- Stage 8: FastAPI + Docker
+`-- Stage 9: (Optional) Cloud, Auth, Multi-user
 
 ---
 
@@ -194,10 +192,8 @@ GARGI/
 ├── docker-compose.yml
 ├── main.py # CLI pipeline
 ├── README.md
-├── requirements.txt
+└── requirements.txt
 
-yaml
-Copy code
 
 ---
 
@@ -206,13 +202,15 @@ Copy code
 ### 1) Create a virtual environment
 Python 3.10 is recommended.
 ```bash
-python -m venv .venv
-.venv\Scripts\activate
-2) Install dependencies
-bash
-Copy code
-pip install -r requirements.txt
-3) (Optional) Start LanguageTool server
+    python -m venv .venv
+    .venv\Scripts\activate
+
+
+### 2) Install dependencies
+```bash
+    Copy code
+    pip install -r requirements.txt
+### 3) (Optional) Start LanguageTool server
 bash
 Copy code
 java -jar languagetool-server.jar --port 8081
