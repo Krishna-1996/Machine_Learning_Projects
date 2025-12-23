@@ -3,6 +3,16 @@
 GARGI is a **local-first**, **explainable** AI coach that evaluates spoken responses and provides actionable feedback for real-world communication (not exam-only speaking).  
 It focuses on: **fluency**, **grammar**, **filler usage**, **topic alignment**, and **guided improvement over time**.
 
+**🚀 Core Capabilities**
+
+- 🎤 Speech & Text Evaluation
+- 🧠 Semantic Topic Relevance (Embeddings-based)
+- ✍️ Grammar Analysis (LanguageTool)
+- 📊 Learning Progress Dashboard
+- 🌐 REST API (FastAPI)
+- 🐳 Dockerized Deployment
+- 🧩 Explainable AI Feedback
+
 ## Key Features
 - **Offline-first pipeline**: runs locally on Windows (privacy + low cost)
 - **Explainability (XAI)**: scoring trace (base + penalties) and evidence (WPM, pause ratio, grammar rules, similarity)
@@ -11,6 +21,20 @@ It focuses on: **fluency**, **grammar**, **filler usage**, **topic alignment**, 
 - **Coaching layer**: priorities + actions + reflection prompts + confidence estimation
 - **Progress tracking**: Streamlit dashboard powered by append-only session logs
 - **API layer (FastAPI)**: product-ready interface for future cloud/mobile deployment
+
+**User**
+ ├─ Speech / Text Input
+ │
+ ├─ Stage 1: Speech Capture (CLI)
+ ├─ Stage 2: Transcription (Whisper)
+ ├─ Stage 3: Fluency + Grammar Analysis
+ ├─ Stage 4: Scoring & Explainability
+ ├─ Stage 5: Topic Relevance (Embeddings)
+ ├─ Stage 6: Coaching & Confidence
+ ├─ Stage 7: Learning Dashboard
+ ├─ Stage 8: FastAPI + Docker
+ └─ Stage 9: (Planned) Auth, Users, Cloud
+
 
 ## Pipeline Stages (Current)
 **Stage 0 — Topic Dataset Enrichment (offline preprocessing)**
@@ -58,17 +82,24 @@ It focuses on: **fluency**, **grammar**, **filler usage**, **topic alignment**, 
 ## Project Structure (suggested)
 ```
 GARGI/
-  api/                      # FastAPI service
-  coaching/                 # Stage 6 coaching + session logging
-  dashboard/                # Stage 7 Streamlit dashboard
-  scoring_feedback/         # Stage 4 scoring
-  speech_analysis/          # Stage 3 analysis
-  speech_input/             # Stage 1 recording + Whisper transcription
-  topic_generation/         # Stage 2 topic selection
-  topic_relevance/          # Stage 5 relevance
-  sessions/                 # sessions.jsonl (append-only)
-  main.py                   # CLI pipeline runner (mic → evaluation → log)
-  topics.csv                # topic dataset
+  ├── api/                  # FastAPI application
+  ├── coaching/             # Stage 6 coaching logic
+  ├── core/                 # Paths & shared config
+  ├── dashboard/            # Stage 7 Streamlit dashboard
+  ├── scoring_feedback/     # Stage 4 scoring
+  ├── services/             # External services (LanguageTool)
+  ├── sessions/             # Persistent learning history
+  ├── speech_analysis/      # Stage 3 analysis
+  ├── speech_input/         # Stage 1 audio capture
+  ├── topic_generation/     # Topic creation & enrichment
+  ├── topic_relevance/      # Stage 5 semantic evaluation
+  ├── tools/                # Topic enrichment utilities
+  ├── Dockerfile
+  ├── docker-compose.yml
+  ├── main.py               # CLI pipeline
+  ├── README.md
+  ├── requirements.txt
+
 ```
 
 ## Setup (Windows 11)
