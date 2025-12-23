@@ -1,0 +1,28 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.env
+.venv/
+venv/
+env/
+build/
+dist/
+*.egg-info/
+
+# Local artifacts
+speech.wav
+transcription.txt
+transcription_annotated.txt
+GARGI_Documentation_Updated.docx
+
+# Models (keep out of image)
+LLM Models/
+**/all-mpnet-base-v2/
+
+# Session logs (keep local)
+sessions/*.jsonl
+
+# Streamlit cache
+.streamlit/
