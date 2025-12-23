@@ -1,13 +1,9 @@
-# version: '3.8'
-
 services:
   languagetool:
     image: silviof/docker-languagetool:latest
     container_name: gargi-languagetool
     ports:
       - "8081:8010"
-    environment:
-      - langtool_languageModel=/ngrams
     restart: unless-stopped
 
   api:
@@ -18,14 +14,9 @@ services:
     ports:
       - "8000:8000"
     environment:
-    - EMBEDDING_MODEL_PATH=/models/all-mpnet-base-v2
+      - EMBEDDING_MODEL_PATH=/models/all-mpnet-base-v2
+      - LANGUAGETOOL_URL=http://languagetool:8010/v2/check
     volumes:
+      - ./sessions:/app/sessions
       - "D:/LLM Models/all-mpnet-base-v2:/models/all-mpnet-base-v2:ro"
-
-    # environment:
-    #   - LANGUAGETOOL_URL=http://languagetool:8010/v2/check
-    #   - EMBEDDING_MODEL_PATH=/models/all-mpnet-base-v2
-    # volumes:
-    #   - ./sessions:/app/sessions
-    #   - "D:/LLM Models/all-mpnet-base-v2:/models/all-mpnet-base-v2:ro"
     restart: unless-stopped

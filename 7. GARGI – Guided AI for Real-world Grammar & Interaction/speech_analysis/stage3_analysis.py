@@ -11,7 +11,8 @@ import os
 
 AUDIO_FILE = "speech.wav"
 TRANSCRIPT_FILE = "transcription.txt"
-LANGUAGETOOL_URL = "http://localhost:8081/v2/check"
+LANGUAGETOOL_URL = os.getenv("LANGUAGETOOL_URL", "http://localhost:8081/v2/check")
+
 
 FILLER_WORDS = [
     "um", "uh", "ah", "like", "you know", "i mean", "so", "well",

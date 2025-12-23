@@ -30,10 +30,12 @@ import yake
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
-DEFAULT_MODEL_PATH = r"D:\LLM Models\all-mpnet-base-v2"
-MODEL_PATH = os.getenv("EMBEDDING_MODEL_PATH", DEFAULT_MODEL_PATH)
+
+DEFAULT_WINDOWS_MODEL_PATH = r"D:\LLM Models\all-mpnet-base-v2"
+MODEL_PATH = os.getenv("EMBEDDING_MODEL_PATH", DEFAULT_WINDOWS_MODEL_PATH)
 
 model = SentenceTransformer(MODEL_PATH)
+
 
 # -------------------------------
 # YAKE keyphrases
