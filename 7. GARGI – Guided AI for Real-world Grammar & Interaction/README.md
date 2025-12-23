@@ -40,21 +40,30 @@ It focuses on **fluency**, **grammar**, **filler usage**, **topic alignment**, a
 
 ---
 
-## System Overview
+## System Architecture (Pipeline View)
 
-User
-|
-+-- Speech / Text Input
-|
-+-- Stage 1: Speech Capture (CLI)
-+-- Stage 2: Transcription (Whisper)
-+-- Stage 3: Fluency + Grammar Analysis
-+-- Stage 4: Scoring & Explainability
-+-- Stage 5: Topic Relevance (Embeddings)
-+-- Stage 6: Coaching & Confidence
-+-- Stage 7: Learning Dashboard
-+-- Stage 8: FastAPI + Docker
-`-- Stage 9: (Optional) Cloud, Auth, Multi-user
+```text
+GARGI System
+├── Input Layer
+│   ├── Speech Input (Mic)
+│   └── Text Input (API)
+│
+├── Processing Pipeline
+│   ├── Stage 1: Speech Capture
+│   ├── Stage 2: Transcription (Whisper)
+│   ├── Stage 3: Fluency & Grammar
+│   ├── Stage 4: Scoring & Explainability
+│   ├── Stage 5: Topic Relevance (Embeddings)
+│   └── Stage 6: Coaching & Confidence
+│
+├── Learning & Visualization
+│   └── Stage 7: Streamlit Dashboard
+│
+├── Service Layer
+│   └── Stage 8: FastAPI + Docker
+│
+└── Future Extensions
+    └── Stage 9: Cloud, Auth, Multi-user
 
 ---
 
