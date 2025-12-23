@@ -92,6 +92,10 @@
 **Stage 8.1 — FastAPI Layer**
 - `GET /topics` → returns `topic_obj` + `topic_text`
 - `POST /evaluate/text` → runs Stages 3–6 on text input and optionally appends session history
+**Stage 8.2 — Docker (portable deployment)**
+- Stable up to Stage 8.2 (Docker)
+- All evaluation stages working
+- API verified via Swagger UI
 
 ## Project Structure (suggested)
 ```
@@ -160,9 +164,11 @@ Open:
 Recommended API workflow:
 1. `GET /topics`
 2. `POST /evaluate/text` using the returned `topic_obj` and your transcript
+## Run the Docker (Stage 8.2)
+```bash
+docker compose up --build
 
 ## Roadmap
-- **Stage 8.2**: Docker (portable deployment)
 - **Stage 9**: Cloud deployment (Google Cloud / Cloud Run), model storage (GCS)
 - **Stage 10**: CI/CD (GitHub Actions: tests + build + deploy)
 - **Stage 11**: Android app (multi-user accounts, profiles, and session sync)
