@@ -64,6 +64,9 @@ GARGI System
 │
 └── Future Extensions
     └── Stage 9: Cloud, Auth, Multi-user
+    └── Stage 10: CI/CD with GitHub Actions
+    └── Stage 11: Android app
+    └── Stage 12+: Personalization, agentic coaching, IaC(Infrastructure as Code) via Terraform
 ```
 ---
 
