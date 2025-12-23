@@ -18,9 +18,14 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - LANGUAGETOOL_URL=http://languagetool:8010/v2/check
-      - EMBEDDING_MODEL_PATH=/models/all-mpnet-base-v2
+    - EMBEDDING_MODEL_PATH=/models/all-mpnet-base-v2
     volumes:
-      - ./sessions:/app/sessions
       - "D:/LLM Models/all-mpnet-base-v2:/models/all-mpnet-base-v2:ro"
+
+    # environment:
+    #   - LANGUAGETOOL_URL=http://languagetool:8010/v2/check
+    #   - EMBEDDING_MODEL_PATH=/models/all-mpnet-base-v2
+    # volumes:
+    #   - ./sessions:/app/sessions
+    #   - "D:/LLM Models/all-mpnet-base-v2:/models/all-mpnet-base-v2:ro"
     restart: unless-stopped

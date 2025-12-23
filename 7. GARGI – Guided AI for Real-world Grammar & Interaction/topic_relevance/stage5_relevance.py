@@ -22,7 +22,7 @@ Schema-stable outputs:
 - label, explanation, config
 """
 from __future__ import annotations
-
+import os
 import re
 from typing import Dict, Any, List, Tuple
 
@@ -30,7 +30,9 @@ import yake
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
-MODEL_PATH = r"D:\LLM Models\all-mpnet-base-v2"
+DEFAULT_MODEL_PATH = r"D:\LLM Models\all-mpnet-base-v2"
+MODEL_PATH = os.getenv("EMBEDDING_MODEL_PATH", DEFAULT_MODEL_PATH)
+
 model = SentenceTransformer(MODEL_PATH)
 
 # -------------------------------
