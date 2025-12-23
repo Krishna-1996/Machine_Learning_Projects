@@ -1,79 +1,131 @@
 # GARGI — Guided AI for Real-world General Interaction
 
-**GARGI** is an explainable, offline-first AI system designed to evaluate spoken responses and provide actionable feedback for **real-world spoken communication**.
+GARGI is a **local-first**, **explainable** AI coach that evaluates spoken responses and provides actionable feedback for real-world communication (not exam-only speaking).  
+It focuses on: **fluency**, **grammar**, **filler usage**, **topic alignment**, and **guided improvement over time**.
 
-The project focuses on **general interaction** rather than exam-specific scoring, helping users improve clarity, fluency, grammar, and topic alignment in everyday conversations, academic discussions, interviews, and professional settings.
+## Key Features
+- **Offline-first pipeline**: runs locally on Windows (privacy + low cost)
+- **Explainability (XAI)**: scoring trace (base + penalties) and evidence (WPM, pause ratio, grammar rules, similarity)
+- **Topic enrichment**: separates prompt wording from topic meaning using a metadata-aware topic dataset
+- **Semantic topic relevance**: similarity, coverage, sentence-level on-topic ratio, and anchor rubric
+- **Coaching layer**: priorities + actions + reflection prompts + confidence estimation
+- **Progress tracking**: Streamlit dashboard powered by append-only session logs
+- **API layer (FastAPI)**: product-ready interface for future cloud/mobile deployment
 
----
+## Pipeline Stages (Current)
+**Stage 0 — Topic Dataset Enrichment (offline preprocessing)**
+- Input: `topics.csv`
+- Output: enriched topic objects with:
+  - `instruction`, `topic_content`, `topic_type`, `constraints`
+  - `expected_anchors`, `topic_keyphrases`
 
-## 🔍 Key Capabilities
+**Stage 1 — Speech Input & Transcription**
+- Record audio (fixed duration) → `speech.wav`
+- Whisper transcription → `transcription.txt`
+- Language gate (English)
 
-- **Topic-driven speaking practice** (700+ prompts supported)
-- **Offline-first pipeline**
-  - Local audio recording
-  - Local transcription (Whisper)
-  - Local semantic relevance (Sentence Transformers)
+**Stage 2 — Topic Selection (metadata-aware)**
+- Random topic selection with optional category filter
+- Returns a structured `topic_obj`
 
-- 🎙️ **Speech Input & Transcription**
-  - Local audio recording
-  - Speech-to-text using Whisper
+**Stage 3 — Speech Analysis**
+- Fluency: WPM, pause ratio, filler counts
+- Grammar: LanguageTool (local server) with schema-stable fallback mode
 
-- 🗣️ **Fluency Analysis**
-  - Speaking rate (WPM)
-  - Pause ratio
-  - Filler word detection
+**Stage 4 — Scoring & Explainability**
+- Scores (0–10): Fluency, Grammar, Fillers, Overall
+- Outputs scoring trace + evidence used
 
-- ✍️ **Grammar Analysis**
-  - Rule-based grammar checking via LanguageTool
-  - Error density and explainable grammar feedback
+**Stage 5 — Topic Relevance**
+- Embedding similarity (topic meaning vs response)
+- Semantic coverage (topic phrases vs response keyphrases)
+- Sentence-level on-topic ratio + dynamic threshold
+- Anchor rubric bonus (expected structural elements)
 
-- 🎯 **Topic Relevance & Alignment**
-  - Semantic similarity using Sentence Transformers
-  - Concept-level coverage analysis
-  - Sentence-level on-topic ratio
-  - Explainable relevance diagnostics
+**Stage 6 — Learning Guidance & Trust**
+- Confidence score + explanation
+- Top 3 priorities with concrete actions
+- Reflection prompts
+- Append-only session logging: `sessions/sessions.jsonl`
 
-- 🧠 **Explainability & Trust Layer**
-  - Transparent scoring logic
-  - Evidence-based feedback
-  - XAI-inspired scoring traces
+**Stage 7 — Learning Progress Dashboard**
+- Streamlit dashboard: trends and session table from `sessions/sessions.jsonl`
 
-- 📈 **Learning-Oriented Feedback**
-  - Priority improvement suggestions
-  - Coaching-style guidance
-  - Reflection prompts for self-assessment
+**Stage 8.1 — FastAPI Layer**
+- `GET /topics` → returns `topic_obj` + `topic_text`
+- `POST /evaluate/text` → runs Stages 3–6 on text input and optionally appends session history
 
----
+## Project Structure (suggested)
+```
+GARGI/
+  api/                      # FastAPI service
+  coaching/                 # Stage 6 coaching + session logging
+  dashboard/                # Stage 7 Streamlit dashboard
+  scoring_feedback/         # Stage 4 scoring
+  speech_analysis/          # Stage 3 analysis
+  speech_input/             # Stage 1 recording + Whisper transcription
+  topic_generation/         # Stage 2 topic selection
+  topic_relevance/          # Stage 5 relevance
+  sessions/                 # sessions.jsonl (append-only)
+  main.py                   # CLI pipeline runner (mic → evaluation → log)
+  topics.csv                # topic dataset
+```
 
-## 🧩 System Architecture
+## Setup (Windows 11)
+### 1) Create a virtual environment
+Python 3.10 is recommended for maximal compatibility (3.13 can be used if your audio/whisper stack supports it).
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+```
 
+### 2) Install dependencies
+```bash
+pip install -r requirements.txt
+```
 
----
+### 3) (Optional) Start LanguageTool server for grammar
+If you use local LanguageTool:
+```bash
+java -jar languagetool-server.jar --port 8081
+```
+If LanguageTool is not running, GARGI continues with **fallback grammar mode** and includes a warning in evidence.
 
-## 🛠️ Technology Stack
+## Run the CLI (main.py)
+```bash
+python main.py
+```
+This records audio, transcribes it, evaluates it (Stages 3–6), and appends a session row to:
+- `sessions/sessions.jsonl`
 
-- Python 3.10 / 3.13
-- Whisper (speech-to-text)
-- LanguageTool (grammar analysis)
-- Sentence Transformers (`all-mpnet-base-v2`)
-- YAKE (keyword extraction)
-- NumPy, SciPy, scikit-learn
+## Run the Dashboard (Stage 7)
+```bash
+streamlit run dashboard/stage7_dashboard.py
+```
+The dashboard reads `sessions/sessions.jsonl` and visualizes progress over time.
 
-All components are **free**, **local-first**, and compatible with **Windows**.
+## Run the API (Stage 8.1)
+```bash
+uvicorn api.app:app --reload --port 8000
+```
+Open:
+- Swagger: `http://127.0.0.1:8000/docs`
+- OpenAPI: `http://127.0.0.1:8000/openapi.json`
 
----
+Recommended API workflow:
+1. `GET /topics`
+2. `POST /evaluate/text` using the returned `topic_obj` and your transcript
 
-## 🚀 Running the Project
+## Roadmap
+- **Stage 8.2**: Docker (portable deployment)
+- **Stage 9**: Cloud deployment (Google Cloud / Cloud Run), model storage (GCS)
+- **Stage 10**: CI/CD (GitHub Actions: tests + build + deploy)
+- **Stage 11**: Android app (multi-user accounts, profiles, and session sync)
+- **Stage 12+**: Personalization, agentic coaching, and infrastructure-as-code (Terraform)
 
-1. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
+## Notes on Trust & Correctness
+GARGI uses **transparent evidence** (WPM, pause ratio, grammar rules, semantic similarity/coverage) and a **scoring trace** to make outputs auditable.  
+Future improvements include benchmarking against human ratings and automated regression tests to ensure scoring stability.
 
-2. Start LanguageTool server:
-    ```bash
-    java -jar languagetool-server.jar --port 8081
-
-3. Run GARGI:
-    ```bash
-    python main.py
-
+## License
+Add a license of your choice (MIT is common for open-source prototypes).
