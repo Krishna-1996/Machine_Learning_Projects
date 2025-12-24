@@ -11,7 +11,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 # -----------------------------
 # CONFIG
 # -----------------------------
-basic_security = HTTPBasic()
+basic_security = HTTPBasic(auto_error=False)
 
 BASIC_USER = os.getenv("GARGI_BASIC_USER", "gargi")
 BASIC_PASS = os.getenv("GARGI_BASIC_PASS", "sharma")
@@ -22,7 +22,14 @@ API_KEY = os.getenv("GARGI_API_KEY", "dev-local-key")
 # -----------------------------
 # BASIC AUTH (manual + dependency)
 # -----------------------------
-def require_basic_auth(credentials: HTTPBasicCredentials = Depends(basic_security)) -> str:
+def require_basic_auth(credentials: Optional[HTTPBasicCredentials] = Depends(basic_security)) -> str:
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+
     ok_user = secrets.compare_digest(credentials.username, BASIC_USER)
     ok_pass = secrets.compare_digest(credentials.password, BASIC_PASS)
 
