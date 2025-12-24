@@ -1,7 +1,11 @@
 import os
+from typing import Optional, List, Dict, Any
 import pandas as pd
 
 TOPICS_FILE = "topics_enriched.csv"
+
+# Small cache so we don't reload CSV on every request
+_CACHE_DF: Optional[pd.DataFrame] = None
 
 def load_topics() -> pd.DataFrame:
     if not os.path.exists(TOPICS_FILE):
