@@ -13,6 +13,9 @@ from speech_analysis.stage3_analysis import analyze_fillers, calculate_wpm, anal
 from scoring_feedback.stage4_scoring import run_stage4
 from topic_relevance.stage5_relevance import run_stage5
 from coaching.stage6_coaching import run_stage6
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 app = FastAPI(
