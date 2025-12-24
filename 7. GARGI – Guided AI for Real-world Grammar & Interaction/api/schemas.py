@@ -13,6 +13,7 @@ class EvaluateTextRequest(BaseModel):
     topic_text: Optional[str] = None
     duration_sec: Optional[float] = None
     save_history: bool = True
+    user_id: Optional[str] = None
 
 
 class EvaluateTextResponse(BaseModel):
@@ -23,3 +24,4 @@ class EvaluateTextResponse(BaseModel):
     stage4: Dict[str, Any]
     stage5: Dict[str, Any]
     stage6: Dict[str, Any]
+    
