@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, Dict, Any, List
 
 from api.schemas import TopicResponse, EvaluateTextRequest, EvaluateTextResponse
-from api.security import require_api_key, require_basic_auth
+from api.security import require_basic_auth
  
 from topic_generation.generate_topic import get_random_topic, list_categories, search_topics
 
@@ -17,7 +17,7 @@ from coaching.stage6_coaching import run_stage6
 
 app = FastAPI(
     title="GARGI API",
-    version="8.1",
+    version="0.1",
     description="Guided AI for Real-world General Interaction — FastAPI Layer"
 )
 
@@ -33,7 +33,7 @@ app.add_middleware(
 # ----------------------------
 # NEW: Categories
 # ----------------------------
-@app.get("/categories", dependencies=[Depends(require_api_key)])
+@app.get("/categories", dependencies=[Depends(require_basic_auth)])
 def categories() -> Dict[str, List[str]]:
     return {"categories": list_categories()}
 
@@ -50,7 +50,7 @@ def root():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "gargi-api", "version": "8.1"}
+    return {"status": "ok", "service": "gargi-api", "version": "0.1"}
 
 
 def normalize_topic_obj(topic_obj: Optional[Dict[str, Any]], topic_text: Optional[str]) -> Dict[str, Any]:
@@ -89,7 +89,7 @@ def topic_text_from_obj(topic_obj: Dict[str, Any]) -> str:
 # ----------------------------
 # Topics (random)
 # ----------------------------
-@app.get("/topics", response_model=TopicResponse, dependencies=[Depends(require_api_key)])
+@app.get("/topics", response_model=TopicResponse, dependencies=[Depends(require_basic_auth)])
 def topics(category: Optional[str] = None):
     try:
         topic_obj = get_random_topic(category=category)
@@ -105,7 +105,7 @@ def topics(category: Optional[str] = None):
 # ----------------------------
 # NEW: Topic search (typeahead)
 # ----------------------------
-@app.get("/topics/search", dependencies=[Depends(require_api_key)])
+@app.get("/topics/search", dependencies=[Depends(require_basic_auth)])
 def topics_search(q: str, category: Optional[str] = None, limit: int = 10):
     q = (q or "").strip()
     if len(q) < 2:
@@ -117,7 +117,7 @@ def topics_search(q: str, category: Optional[str] = None, limit: int = 10):
 # ----------------------------
 # Evaluate text (MVP)
 # ----------------------------
-@app.post("/evaluate/text", response_model=EvaluateTextResponse, dependencies=[Depends(require_api_key)])
+@app.post("/evaluate/text", response_model=EvaluateTextResponse, dependencies=[Depends(require_basic_auth)])
 def evaluate_text(payload: EvaluateTextRequest):
     transcript = (payload.transcript or "").strip()
     if len(transcript) < 3:
