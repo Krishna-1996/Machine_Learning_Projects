@@ -1,11 +1,16 @@
+from dotenv import load_dotenv
+load_dotenv()
+
+import time
+import uuid
 from api.deps import PROJECT_ROOT  # noqa: F401
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, Dict, Any, List
 
 from api.schemas import TopicResponse, EvaluateTextRequest, EvaluateTextResponse
-from api.security import require_auth
+from api.security import require_auth, authorize_request_for_docs
  
 from topic_generation.generate_topic import get_random_topic, list_categories, search_topics
 
@@ -13,9 +18,7 @@ from speech_analysis.stage3_analysis import analyze_fillers, calculate_wpm, anal
 from scoring_feedback.stage4_scoring import run_stage4
 from topic_relevance.stage5_relevance import run_stage5
 from coaching.stage6_coaching import run_stage6
-from dotenv import load_dotenv
-
-load_dotenv()
+from fastapi.responses import JSONResponse
 
 
 app = FastAPI(
@@ -32,6 +35,34 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+@app.middleware("http")
+async def gargi_request_middleware(request: Request, call_next):
+    # Public endpoints
+    if request.url.path in ["/health", "/"]:
+        return await call_next(request)
+
+    # Protect docs + openapi
+    if request.url.path.startswith("/docs") or request.url.path.startswith("/redoc") or request.url.path == "/openapi.json":
+        try:
+            authorize_request_for_docs(request)
+        except HTTPException as e:
+            # Return 401 properly so browser shows the login prompt
+            return JSONResponse(
+                status_code=e.status_code,
+                content={"detail": e.detail},
+                headers=getattr(e, "headers", None) or {},
+            )
+
+    # Request ID + timing (Android debugging)
+    request_id = str(uuid.uuid4())
+    start = time.time()
+    response = await call_next(request)
+    elapsed_ms = int((time.time() - start) * 1000)
+
+    response.headers["X-Request-ID"] = request_id
+    response.headers["X-Elapsed-ms"] = str(elapsed_ms)
+    return response
+
 
 # ----------------------------
 # NEW: Categories
@@ -147,7 +178,7 @@ def evaluate_text(payload: EvaluateTextRequest):
     # Stage 5 (YOUR signature)
     stage5 = run_stage5(topic_obj=topic_obj, transcript=transcript)
 
-     # user_id is MVP: you will send it from Android
+    # user_id is MVP: you will send it from Android
     user_id = (payload.user_id or "").strip() if hasattr(payload, "user_id") else ""
 
 

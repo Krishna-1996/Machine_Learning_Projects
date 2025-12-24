@@ -1,1 +1,14 @@
-7. GARGI – Guided AI for Real-world Grammar & Interaction/.env
+# Ignore environment files
+.env
+*.env
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore session files
+.sessions/
+sessions/
+
+# Ignore JSONL data files
+*.jsonl
