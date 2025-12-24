@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, Dict, Any, List
 
 from api.schemas import TopicResponse, EvaluateTextRequest, EvaluateTextResponse
-from api.security import require_basic_auth
+from api.security import require_auth
  
 from topic_generation.generate_topic import get_random_topic, list_categories, search_topics
 
@@ -36,7 +36,7 @@ app.add_middleware(
 # ----------------------------
 # NEW: Categories
 # ----------------------------
-@app.get("/categories", dependencies=[Depends(require_basic_auth)])
+@app.get("/categories", dependencies=[Depends(require_auth)])
 def categories() -> Dict[str, List[str]]:
     return {"categories": list_categories()}
 
@@ -92,7 +92,7 @@ def topic_text_from_obj(topic_obj: Dict[str, Any]) -> str:
 # ----------------------------
 # Topics (random)
 # ----------------------------
-@app.get("/topics", response_model=TopicResponse, dependencies=[Depends(require_basic_auth)])
+@app.get("/topics", response_model=TopicResponse, dependencies=[Depends(require_auth)])
 def topics(category: Optional[str] = None):
     try:
         topic_obj = get_random_topic(category=category)
@@ -108,7 +108,7 @@ def topics(category: Optional[str] = None):
 # ----------------------------
 # NEW: Topic search (typeahead)
 # ----------------------------
-@app.get("/topics/search", dependencies=[Depends(require_basic_auth)])
+@app.get("/topics/search", dependencies=[Depends(require_auth)])
 def topics_search(q: str, category: Optional[str] = None, limit: int = 10):
     q = (q or "").strip()
     if len(q) < 2:
@@ -120,7 +120,7 @@ def topics_search(q: str, category: Optional[str] = None, limit: int = 10):
 # ----------------------------
 # Evaluate text (MVP)
 # ----------------------------
-@app.post("/evaluate/text", response_model=EvaluateTextResponse, dependencies=[Depends(require_basic_auth)])
+@app.post("/evaluate/text", response_model=EvaluateTextResponse, dependencies=[Depends(require_auth)])
 def evaluate_text(payload: EvaluateTextRequest):
     transcript = (payload.transcript or "").strip()
     if len(transcript) < 3:

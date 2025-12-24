@@ -1,9 +1,37 @@
 # api/security.py
 import os
 import secrets
+from typing import Optional
+from fastapi import Request
 from fastapi import Depends, HTTPException, status, Header
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
+def require_auth(
+    request: Request,
+    x_api_key: str = Header(default="", alias="X-API-Key"),
+    credentials: Optional[HTTPBasicCredentials] = Depends(basic_security),
+) -> str:
+    """
+    Accept either:
+    - X-API-Key header (Android/client use)
+    - HTTP Basic Auth (browser/manual use)
+    """
+    # 1) API Key path (preferred for Android)
+    if x_api_key and secrets.compare_digest(x_api_key, API_KEY):
+        return "api_key"
+
+    # 2) Basic Auth path
+    if credentials:
+        ok_user = secrets.compare_digest(credentials.username, BASIC_USER)
+        ok_pass = secrets.compare_digest(credentials.password, BASIC_PASS)
+        if ok_user and ok_pass:
+            return credentials.username
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Unauthorized",
+        headers={"WWW-Authenticate": "Basic"},
+    )
 # -----------------------------
 # BASIC AUTH (recommended for Stage 9 LAN)
 # -----------------------------
