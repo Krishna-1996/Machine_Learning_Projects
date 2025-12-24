@@ -2,6 +2,23 @@ from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
 
 
+class ApiMeta(BaseModel):
+    request_id: str
+    elapsed_ms: Optional[int] = None
+
+
+class ApiError(BaseModel):
+    code: str
+    message: str
+
+
+class ApiResponse(BaseModel):
+    ok: bool = True
+    meta: ApiMeta
+    error: Optional[ApiError] = None
+    data: Optional[Dict[str, Any]] = None
+
+
 class TopicResponse(BaseModel):
     topic_obj: Dict[str, Any]
     topic_text: str
@@ -24,4 +41,4 @@ class EvaluateTextResponse(BaseModel):
     stage4: Dict[str, Any]
     stage5: Dict[str, Any]
     stage6: Dict[str, Any]
-    
+    user_id: Optional[str] = None
