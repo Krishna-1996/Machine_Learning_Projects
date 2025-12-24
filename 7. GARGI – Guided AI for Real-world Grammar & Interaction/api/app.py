@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, Dict, Any, List
 
 from api.schemas import TopicResponse, EvaluateTextRequest, EvaluateTextResponse
-from api.security import require_api_key
+from api.security import require_api_key, require_basic_auth
  
 from topic_generation.generate_topic import get_random_topic, list_categories, search_topics
 

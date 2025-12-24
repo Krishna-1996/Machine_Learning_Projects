@@ -3,7 +3,7 @@ services:
     image: silviof/docker-languagetool:latest
     container_name: gargi-languagetool
     ports:
-      - "8081:8010"
+      - "8090:8010"
     restart: unless-stopped
 
   api:
