@@ -1,5 +1,10 @@
 from dotenv import load_dotenv
-load_dotenv()
+import os
+
+# Load .env from the same directory as this file (app.py)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(BASE_DIR, ".env"))
+
 
 import time
 import uuid

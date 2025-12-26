@@ -56,27 +56,28 @@ def require_api_key(x_api_key: str = Header(default="", alias="X-API-Key")) -> N
 # -----------------------------
 # ANDROID-READY: accept EITHER API key OR Basic Auth
 # -----------------------------
-def require_auth(
-    x_api_key: str = Header(default="", alias="X-API-Key"),
-    credentials: Optional[HTTPBasicCredentials] = Depends(basic_security),
-) -> str:
-    # 1) API Key path (Android/client)
-    if x_api_key and secrets.compare_digest(x_api_key, API_KEY):
-        return "api_key"
+def require_auth(request: Request) -> None:
+    """
+    Accept X-API-Key header for all protected endpoints.
+    Uses the module-level API_KEY value, which should be loaded from env/.env at startup.
+    """
+    expected = (API_KEY or "").strip()
 
-    # 2) Basic Auth path (browser/manual)
-    if credentials:
-        ok_user = secrets.compare_digest(credentials.username, BASIC_USER)
-        ok_pass = secrets.compare_digest(credentials.password, BASIC_PASS)
-        if ok_user and ok_pass:
-            return credentials.username
+    # If you ever want to allow local no-auth, change this behavior.
+    if not expected or expected == "dev-local-key":
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Server auth is not configured (GARGI_API_KEY missing).",
+        )
 
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Unauthorized",
-        headers={"WWW-Authenticate": "Basic"},
-    )
-
+    api_key = (request.headers.get("X-API-Key") or "").strip()
+    if not api_key or not secrets.compare_digest(api_key, expected):
+        # Return 401 (as you already do) so Android sees "Unauthorized"
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized",
+            headers={"WWW-Authenticate": "Basic"},
+        )
 
 # -----------------------------
 # Middleware helper: protect /docs & /openapi.json too
