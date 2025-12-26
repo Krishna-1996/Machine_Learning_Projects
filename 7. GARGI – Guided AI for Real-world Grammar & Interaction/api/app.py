@@ -1,11 +1,12 @@
+from pathlib import Path
 from dotenv import load_dotenv
+
+# Load .env from project root (one level above /api)
+ENV_PATH = Path(__file__).resolve().parents[1] / ".env"
+load_dotenv(ENV_PATH)
+
+
 import os
-
-# Load .env from the same directory as this file (app.py)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-load_dotenv(os.path.join(BASE_DIR, ".env"))
-
-
 import time
 import uuid
 from collections import defaultdict, deque

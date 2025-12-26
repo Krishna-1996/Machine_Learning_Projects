@@ -16,7 +16,7 @@ basic_security = HTTPBasic(auto_error=False)
 BASIC_USER = os.getenv("GARGI_BASIC_USER", "gargi")
 BASIC_PASS = os.getenv("GARGI_BASIC_PASS", "sharma")
 
-API_KEY = os.getenv("GARGI_API_KEY", "dev-local-key")
+API_KEY = (os.getenv("GARGI_API_KEY") or "").strip()
 
 
 # -----------------------------
@@ -57,27 +57,21 @@ def require_api_key(x_api_key: str = Header(default="", alias="X-API-Key")) -> N
 # ANDROID-READY: accept EITHER API key OR Basic Auth
 # -----------------------------
 def require_auth(request: Request) -> None:
-    """
-    Accept X-API-Key header for all protected endpoints.
-    Uses the module-level API_KEY value, which should be loaded from env/.env at startup.
-    """
     expected = (API_KEY or "").strip()
-
-    # If you ever want to allow local no-auth, change this behavior.
-    if not expected or expected == "dev-local-key":
+    if not expected:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Server auth is not configured (GARGI_API_KEY missing).",
+            detail="Server auth not configured: GARGI_API_KEY missing",
         )
 
     api_key = (request.headers.get("X-API-Key") or "").strip()
     if not api_key or not secrets.compare_digest(api_key, expected):
-        # Return 401 (as you already do) so Android sees "Unauthorized"
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Unauthorized",
             headers={"WWW-Authenticate": "Basic"},
         )
+
 
 # -----------------------------
 # Middleware helper: protect /docs & /openapi.json too
