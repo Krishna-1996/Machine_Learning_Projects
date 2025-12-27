@@ -133,9 +133,10 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         headers=getattr(exc, "headers", None) or {},
     )
 
-
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(request: Request, exc: Exception):
+    import traceback
+    traceback.print_exc()
     rid = getattr(request.state, "request_id", "unknown")
     return JSONResponse(
         status_code=500,
@@ -144,10 +145,12 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
             "request_id": rid,
             "error": {
                 "code": "INTERNAL_SERVER_ERROR",
-                "message": "An unexpected error occurred.",
+                "message": f"{exc.__class__.__name__}: {str(exc)}",
             },
         },
     )
+
+
 
 
 # ----------------------------
