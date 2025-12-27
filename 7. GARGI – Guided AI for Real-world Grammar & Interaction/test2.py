@@ -19,12 +19,12 @@ def clean_content(content):
     # Remove non-printable characters or any control characters
     return ''.join([char if char.isprintable() else ' ' for char in content])
 
-# Function to get file contents (limit to first 1000 characters)
+# Function to get file contents 
 def get_file_contents(file_path):
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             content = clean_content(file.read())
-            return content[:1000]  # Limit content to first 1000 characters
+            return content  # Limit content to first 1000 characters
     except Exception as e:
         return f"Could not read file {file_path}. Error: {e}"
 
