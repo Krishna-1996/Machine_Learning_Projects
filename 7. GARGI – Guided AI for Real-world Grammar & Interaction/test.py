@@ -3,7 +3,7 @@ from docx import Document
 from openpyxl import Workbook
 
 # Set the directory of your project
-project_dir = r"D:\Machine_Learning_Projects\7. GARGI – Guided AI for Real-world Grammar & Interaction"
+project_dir = r"AI for Real-world Grammar & Interaction"
 
 # Output Word document file for project details
 output_file_docx = "project_details_Android_App.docx"
