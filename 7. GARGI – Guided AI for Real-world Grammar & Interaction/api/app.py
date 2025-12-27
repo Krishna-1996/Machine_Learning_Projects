@@ -1,11 +1,9 @@
-# api/app.py
 from pathlib import Path
 from dotenv import load_dotenv
 
 # Load .env from project root (one level above /api)
 ENV_PATH = Path(__file__).resolve().parents[1] / ".env"
-load_dotenv(ENV_PATH, override=True)
-
+load_dotenv(ENV_PATH)
 
 import time
 import uuid
@@ -26,16 +24,17 @@ from scoring_feedback.stage4_scoring import run_stage4
 from topic_relevance.stage5_relevance import run_stage5
 from coaching.stage6_coaching import run_stage6
 
+
 app = FastAPI(
     title="GARGI API",
     version="0.1",
-    description="Guided AI for Real-world General Interaction — FastAPI Layer",
+    description="Guided AI for Real-world General Interaction — FastAPI Layer"
 )
 
 # CORS (MVP-friendly)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # later: restrict to your app domain
+    allow_origins=["*"],   # later: restrict to your app domain
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -45,14 +44,12 @@ app.add_middleware(
 # Simple in-memory rate limiter (MVP)
 # ----------------------------
 _RATE_WINDOW_SEC = 60
-_RATE_MAX_REQ = 30  # per minute per client (tune as needed)
+_RATE_MAX_REQ = 30  # per minute per client
 _rate_buckets: Dict[str, Deque[float]] = defaultdict(deque)
-
 
 def _client_key(request: Request) -> str:
     host = request.client.host if request.client else "unknown"
     return host
-
 
 def _enforce_rate_limit(request: Request) -> None:
     key = _client_key(request)
@@ -66,7 +63,6 @@ def _enforce_rate_limit(request: Request) -> None:
     if len(bucket) >= _RATE_MAX_REQ:
         raise HTTPException(status_code=429, detail="Too many requests. Please slow down.")
     bucket.append(now)
-
 
 # ----------------------------
 # Middleware: docs protection + request-id + timing + rate limit
@@ -83,7 +79,7 @@ async def gargi_request_middleware(request: Request, call_next):
     except HTTPException as e:
         return JSONResponse(status_code=e.status_code, content={"detail": e.detail})
 
-    # Protect docs + openapi (Basic only)
+    # Protect docs + openapi (BASIC ONLY)
     if (
         request.url.path.startswith("/docs")
         or request.url.path.startswith("/redoc")
@@ -135,9 +131,10 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(request: Request, exc: Exception):
+    rid = getattr(request.state, "request_id", "unknown")
+    # Print traceback to console for debugging
     import traceback
     traceback.print_exc()
-    rid = getattr(request.state, "request_id", "unknown")
     return JSONResponse(
         status_code=500,
         content={
@@ -145,12 +142,10 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
             "request_id": rid,
             "error": {
                 "code": "INTERNAL_SERVER_ERROR",
-                "message": f"{exc.__class__.__name__}: {str(exc)}",
+                "message": "An unexpected error occurred.",
             },
         },
     )
-
-
 
 
 # ----------------------------
@@ -206,9 +201,8 @@ def root():
         "status": "ok",
         "health": "/health",
         "docs": "/docs",
-        "openapi": "/openapi.json",
+        "openapi": "/openapi.json"
     }
-
 
 @app.get("/health")
 def health():
@@ -271,13 +265,13 @@ def evaluate_text(payload: EvaluateTextRequest, request: Request):
 
     user_id = _resolve_user_id(payload, request)
 
+    # NOTE: do not pass user_id unless run_stage6 supports it
     stage6 = run_stage6(
         topic_text=topic_text,
         transcript=transcript,
         stage4_results=stage4,
         stage5_results=stage5,
         save_history=bool(payload.save_history),
-        user_id=user_id,
     )
 
     return EvaluateTextResponse(
