@@ -11,7 +11,7 @@ output_file_docx = "project_details_API.docx"
 output_file_excel = "project_files_API.xlsx"
 
 # Folder and file types to ignore
-ignore_folders = ("build", ".git", ".idea", "__pycache__", ".vscode", "venv", "env", "node_modules", ".gradle", ".settings", ".externalNativeBuild", ".cxx", "out")
+ignore_folders = ("build", ".git", ".idea", "__pycache__", ".vscode", "venv", "node_modules", ".gradle", ".settings", ".externalNativeBuild", ".cxx", "out")
 ignore_files = ("LICENSE", "README.md", "git", ".gitignore", ".dockerignore", "Dockerfile")
 
 # Function to clean up file contents (remove non-XML characters)

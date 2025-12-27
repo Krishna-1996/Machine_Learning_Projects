@@ -3,78 +3,74 @@ from docx import Document
 from openpyxl import Workbook
 
 # Set the directory of your project
-project_dir = r"D:\Android\Andriod_Data\AndroidStudioProjects\GargiAndroid"
+project_dir = r"D:\Machine_Learning_Projects\7. GARGI – Guided AI for Real-world Grammar & Interaction"
 
-# Output Word document file
-output_file_docx = "project_details.docx"
-# Output Excel file for folder paths
-output_file_excel = "folder_paths.xlsx"
+# Output Word document file for project details
+output_file_docx = "project_details_Android_App.docx"
+# Output Excel file for file paths
+output_file_excel = "project_files_Android_App.xlsx"
 
-# Folder to ignore
-ignore_folder = "build"
+# Folder and file types to ignore
+ignore_folders = ("build", ".git", ".idea", "__pycache__", ".vscode", "venv", "node_modules", ".gradle", ".settings", ".externalNativeBuild", ".cxx", "out")
+ignore_files = ("LICENSE", "README.md", "git", ".gitignore", ".dockerignore", "Dockerfile")
 
 # Function to clean up file contents (remove non-XML characters)
 def clean_content(content):
     # Remove non-printable characters or any control characters
     return ''.join([char if char.isprintable() else ' ' for char in content])
 
-# Function to get file contents
+# Function to get file contents 
 def get_file_contents(file_path):
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
-            return clean_content(file.read())
+            content = clean_content(file.read())
+            return content  # Limit content to first 1000 characters
     except Exception as e:
         return f"Could not read file {file_path}. Error: {e}"
 
-# Function to collect folder paths and save them to Excel
-def save_folder_paths_to_excel(directory, excel_filename):
+# Function to collect file paths and content, then save them to Word and Excel
+def collect_project_files_and_save(directory, word_filename, excel_filename):
+    # Create Word document for file details
+    doc = Document()
+    doc.add_heading('Project Details', 0)
+
+    # Create Excel workbook for file paths
     wb = Workbook()
     ws = wb.active
-    ws.title = "Folder Paths"
+    ws.title = "File Paths"
 
-    # Add the header
-    ws.append(["Folder Path"])
+    # Add header to Excel file
+    ws.append(["File Path"])
 
-    # Walk through the directory and add folder paths to the Excel file
+    # Walk through the directory to collect relevant file paths and content
     for root, dirs, files in os.walk(directory):
-        # Skip any directory named "build" or any directory starting with a dot
-        dirs[:] = [d for d in dirs if ignore_folder not in d and not d.startswith('.')]
-
-        # Add folder path to Excel
-        ws.append([root])
-
-    # Save the workbook
-    wb.save(excel_filename)
-    print(f"Folder paths saved to {excel_filename}")
-
-# Create a new Word document for project details
-doc = Document()
-doc.add_heading('Project Details', 0)
-
-# Collect details from the project folder and add them to the Word document
-def collect_project_details(directory, doc):
-    for root, dirs, files in os.walk(directory):
-        # Skip any directory named "build" or any directory starting with a dot
-        dirs[:] = [d for d in dirs if ignore_folder not in d and not d.startswith('.')]
+        # Skip ignored folders
+        dirs[:] = [d for d in dirs if not any(ignored in d for ignored in ignore_folders)]
 
         for file_name in files:
             file_path = os.path.join(root, file_name)
 
-            # Add File Path
-            doc.add_paragraph(f"File Path: {file_path}")
-            
-            # Add File Content (limit to first 1000 characters)
-            content = get_file_contents(file_path)
-            doc.add_paragraph(f"File Content: {content}")  # Limiting to first 1000 characters to avoid too much content
-            doc.add_paragraph("=" * 40)  # Separator line for readability
+            # Skip ignored files (like LICENSE, README.md, etc.)
+            if any(file_name.endswith(ext) for ext in ignore_files):
+                continue
 
-# Run the function to collect details and add them to the Word document
-collect_project_details(project_dir, doc)
+            # Only include .py and .jsonl files
+            if file_name.endswith(".py") or file_name.endswith(".jsonl"):
+                # Add file path to Excel
+                ws.append([file_path])
 
-# Save the Word document
-doc.save(output_file_docx)
+                # Add file path and content to Word document
+                doc.add_paragraph(f"File Path: {file_path}")
+                content = get_file_contents(file_path)
+                doc.add_paragraph(f"Content: {content}")
+                doc.add_paragraph("=" * 40)  # Separator line for readability
 
-# Save folder paths to Excel
-save_folder_paths_to_excel(project_dir, output_file_excel)
+    # Save Word document and Excel file
+    doc.save(word_filename)
+    wb.save(excel_filename)
 
-print(f"Project details saved to {output_file_docx}")
+    print(f"Project details saved to {word_filename}")
+    print(f"File paths saved to {excel_filename}")
+
+# Run the function to collect files and save them
+collect_project_files_and_save(project_dir, output_file_docx, output_file_excel)
