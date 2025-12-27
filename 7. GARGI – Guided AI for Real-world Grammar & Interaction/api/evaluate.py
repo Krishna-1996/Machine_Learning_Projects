@@ -1,13 +1,23 @@
 # D:\Machine_Learning_Projects\7. GARGI – Guided AI for Real-world Grammar & Interaction\api\evaluate.py
-
 from __future__ import annotations
 
 import traceback
-import uuid
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
+
+# Ensure project root is on sys.path (so imports work when running uvicorn)
+# (Your api/deps.py already does this; importing it is enough.)
+import api.deps  # noqa: F401
+
+
+# --- Project imports (Stage pipeline) ---
+from topic_generation.generate_topic import get_random_topic  # optional fallback
+from speech_analysis.stage3_analysis import analyze_fillers, analyze_grammar
+from scoring_feedback.stage4_scoring import run_stage4
+from topic_relevance.stage5_relevance import run_stage5
+from coaching.stage6_coaching import run_stage6
 
 
 router = APIRouter(tags=["evaluate"])
@@ -18,161 +28,258 @@ router = APIRouter(tags=["evaluate"])
 # -----------------------------
 class EvaluateTextRequest(BaseModel):
     """
-    Request payload for evaluating a text transcript.
-
-    Notes:
-    - user_id and save_history are accepted for future use, but MUST NOT be passed into
-      run_stage6() unless run_stage6 supports those arguments.
+    Android sends transcript + topic text, plus duration_sec so we can compute WPM.
+    topic_obj is optional (future use). If missing, we construct a minimal topic_obj.
     """
 
     transcript: str = Field(..., min_length=1)
     topic_text: Optional[str] = None
     topic_obj: Optional[Dict[str, Any]] = None
-    duration_sec: Optional[float] = None
 
-    # accepted but not necessarily used by Stage 6
+    duration_sec: int = Field(default=60, ge=5, le=600)
+    save_history: bool = Field(default=False)
+
+    # optional (future use; not required now)
     user_id: Optional[str] = None
-    save_history: Optional[bool] = None
 
 
 class EvaluateTextResponse(BaseModel):
     """
-    Minimal response that matches your Android DTO:
-        data class EvaluateTextResponseDto(val result: String)
+    result: friendly summary string for Android MVP UI
+    raw: full structured dict for future UI (charts/cards)
     """
     result: str
+    raw: Dict[str, Any]
 
 
 # -----------------------------
-# Internal helpers
+# Helpers
 # -----------------------------
-def _get_request_id(incoming: Optional[str]) -> str:
-    return incoming.strip() if incoming and incoming.strip() else str(uuid.uuid4())
+def _compute_wpm(transcript: str, duration_sec: int) -> float:
+    words = [w for w in (transcript or "").strip().split() if w.strip()]
+    minutes = max(duration_sec, 1) / 60.0
+    return round(len(words) / minutes, 2)
 
 
-def _import_run_stage6():
+def _safe_count_grammar_errors(grammar_out: Any) -> int:
     """
-    Lazy import to avoid circular imports / env loading timing problems.
-
-    IMPORTANT:
-    Adjust the import paths below to match your project structure if needed.
-    We try a few common paths to reduce friction.
+    analyze_grammar() implementation can vary (list of matches, dict, etc.).
+    We only need a stable count for scoring.
     """
-    candidates = [
-        # Example candidates — adjust if your actual stage6 module differs
-        ("core.stage6", "run_stage6"),
-        ("core.pipeline.stage6", "run_stage6"),
-        ("gargi_assistant.core.stage6", "run_stage6"),
-        ("api.pipeline.stage6", "run_stage6"),
-        ("stage6", "run_stage6"),
-    ]
-
-    last_err: Optional[Exception] = None
-    for module_name, fn_name in candidates:
-        try:
-            mod = __import__(module_name, fromlist=[fn_name])
-            fn = getattr(mod, fn_name)
-            return fn
-        except Exception as e:
-            last_err = e
-
-    raise ImportError(
-        "Could not import run_stage6(). "
-        "Update _import_run_stage6() candidates to the correct module path."
-    ) from last_err
+    if grammar_out is None:
+        return 0
+    if isinstance(grammar_out, list):
+        return len(grammar_out)
+    if isinstance(grammar_out, dict):
+        matches = grammar_out.get("matches")
+        if isinstance(matches, list):
+            return len(matches)
+    return 0
 
 
-def _coerce_result_to_string(stage6_out: Any) -> str:
-    """
-    We normalize whatever Stage 6 returns into a single string:
-    - If Stage6 returns dict, try common keys.
-    - If it returns string, use it directly.
-    - Otherwise, str().
-    """
-    if stage6_out is None:
-        return "No evaluation result produced."
-
-    if isinstance(stage6_out, str):
-        return stage6_out
-
-    if isinstance(stage6_out, dict):
-        # Try common keys you might already use in your pipeline
-        for key in ("result", "final_feedback", "feedback", "summary", "text"):
-            val = stage6_out.get(key)
-            if isinstance(val, str) and val.strip():
-                return val.strip()
-
-        # fallback: compact dict
-        return str(stage6_out)
-
-    return str(stage6_out)
-
-
-# -----------------------------
-# Route
-# -----------------------------
-@router.post(
-    "/evaluate/text",
-    response_model=EvaluateTextResponse,
-)
-def evaluate_text(
-    req: EvaluateTextRequest,
-    # This allows you to attach your own request id from client, else server generates one.
-    x_request_id: Optional[str] = Header(default=None, alias="X-Request-Id"),
-    # Auth dependency (API Key OR Basic). Imported here to avoid import timing issues.
-    _auth: str = Depends(lambda: __import__("api.security", fromlist=["require_auth"]).require_auth),
-):
-    request_id = _get_request_id(x_request_id)
-
-    # Basic validation
-    transcript = (req.transcript or "").strip()
-    if not transcript:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="transcript is required",
-            headers={"X-Request-Id": request_id},
-        )
-
-    # IMPORTANT: sanitize arguments sent to run_stage6:
-    # Do NOT forward user_id/save_history unless Stage6 supports them.
-    safe_kwargs = {
-        "transcript": transcript,
-        "topic_text": req.topic_text,
-        "topic_obj": req.topic_obj,
-        "duration_sec": req.duration_sec,
+def _build_min_topic_obj(topic_text: str) -> Dict[str, Any]:
+    tt = (topic_text or "").strip()
+    return {
+        "topic_id": None,
+        "category": None,
+        "topic_raw": tt,
+        "instruction": None,
+        "topic_content": tt,
+        "topic_type": None,
+        "constraints": [],
+        "expected_anchors": [],
+        "topic_keyphrases": [],
     }
 
-    # Remove None keys to keep stage6 cleaner
-    safe_kwargs = {k: v for k, v in safe_kwargs.items() if v is not None}
 
+def _extract_score(value: Any) -> Optional[float]:
+    """
+    Stage4 scoring output is not stable across implementations.
+    Support common shapes:
+      - int/float (e.g., 7)
+      - dict with keys: final/score/value
+    """
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, dict):
+        for k in ("final", "score", "value"):
+            v = value.get(k)
+            if isinstance(v, (int, float)):
+                return float(v)
+        # sometimes nested, but we do not overcomplicate here
+        return None
+    return None
+
+
+def _format_result(stage4: Dict[str, Any], stage5: Dict[str, Any], stage6: Dict[str, Any]) -> str:
+    conf = stage6.get("confidence", {}) or {}
+    priorities: List[Dict[str, Any]] = stage6.get("priorities", []) or []
+    coaching_feedback: List[str] = stage6.get("coaching_feedback", []) or []
+    reflection: List[str] = stage6.get("reflection_prompts", []) or []
+
+    overall = stage6.get("overall_quality_score", None)
+
+    rel_score = stage5.get("relevance_score", None)
+    rel_label = stage5.get("label", None)
+    on_topic = stage5.get("on_topic_sentence_ratio", None)
+
+    # Stage4 scores can be int/float OR dicts
+    scores = (stage4.get("scores") or {})
+    flu = _extract_score(scores.get("fluency"))
+    fill = _extract_score(scores.get("fillers"))
+    gram = _extract_score(scores.get("grammar"))
+
+    lines: List[str] = []
+
+    lines.append("GARGI Feedback (Text Evaluation)")
+    lines.append("--------------------------------")
+    if overall is not None:
+        lines.append(f"Overall Quality Score: {overall}")
+
+    # Show scores only if at least one exists
+    if flu is not None or gram is not None or fill is not None:
+        # Keep the formatting stable
+        flu_s = "N/A" if flu is None else str(round(flu, 2)).rstrip("0").rstrip(".")
+        gram_s = "N/A" if gram is None else str(round(gram, 2)).rstrip("0").rstrip(".")
+        fill_s = "N/A" if fill is None else str(round(fill, 2)).rstrip("0").rstrip(".")
+        lines.append(f"Scores (0–10): Fluency={flu_s} | Grammar={gram_s} | Fillers={fill_s}")
+
+    if rel_score is not None or rel_label is not None:
+        lines.append(f"Relevance: {rel_score} ({rel_label})")
+    if on_topic is not None:
+        lines.append(f"On-topic sentence ratio: {on_topic}")
+
+    # Confidence
+    c_score = conf.get("confidence_score", None)
+    c_label = conf.get("confidence_label", None)
+    c_expl = conf.get("confidence_explanation", None)
+    if c_score is not None or c_label is not None:
+        lines.append("")
+        lines.append(f"Confidence: {c_score} ({c_label})")
+        if c_expl:
+            lines.append(f"Why: {c_expl}")
+
+    # Priorities
+    if priorities:
+        lines.append("")
+        lines.append("Top priorities for your next attempt:")
+        for i, p in enumerate(priorities[:3], start=1):
+            area = p.get("area", "Unknown")
+            sev = p.get("severity", "N/A")
+            reason = p.get("reason", "")
+            action = p.get("action", "")
+            lines.append(f"{i}) {area} [{sev}]")
+            if reason:
+                lines.append(f"   Reason: {reason}")
+            if action:
+                lines.append(f"   Action: {action}")
+
+    # Coaching feedback
+    if coaching_feedback:
+        lines.append("")
+        lines.append("Coaching feedback:")
+        for s in coaching_feedback[:8]:
+            lines.append(f"- {s}")
+
+    # Reflection prompts
+    if reflection:
+        lines.append("")
+        lines.append("Quick reflection prompts:")
+        for q in reflection[:4]:
+            lines.append(f"- {q}")
+
+    return "\n".join(lines).strip()
+
+
+# -----------------------------
+# Routes
+# -----------------------------
+@router.post("/evaluate/text", response_model=EvaluateTextResponse)
+def evaluate_text(req: EvaluateTextRequest) -> EvaluateTextResponse:
+    """
+    Text-only evaluation endpoint for Android MVP.
+
+    Pipeline:
+      Stage 3 (text-only): fillers + grammar + WPM (from duration_sec)
+      Stage 4: scoring/explainability
+      Stage 5: topic relevance
+      Stage 6: coaching + confidence + optional history logging
+    """
     try:
-        run_stage6 = _import_run_stage6()
+        transcript = (req.transcript or "").strip()
+        if not transcript:
+            raise HTTPException(status_code=422, detail="transcript must not be empty")
 
-        # If your run_stage6 expects different arg names, adjust here.
-        stage6_out = run_stage6(**safe_kwargs)
+        # Topic resolution:
+        topic_obj = req.topic_obj
+        topic_text = (req.topic_text or "").strip()
 
-        result_text = _coerce_result_to_string(stage6_out)
+        if not topic_obj:
+            if topic_text:
+                topic_obj = _build_min_topic_obj(topic_text)
+            else:
+                topic_obj = get_random_topic(category=None)
+                topic_text = (topic_obj.get("topic_raw") or "").strip()
 
-        return EvaluateTextResponse(result=result_text)
+        if not topic_text:
+            topic_text = (topic_obj.get("topic_raw") or "").strip()
 
-    except TypeError as e:
-        # This catches "unexpected keyword argument" cleanly, with guidance.
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=(
-                f"TypeError in Stage6 call: {e}. "
-                f"Stage6 kwargs sent: {list(safe_kwargs.keys())}. "
-                "Fix run_stage6 signature OR adjust safe_kwargs mapping."
-            ),
-            headers={"X-Request-Id": request_id},
+        # --- Stage 3 (text-only approximation) ---
+        wpm = _compute_wpm(transcript, req.duration_sec)
+
+        filler_words = analyze_fillers(transcript)
+
+        # analyze_grammar may call LanguageTool; if LT is down, it might error.
+        # Continue instead of failing request.
+        try:
+            grammar_out = analyze_grammar(transcript)
+        except Exception:
+            grammar_out = []
+        grammar_errors_count = _safe_count_grammar_errors(grammar_out)
+
+        # pause_ratio requires audio; for MVP set to 0.0 (neutral)
+        stage3_results = {
+            "wpm": wpm,
+            "pause_ratio": 0.0,
+            "filler_words": filler_words,
+            "grammar_errors": grammar_errors_count,
+            "grammar_raw": grammar_out,
+            "transcript": transcript,
+            "duration_sec": req.duration_sec,
+        }
+
+        # --- Stage 4 ---
+        stage4_results = run_stage4(stage3_results)
+
+        # --- Stage 5 ---
+        stage5_results = run_stage5(topic_obj, transcript)
+
+        # --- Stage 6 ---
+        stage6_results = run_stage6(
+            topic_text,
+            transcript,
+            stage4_results,
+            stage5_results,
+            save_history=req.save_history,
         )
 
+        result_text = _format_result(stage4_results, stage5_results, stage6_results)
+
+        raw = {
+            "topic_text": topic_text,
+            "topic_obj": topic_obj,
+            "stage3": stage3_results,
+            "stage4": stage4_results,
+            "stage5": stage5_results,
+            "stage6": stage6_results,
+        }
+
+        return EvaluateTextResponse(result=result_text, raw=raw)
+
+    except HTTPException:
+        raise
     except Exception:
-        # Don't leak stack traces to clients by default.
-        # If you want debug mode later, we can add a DEBUG flag.
         traceback.print_exc()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred.",
-            headers={"X-Request-Id": request_id},
-        )
+        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
