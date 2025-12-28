@@ -6,13 +6,13 @@ from openpyxl import Workbook
 project_dir = r"D:\Android\Andriod_Data\AndroidStudioProjects\GargiAndroid"
 
 # Output Word document file for project details
-output_file_docx = "project_details_Android_App.docx"
+output_file_docx = "project_details_Android.docx"
 # Output Excel file for file paths
-output_file_excel = "project_files_Android_App.xlsx"
+output_file_excel = "project_files_Android.xlsx"
 
 # Folder and file types to ignore
 ignore_folders = ("build", ".git", ".idea", "__pycache__", ".vscode", "venv", "node_modules", ".gradle", ".settings", ".externalNativeBuild", ".cxx", "out")
-ignore_files = ("LICENSE", "README.md", "git", ".gitignore")
+ignore_files = ("LICENSE", "README.md", "git", ".gitignore", ".dockerignore", "Dockerfile")
 
 # Function to clean up file contents (remove non-XML characters)
 def clean_content(content):
