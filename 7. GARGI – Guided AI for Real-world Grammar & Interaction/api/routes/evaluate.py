@@ -1,4 +1,3 @@
-# D:\Machine_Learning_Projects\7. GARGI – Guided AI for Real-world Grammar & Interaction\api\evaluate.py
 from __future__ import annotations
 
 import traceback
@@ -7,18 +6,13 @@ from typing import Any, Dict, Optional, List
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-# Ensure project root is on sys.path (so imports work when running uvicorn)
-# (Your api/deps.py already does this; importing it is enough.)
 import api.deps  # noqa: F401
 
-
-# --- Project imports (Stage pipeline) ---
-from topic_generation.generate_topic import get_random_topic  # optional fallback
+from topic_generation.generate_topic import get_random_topic
 from speech_analysis.stage3_analysis import analyze_fillers, analyze_grammar
 from scoring_feedback.stage4_scoring import run_stage4
 from topic_relevance.stage5_relevance import run_stage5
 from coaching.stage6_coaching import run_stage6
-
 
 router = APIRouter(tags=["evaluate"])
 
@@ -27,11 +21,6 @@ router = APIRouter(tags=["evaluate"])
 # Request/Response models
 # -----------------------------
 class EvaluateTextRequest(BaseModel):
-    """
-    Android sends transcript + topic text, plus duration_sec so we can compute WPM.
-    topic_obj is optional (future use). If missing, we construct a minimal topic_obj.
-    """
-
     transcript: str = Field(..., min_length=1)
     topic_text: Optional[str] = None
     topic_obj: Optional[Dict[str, Any]] = None
@@ -39,15 +28,10 @@ class EvaluateTextRequest(BaseModel):
     duration_sec: int = Field(default=60, ge=5, le=600)
     save_history: bool = Field(default=False)
 
-    # optional (future use; not required now)
     user_id: Optional[str] = None
 
 
 class EvaluateTextResponse(BaseModel):
-    """
-    result: friendly summary string for Android MVP UI
-    raw: full structured dict for future UI (charts/cards)
-    """
     result: str
     raw: Dict[str, Any]
 
@@ -62,10 +46,6 @@ def _compute_wpm(transcript: str, duration_sec: int) -> float:
 
 
 def _safe_count_grammar_errors(grammar_out: Any) -> int:
-    """
-    analyze_grammar() implementation can vary (list of matches, dict, etc.).
-    We only need a stable count for scoring.
-    """
     if grammar_out is None:
         return 0
     if isinstance(grammar_out, list):
@@ -93,12 +73,6 @@ def _build_min_topic_obj(topic_text: str) -> Dict[str, Any]:
 
 
 def _extract_score(value: Any) -> Optional[float]:
-    """
-    Stage4 scoring output is not stable across implementations.
-    Support common shapes:
-      - int/float (e.g., 7)
-      - dict with keys: final/score/value
-    """
     if value is None:
         return None
     if isinstance(value, (int, float)):
@@ -108,9 +82,23 @@ def _extract_score(value: Any) -> Optional[float]:
             v = value.get(k)
             if isinstance(v, (int, float)):
                 return float(v)
-        # sometimes nested, but we do not overcomplicate here
-        return None
     return None
+
+
+def _normalize_text(s: str) -> str:
+    """
+    Avoid odd dash/encoding artifacts on some clients.
+    Replace common 'smart' characters with ASCII equivalents.
+    """
+    if not s:
+        return s
+    return (
+        s.replace("–", "-")
+         .replace("—", "-")
+         .replace("’", "'")
+         .replace("“", '"')
+         .replace("”", '"')
+    )
 
 
 def _format_result(stage4: Dict[str, Any], stage5: Dict[str, Any], stage6: Dict[str, Any]) -> str:
@@ -125,7 +113,6 @@ def _format_result(stage4: Dict[str, Any], stage5: Dict[str, Any], stage6: Dict[
     rel_label = stage5.get("label", None)
     on_topic = stage5.get("on_topic_sentence_ratio", None)
 
-    # Stage4 scores can be int/float OR dicts
     scores = (stage4.get("scores") or {})
     flu = _extract_score(scores.get("fluency"))
     fill = _extract_score(scores.get("fillers"))
@@ -138,20 +125,17 @@ def _format_result(stage4: Dict[str, Any], stage5: Dict[str, Any], stage6: Dict[
     if overall is not None:
         lines.append(f"Overall Quality Score: {overall}")
 
-    # Show scores only if at least one exists
     if flu is not None or gram is not None or fill is not None:
-        # Keep the formatting stable
         flu_s = "N/A" if flu is None else str(round(flu, 2)).rstrip("0").rstrip(".")
         gram_s = "N/A" if gram is None else str(round(gram, 2)).rstrip("0").rstrip(".")
         fill_s = "N/A" if fill is None else str(round(fill, 2)).rstrip("0").rstrip(".")
-        lines.append(f"Scores (0–10): Fluency={flu_s} | Grammar={gram_s} | Fillers={fill_s}")
+        lines.append(f"Scores (0-10): Fluency={flu_s} | Grammar={gram_s} | Fillers={fill_s}")
 
     if rel_score is not None or rel_label is not None:
         lines.append(f"Relevance: {rel_score} ({rel_label})")
     if on_topic is not None:
         lines.append(f"On-topic sentence ratio: {on_topic}")
 
-    # Confidence
     c_score = conf.get("confidence_score", None)
     c_label = conf.get("confidence_label", None)
     c_expl = conf.get("confidence_explanation", None)
@@ -161,7 +145,6 @@ def _format_result(stage4: Dict[str, Any], stage5: Dict[str, Any], stage6: Dict[
         if c_expl:
             lines.append(f"Why: {c_expl}")
 
-    # Priorities
     if priorities:
         lines.append("")
         lines.append("Top priorities for your next attempt:")
@@ -176,21 +159,43 @@ def _format_result(stage4: Dict[str, Any], stage5: Dict[str, Any], stage6: Dict[
             if action:
                 lines.append(f"   Action: {action}")
 
-    # Coaching feedback
     if coaching_feedback:
         lines.append("")
         lines.append("Coaching feedback:")
         for s in coaching_feedback[:8]:
             lines.append(f"- {s}")
 
-    # Reflection prompts
     if reflection:
         lines.append("")
         lines.append("Quick reflection prompts:")
         for q in reflection[:4]:
             lines.append(f"- {q}")
 
-    return "\n".join(lines).strip()
+    return _normalize_text("\n".join(lines).strip())
+
+
+def _force_wpm_and_pause(stage3: Dict[str, Any], stage4: Dict[str, Any], stage6: Dict[str, Any]) -> None:
+    """
+    Ensure a single source of truth:
+      - stage3 holds telemetry
+      - stage4 evidence should reflect stage3
+      - stage6 session_summary should reflect stage3
+    This avoids accidental 0.0 values injected by downstream modules.
+    """
+    wpm = float(stage3.get("wpm") or 0.0)
+    pause_ratio = float(stage3.get("pause_ratio") or 0.0)
+
+    # Stage4 evidence
+    evidence = stage4.get("evidence")
+    if isinstance(evidence, dict):
+        evidence["wpm"] = wpm
+        evidence["pause_ratio"] = pause_ratio
+
+    # Stage6 session summary (if present)
+    session_summary = stage6.get("session_summary")
+    if isinstance(session_summary, dict):
+        session_summary["wpm"] = wpm
+        session_summary["pause_ratio"] = pause_ratio
 
 
 # -----------------------------
@@ -198,21 +203,11 @@ def _format_result(stage4: Dict[str, Any], stage5: Dict[str, Any], stage6: Dict[
 # -----------------------------
 @router.post("/evaluate/text", response_model=EvaluateTextResponse)
 def evaluate_text(req: EvaluateTextRequest) -> EvaluateTextResponse:
-    """
-    Text-only evaluation endpoint for Android MVP.
-
-    Pipeline:
-      Stage 3 (text-only): fillers + grammar + WPM (from duration_sec)
-      Stage 4: scoring/explainability
-      Stage 5: topic relevance
-      Stage 6: coaching + confidence + optional history logging
-    """
     try:
         transcript = (req.transcript or "").strip()
         if not transcript:
             raise HTTPException(status_code=422, detail="transcript must not be empty")
 
-        # Topic resolution:
         topic_obj = req.topic_obj
         topic_text = (req.topic_text or "").strip()
 
@@ -226,20 +221,16 @@ def evaluate_text(req: EvaluateTextRequest) -> EvaluateTextResponse:
         if not topic_text:
             topic_text = (topic_obj.get("topic_raw") or "").strip()
 
-        # --- Stage 3 (text-only approximation) ---
+        # --- Stage 3 ---
         wpm = _compute_wpm(transcript, req.duration_sec)
-
         filler_words = analyze_fillers(transcript)
 
-        # analyze_grammar may call LanguageTool; if LT is down, it might error.
-        # Continue instead of failing request.
         try:
             grammar_out = analyze_grammar(transcript)
         except Exception:
             grammar_out = []
         grammar_errors_count = _safe_count_grammar_errors(grammar_out)
 
-        # pause_ratio requires audio; for MVP set to 0.0 (neutral)
         stage3_results = {
             "wpm": wpm,
             "pause_ratio": 0.0,
@@ -264,6 +255,9 @@ def evaluate_text(req: EvaluateTextRequest) -> EvaluateTextResponse:
             stage5_results,
             save_history=req.save_history,
         )
+
+        # Normalize cross-stage telemetry (fixes wpm=0.0 in later stages)
+        _force_wpm_and_pause(stage3_results, stage4_results, stage6_results)
 
         result_text = _format_result(stage4_results, stage5_results, stage6_results)
 

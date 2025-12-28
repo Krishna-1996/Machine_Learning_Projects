@@ -139,7 +139,7 @@ def topic_structure_hint(topic_type: str) -> str:
     if topic_type == "event":
         return "Use: (1) name the event + place, (2) what happened, (3) your perspective, (4) impact/conclusion."
     if topic_type == "advice":
-        return "Use: (1) direct answer, (2) 2–3 steps, (3) one example, (4) short closing."
+        return "Use: (1) direct answer, (2) 2 steps, (3) one example, (4) short closing."
     if topic_type == "opinion":
         return "Use: (1) your position, (2) 2 reasons, (3) a real example, (4) conclusion."
     if topic_type == "compare":
@@ -217,7 +217,7 @@ def generate_priority_actions(stage4: Dict[str, Any], stage5: Dict[str, Any]) ->
                 "area": "Grammar",
                 "severity": "Medium",
                 "reason": f"Grammar penalty applied ({penalty_name}). Common rules: {top_rules_sorted}.",
-                "action": "Rewrite 3–5 sentences from your transcript using the grammar suggestions, then speak them again."
+                "action": "Rewrite 5 sentences from your transcript using the grammar suggestions, then speak them again."
             })
 
     if not priorities:
