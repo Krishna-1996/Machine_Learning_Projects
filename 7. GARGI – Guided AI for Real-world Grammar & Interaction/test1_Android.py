@@ -19,12 +19,12 @@ def clean_content(content):
     # Remove non-printable characters or any control characters
     return ''.join([char if char.isprintable() else ' ' for char in content])
 
-# Function to get file contents 
+# Function to get file contents
 def get_file_contents(file_path):
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             content = clean_content(file.read())
-            return content  # Limit content to first 1000 characters
+            return content  # You can modify this to limit content to a specific length if needed
     except Exception as e:
         return f"Could not read file {file_path}. Error: {e}"
 
@@ -54,16 +54,14 @@ def collect_project_files_and_save(directory, word_filename, excel_filename):
             if any(file_name.endswith(ext) for ext in ignore_files):
                 continue
 
-            # Only include .py and .jsonl files
-            if file_name.endswith(".py") or file_name.endswith(".jsonl"):
-                # Add file path to Excel
-                ws.append([file_path])
+            # Add file path to Excel
+            ws.append([file_path])
 
-                # Add file path and content to Word document
-                doc.add_paragraph(f"File Path: {file_path}")
-                content = get_file_contents(file_path)
-                doc.add_paragraph(f"Content: {content}")
-                doc.add_paragraph("=" * 40)  # Separator line for readability
+            # Add file path and content to Word document
+            doc.add_paragraph(f"File Path: {file_path}")
+            content = get_file_contents(file_path)
+            doc.add_paragraph(f"Content: {content[:100]}...")  # You can adjust how much content you want to display
+            doc.add_paragraph("=" * 40)  # Separator line for readability
 
     # Save Word document and Excel file
     doc.save(word_filename)
