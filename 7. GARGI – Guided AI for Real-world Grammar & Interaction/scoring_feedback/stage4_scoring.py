@@ -72,14 +72,14 @@ def generate_feedback(stage3_data):
 
     fluency = stage3_data.get("fluency", {}) or {}
     grammar = stage3_data.get("grammar", {}) or {}
-
+    error_density = float(grammar.get("error_density", 0.0) or 0.0)
+    grammar_errors = grammar.get("errors", []) or []
     wpm = float(fluency.get("wpm", 0) or 0)
     pause_ratio = float(fluency.get("pause_ratio", 0) or 0)
     filler_words = fluency.get("filler_words", {}) or {}
 
     total_errors = int(grammar.get("total_errors", 0) or 0)
-    error_density = float(grammar.get("error_density", 0.0) or 0.0)
-    grammar_errors = grammar.get("errors", []) or []
+    
     warning = grammar.get("warning", None)
 
     # ---- Fluency feedback
