@@ -4,9 +4,17 @@ Project: GARGI
 Author: Krishna
 """
 
-def score_fluency(wpm, pause_ratio):
+from __future__ import annotations
+
+from typing import Any, Dict, List, Tuple, Optional
+
+
+# -----------------------------
+# Scoring functions
+# -----------------------------
+def score_fluency(wpm: float, pause_ratio: float) -> Tuple[int, List[Tuple[str, int]], int]:
     base = 10
-    penalties = []
+    penalties: List[Tuple[str, int]] = []
 
     if wpm < 90:
         penalties.append(("low_wpm", -2))
@@ -22,10 +30,10 @@ def score_fluency(wpm, pause_ratio):
     return base, penalties, final
 
 
-def score_fillers(filler_words):
+def score_fillers(filler_words: Any) -> Tuple[int, List[Tuple[str, int]], int]:
     base = 10
     total_fillers = sum(filler_words.values()) if isinstance(filler_words, dict) else 0
-    penalties = []
+    penalties: List[Tuple[str, int]] = []
 
     if total_fillers > 6:
         penalties.append(("excessive_fillers", -6))
@@ -38,9 +46,9 @@ def score_fillers(filler_words):
     return base, penalties, final
 
 
-def score_grammar(error_density):
+def score_grammar(error_density: float) -> Tuple[int, List[Tuple[str, int]], int]:
     base = 10
-    penalties = []
+    penalties: List[Tuple[str, int]] = []
 
     if error_density >= 8:
         penalties.append(("very_high_error_density", -7))
@@ -53,33 +61,113 @@ def score_grammar(error_density):
     return base, penalties, final
 
 
-def _summarize_grammar_rules(grammar_errors, top_k=3):
-    rule_counts = {}
-    for err in grammar_errors or []:
-        rid = (err or {}).get("rule", "UNKNOWN_RULE")
+# -----------------------------
+# Helpers to support BOTH schemas
+# -----------------------------
+def _as_float(x: Any, default: float = 0.0) -> float:
+    try:
+        if x is None:
+            return default
+        if isinstance(x, (int, float)):
+            return float(x)
+        return float(str(x))
+    except Exception:
+        return default
+
+
+def _get_fluency_block(stage3_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Supports:
+      A) nested schema: {"fluency": {"wpm":..., "pause_ratio":..., "filler_words":...}}
+      B) flat schema (your current): {"wpm":..., "pause_ratio":..., "filler_words":...}
+    """
+    flu = stage3_data.get("fluency")
+    if isinstance(flu, dict) and flu:
+        return flu
+
+    return {
+        "wpm": stage3_data.get("wpm", 0.0),
+        "pause_ratio": stage3_data.get("pause_ratio", 0.0),
+        "filler_words": stage3_data.get("filler_words", {}) or {},
+    }
+
+
+def _get_grammar_block(stage3_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Supports:
+      A) nested schema: {"grammar": {"total_errors":..., "error_density":..., "errors":[...], "warning":...}}
+      B) flat schema (your current): {"grammar_raw": {...}}, OR sometimes list, OR {"matches":[...]}
+    """
+    g = stage3_data.get("grammar")
+    if isinstance(g, dict) and g:
+        return g
+
+    # Preferred fallback: grammar_raw dict from LanguageTool-style output
+    raw = stage3_data.get("grammar_raw")
+
+    # If grammar_raw is a dict that already contains needed fields, return it
+    if isinstance(raw, dict):
+        # Some grammar analyzers store errors in "matches" instead of "errors"
+        if "errors" not in raw and isinstance(raw.get("matches"), list):
+            # Map to expected key for downstream processing
+            raw = dict(raw)
+            raw["errors"] = raw.get("matches", [])
+        return raw
+
+    # If grammar_raw is a list of error objects
+    if isinstance(raw, list):
+        return {
+            "total_errors": len(raw),
+            "error_density": stage3_data.get("error_density", 0.0) or 0.0,
+            "errors": raw,
+            "warning": None,
+        }
+
+    # If nothing else, return empty grammar block
+    return {
+        "total_errors": stage3_data.get("grammar_errors", 0) or 0,
+        "error_density": stage3_data.get("error_density", 0.0) or 0.0,
+        "errors": [],
+        "warning": None,
+    }
+
+
+def _summarize_grammar_rules(grammar_errors: Any, top_k: int = 3) -> List[Tuple[str, int]]:
+    rule_counts: Dict[str, int] = {}
+
+    if not isinstance(grammar_errors, list):
+        return []
+
+    for err in grammar_errors:
+        if not isinstance(err, dict):
+            continue
+        rid = err.get("rule") or err.get("ruleId") or "UNKNOWN_RULE"
         rule_counts[rid] = rule_counts.get(rid, 0) + 1
 
     ranked = sorted(rule_counts.items(), key=lambda x: x[1], reverse=True)
     return ranked[:top_k]
 
 
-def generate_feedback(stage3_data):
+# -----------------------------
+# Feedback generation
+# -----------------------------
+def generate_feedback(stage3_data: Dict[str, Any]) -> List[str]:
     """
     Human-readable feedback, consistent with scoring policy.
-    Robust to missing grammar keys during LanguageTool fallback.
+    Robust to missing keys and multiple grammar output shapes.
     """
-    feedback = []
+    feedback: List[str] = []
 
-    fluency = stage3_data.get("fluency", {}) or {}
-    grammar = stage3_data.get("grammar", {}) or {}
-    error_density = float(grammar.get("error_density", 0.0) or 0.0)
-    grammar_errors = grammar.get("errors", []) or []
-    wpm = float(fluency.get("wpm", 0) or 0)
-    pause_ratio = float(fluency.get("pause_ratio", 0) or 0)
+    fluency = _get_fluency_block(stage3_data)
+    grammar = _get_grammar_block(stage3_data)
+
+    wpm = _as_float(fluency.get("wpm", 0.0), 0.0)
+    pause_ratio = _as_float(fluency.get("pause_ratio", 0.0), 0.0)
     filler_words = fluency.get("filler_words", {}) or {}
 
-    total_errors = int(grammar.get("total_errors", 0) or 0)
-    
+    total_errors = int(_as_float(grammar.get("total_errors", 0), 0.0))
+    error_density = _as_float(grammar.get("error_density", 0.0), 0.0)
+    grammar_errors = grammar.get("errors", []) or []
     warning = grammar.get("warning", None)
 
     # ---- Fluency feedback
@@ -97,10 +185,13 @@ def generate_feedback(stage3_data):
     if isinstance(filler_words, dict) and filler_words:
         top_fillers = sorted(filler_words.items(), key=lambda x: x[1], reverse=True)[:3]
         for word, count in top_fillers:
-            if int(count) >= 2:
-                feedback.append(
-                    f"You used the filler word '{word}' {count} times. Consider replacing it with a silent pause."
-                )
+            try:
+                if int(count) >= 2:
+                    feedback.append(
+                        f"You used the filler word '{word}' {count} times. Consider replacing it with a silent pause."
+                    )
+            except Exception:
+                continue
 
     # ---- Grammar feedback
     if warning:
@@ -111,7 +202,7 @@ def generate_feedback(stage3_data):
     else:
         feedback.append(
             f"{total_errors} grammar issue(s) detected; overall accuracy remains high "
-            f"({error_density} errors per 100 words)."
+            f"({round(error_density, 2)} errors per 100 words)."
         )
         top_rules = _summarize_grammar_rules(grammar_errors, top_k=3)
         if top_rules:
@@ -121,15 +212,18 @@ def generate_feedback(stage3_data):
     return feedback
 
 
-def run_stage4(stage3_data):
-    fluency = stage3_data.get("fluency", {}) or {}
-    grammar = stage3_data.get("grammar", {}) or {}
+# -----------------------------
+# Main Stage 4 runner
+# -----------------------------
+def run_stage4(stage3_data: Dict[str, Any]) -> Dict[str, Any]:
+    fluency = _get_fluency_block(stage3_data)
+    grammar = _get_grammar_block(stage3_data)
 
-    wpm = float(fluency.get("wpm", 0) or 0)
-    pause_ratio = float(fluency.get("pause_ratio", 0) or 0)
+    wpm = _as_float(fluency.get("wpm", 0.0), 0.0)
+    pause_ratio = _as_float(fluency.get("pause_ratio", 0.0), 0.0)
     filler_words = fluency.get("filler_words", {}) or {}
 
-    error_density = float(grammar.get("error_density", 0.0) or 0.0)
+    error_density = _as_float(grammar.get("error_density", 0.0), 0.0)
     grammar_errors = grammar.get("errors", []) or []
 
     f_base, f_penalties, f_final = score_fluency(wpm, pause_ratio)
@@ -142,6 +236,12 @@ def run_stage4(stage3_data):
         0.3 * fl_final,
         1
     )
+
+    # Important: Ensure feedback reads the same schema (nested) consistently
+    feedback = generate_feedback({
+        "fluency": fluency,
+        "grammar": grammar,
+    })
 
     return {
         "scores": {
@@ -163,5 +263,5 @@ def run_stage4(stage3_data):
             "error_density": error_density,
             "grammar_warning": grammar.get("warning", None),
         },
-        "feedback": generate_feedback(stage3_data)
+        "feedback": feedback
     }
