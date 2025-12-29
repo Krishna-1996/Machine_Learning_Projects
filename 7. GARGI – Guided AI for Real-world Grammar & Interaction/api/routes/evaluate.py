@@ -88,17 +88,37 @@ def _extract_score(value: Any) -> Optional[float]:
 def _normalize_text(s: str) -> str:
     """
     Avoid odd dash/encoding artifacts on some clients.
-    Replace common 'smart' characters with ASCII equivalents.
+    Replace common 'smart' characters and typical UTF-8 mojibake sequences.
     """
     if not s:
         return s
-    return (
+
+    # Normalize common smart punctuation
+    s = (
         s.replace("–", "-")
          .replace("—", "-")
          .replace("’", "'")
          .replace("“", '"')
          .replace("”", '"')
     )
+
+    # Fix common mojibake patterns (UTF-8 decoded as Windows-1252)
+    s = (
+        s.replace("â€“", "-")
+         .replace("â€”", "-")
+         .replace("â€™", "'")
+         .replace("â€œ", '"')
+         .replace("â€�", '"')
+         .replace("â†’", "->")   # arrow
+    )
+
+    # Fix multiplication sign mojibake
+    s = s.replace("Ã—", "x")
+
+    # Extra: normalize any remaining strange sequences that appear in your logs
+    s = s.replace("Ã", "").replace("â", "")
+
+    return s
 
 
 def _format_result(stage4: Dict[str, Any], stage5: Dict[str, Any], stage6: Dict[str, Any]) -> str:
@@ -107,23 +127,25 @@ def _format_result(stage4: Dict[str, Any], stage5: Dict[str, Any], stage6: Dict[
     coaching_feedback: List[str] = stage6.get("coaching_feedback", []) or []
     reflection: List[str] = stage6.get("reflection_prompts", []) or []
 
-    overall = stage6.get("overall_quality_score", None)
+    # NOTE: overall score lives under stage4.scores.overall in your pipeline
+    scores = (stage4.get("scores") or {})
+    overall = _extract_score(scores.get("overall"))
 
     rel_score = stage5.get("relevance_score", None)
     rel_label = stage5.get("label", None)
     on_topic = stage5.get("on_topic_sentence_ratio", None)
 
-    scores = (stage4.get("scores") or {})
     flu = _extract_score(scores.get("fluency"))
     fill = _extract_score(scores.get("fillers"))
     gram = _extract_score(scores.get("grammar"))
 
     lines: List[str] = []
-
     lines.append("GARGI Feedback (Text Evaluation)")
     lines.append("--------------------------------")
+
     if overall is not None:
-        lines.append(f"Overall Quality Score: {overall}")
+        overall_s = str(round(overall, 2)).rstrip("0").rstrip(".")
+        lines.append(f"Overall Quality Score: {overall_s}")
 
     if flu is not None or gram is not None or fill is not None:
         flu_s = "N/A" if flu is None else str(round(flu, 2)).rstrip("0").rstrip(".")
@@ -178,20 +200,17 @@ def _force_wpm_and_pause(stage3: Dict[str, Any], stage4: Dict[str, Any], stage6:
     """
     Ensure a single source of truth:
       - stage3 holds telemetry
-      - stage4 evidence should reflect stage3
-      - stage6 session_summary should reflect stage3
-    This avoids accidental 0.0 values injected by downstream modules.
+      - stage4 evidence reflects stage3
+      - stage6 session_summary reflects stage3
     """
     wpm = float(stage3.get("wpm") or 0.0)
     pause_ratio = float(stage3.get("pause_ratio") or 0.0)
 
-    # Stage4 evidence
     evidence = stage4.get("evidence")
     if isinstance(evidence, dict):
         evidence["wpm"] = wpm
         evidence["pause_ratio"] = pause_ratio
 
-    # Stage6 session summary (if present)
     session_summary = stage6.get("session_summary")
     if isinstance(session_summary, dict):
         session_summary["wpm"] = wpm
@@ -233,7 +252,7 @@ def evaluate_text(req: EvaluateTextRequest) -> EvaluateTextResponse:
 
         stage3_results = {
             "wpm": wpm,
-            "pause_ratio": 0.0,
+            "pause_ratio": 0.0,  # still placeholder until you compute pause ratio
             "filler_words": filler_words,
             "grammar_errors": grammar_errors_count,
             "grammar_raw": grammar_out,
@@ -256,7 +275,7 @@ def evaluate_text(req: EvaluateTextRequest) -> EvaluateTextResponse:
             save_history=req.save_history,
         )
 
-        # Normalize cross-stage telemetry (fixes wpm=0.0 in later stages)
+        # Normalize telemetry across stages
         _force_wpm_and_pause(stage3_results, stage4_results, stage6_results)
 
         result_text = _format_result(stage4_results, stage5_results, stage6_results)

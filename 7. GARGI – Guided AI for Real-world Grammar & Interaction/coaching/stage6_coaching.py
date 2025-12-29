@@ -146,7 +146,8 @@ def topic_structure_hint(topic_type: str) -> str:
         return "Use: (1) define both items, (2) similarities, (3) differences, (4) conclusion."
     if topic_type == "explain":
         return "Use: (1) definition, (2) how it works, (3) example, (4) impact."
-    return "Use: 1-sentence answer → 2 points → 1 example → 1 closing sentence."
+    # ASCII-only arrows to avoid mojibake
+    return "Use: 1-sentence answer -> 2 points -> 1 example -> 1 closing sentence."
 
 
 def generate_priority_actions(stage4: Dict[str, Any], stage5: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -264,7 +265,7 @@ def generate_coaching_feedback(stage4: Dict[str, Any], stage5: Dict[str, Any]) -
         out.append(f"On-topic content ratio (sentence-level): {on_topic_ratio}. Aim for 0.60+ for general interaction tasks.")
 
     if isinstance(wpm, (int, float)):
-        out.append(f"Speaking rate: {wpm} WPM. A common clarity range is ~120–170 WPM.")
+        out.append(f"Speaking rate: {wpm} WPM. A common clarity range is ~120-170 WPM.")
 
     if isinstance(pause_ratio, (int, float)):
         out.append(f"Pausing: ratio={pause_ratio}. Short pauses between sentences are good; long silences reduce clarity.")
@@ -287,7 +288,7 @@ def generate_reflection_prompts(stage5: Dict[str, Any]) -> List[str]:
     on_topic_ratio = stage5.get("on_topic_sentence_ratio", None)
 
     prompts = [
-        "Did you answer the prompt directly in your first 1–2 sentences?",
+        "Did you answer the prompt directly in your first 1-2 sentences?",
         "What was your main point, stated in one sentence?",
         "Which sentence best supports your main point?",
         "What is one sentence you would remove to make your response more focused?",
