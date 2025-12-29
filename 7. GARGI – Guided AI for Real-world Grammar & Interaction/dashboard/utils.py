@@ -3,6 +3,7 @@ from pathlib import Path
 import json
 import pandas as pd
 
+
 # -------------------------------------------------
 # Ensure project root is on sys.path (Streamlit-safe)
 # -------------------------------------------------
@@ -10,22 +11,44 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from core.paths import sessions_file  # now this will work
-
+from core.paths import sessions_file  # noqa: E402
 
 SESSIONS_FILE = sessions_file()
+
+
+def _robust_json_objects(text: str):
+    """
+    Yield JSON objects from a text blob that may contain:
+    - proper JSONL (1 object per line)
+    - concatenated JSON objects without newlines
+    - extra whitespace between objects
+    """
+    dec = json.JSONDecoder()
+    i = 0
+    n = len(text)
+
+    while i < n:
+        # skip whitespace
+        while i < n and text[i].isspace():
+            i += 1
+        if i >= n:
+            break
+
+        try:
+            obj, j = dec.raw_decode(text, i)
+            yield obj
+            i = j
+        except json.JSONDecodeError:
+            # If we can't decode at this position, advance one char to avoid infinite loop.
+            i += 1
+
 
 def load_sessions() -> pd.DataFrame:
     if not SESSIONS_FILE.exists():
         return pd.DataFrame()
 
-    records = []
-    with open(SESSIONS_FILE, "r", encoding="utf-8") as f:
-        for line in f:
-            try:
-                records.append(json.loads(line))
-            except json.JSONDecodeError:
-                continue
+    raw_text = SESSIONS_FILE.read_text(encoding="utf-8", errors="ignore")
+    records = list(_robust_json_objects(raw_text))
 
     if not records:
         return pd.DataFrame()
@@ -37,7 +60,7 @@ def load_sessions() -> pd.DataFrame:
 
     df["timestamp"] = pd.to_datetime(df["timestamp_utc"], utc=True)
 
-    # Schema mapping
+    # Schema mapping (keeps your existing dashboard stable)
     df["topic_raw"] = df.get("topic")
 
     df["scores.overall"] = df.get("overall_quality_score")
@@ -52,7 +75,7 @@ def load_sessions() -> pd.DataFrame:
     df["confidence.confidence_score"] = df.get("confidence_score")
     df["confidence.label"] = df.get("confidence_label")
 
-    # Evidence metrics (Stage 6 upgrade)
+    # Evidence metrics
     df["evidence.wpm"] = df.get("wpm")
     df["evidence.pause_ratio"] = df.get("pause_ratio")
     df["evidence.error_density"] = df.get("error_density")
