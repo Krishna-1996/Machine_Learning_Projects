@@ -129,8 +129,6 @@ GARGI demonstrates:
 
 This project is suitable for **AI/ML Engineer**, **Applied Scientist**, and **Data Engineer** roles.
 
-
-
 ---
 
 ## Setup (Windows 11)
@@ -181,20 +179,6 @@ GET /topics
 POST /evaluate/text
 ```
 
-### 6) Run with Docker (Stage 8.2)
-```bash
-docker compose up --build
-```
-
-## Roadmap
-**Stage 9 (Optional):** Cloud deployment (GCP / Cloud Run), authentication, multi-user support
-Deferred by design — **GARGI** is fully functional without paid cloud services
-
-**Stage 10:** CI/CD with GitHub Actions (tests, linting, Docker build)
-
-**Stage 11:** Android app (local-first mode, optional cloud sync later)
-
-**Stage 12+:** Personalization, agentic coaching, long-term learner modeling, and infrastructure-as-code (Terraform)
 
 ## Notes on Trust & Correctness
 **GARGI** emphasizes transparent evidence, auditable scoring traces, and explainable metrics (WPM, pause ratio, grammar rules, semantic similarity and coverage).
