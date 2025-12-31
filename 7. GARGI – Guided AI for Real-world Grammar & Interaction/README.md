@@ -15,7 +15,14 @@ It focuses on **fluency**, **grammar**, **filler usage**, **topic alignment**, a
 9. Runs fully containerized using Docker  
 
 ---
+## 🤖Android App
+→ FastAPI Backend
+→ AI Evaluation Pipeline
+→ Scoring + Explainability
+→ Coaching & Logging
+→ Dashboard / Cloud
 
+---
 ## 🚀 Core Capabilities
 
 - 🎤 Speech & Text Evaluation  
@@ -44,29 +51,70 @@ It focuses on **fluency**, **grammar**, **filler usage**, **topic alignment**, a
 
 ```text
 GARGI System
-├── Input Layer
-│   ├── Speech Input (Mic)
-│   └── Text Input (API)
+├── AI / ML Pipeline (Stage 1 - 6 Completed)
+│   ├── Speech transcription (Whisper)
+│   ├── Fluency analysis (WPM, pauses)
+│   ├── Grammar analysis (LanguageTool)
+│   ├── Semantic relevance (embeddings)
+│   ├── Explainable scoring
+│   └── Coaching & confidence estimation
+│ 
+├── Backend (FastAPI) (Stage 7-8 Completed)
+│   ├── Tech Stack
+│   │   ├── Python
+│   │   ├── FastAPI
+│   │   └── Docker
+│   ├── Endpoints
+│   │   ├── `GET /topics`
+│   │   └── `POST /evaluate/text`
+│   ├── Security
+│   │   ├── API Key
+│   │   └── Optional Basic Auth
+│ 
+├── Android Application (Stage 9 Completed)
+│   ├── Tech Stack
+│   │   ├── Kotlin
+│   │   ├── Jetpack Compose
+│   │   ├── MVVM
+│   │   ├── Hilt
+│   │   └── Retrofit / OkHttp
+│   ├── Capabilities
+│   │   ├── On-device speech recording
+│   │   ├── Topic fetch via API
+│   │   ├── Text evaluation via API
+│   │   ├── Score visualization
+│   │   ├── Feedback rendering
+│   │   └── API key authentication
 │
-├── Processing Pipeline
-│   ├── Stage 1: Speech Capture
-│   ├── Stage 2: Transcription (Whisper)
-│   ├── Stage 3: Fluency & Grammar
-│   ├── Stage 4: Scoring & Explainability
-│   ├── Stage 5: Topic Relevance (Embeddings)
-│   └── Stage 6: Coaching & Confidence
+├── Google Cloud Platform Integration (Stage 10 – Upcoming)
+│   ├── Services Used
+│   │   ├── Vertex AI
+│   │   ├── Cloud Run
+│   │   ├── Cloud Storage
+│   │   ├── Secret Manager
+│   │   └── IAM
+│   ├── Goals
+│   │   ├── Scalable AI inference
+│   │   ├── Secure API access
+│   │   ├── Model lifecycle management
+│   │   └── Android-cloud connectivity
 │
-├── Learning & Visualization
-│   └── Stage 7: Streamlit Dashboard
+├── CI/CD (Stage 12 – Planned)
+│   ├── GitHub Actions
+│   ├── Automated tests
+│   ├── Docker builds
+│   └── Cloud Run deployment
 │
-├── Service Layer
-│   └── Stage 8: FastAPI + Docker
+├── Advanced Android (Stage 13 – Planned)
+│   ├── Multi-user authentication
+│   ├── Offline caching
+│   ├── Cloud sync
+│   ├── Advanced UI/UX
+│   └── Personalized learning views
 │
 └── Future Extensions
-    └── Stage 9: Cloud, Auth, Multi-user
-    └── Stage 10: CI/CD with GitHub Actions
-    └── Stage 11: Android app
-    └── Stage 12+: Personalization, agentic coaching, IaC(Infrastructure as Code) via Terraform
+    ├── Stage 14+: Personalization, AgenticAI coaching, IaC (Infrastructure as Code) via Terraform
+    └── Stage 15+: More AI integrations, UX enhancements
 
 ```
 ---
