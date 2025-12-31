@@ -16,12 +16,13 @@ It focuses on **fluency**, **grammar**, **filler usage**, **topic alignment**, a
 
 ---
 ## 🤖Android App
+```text
 → FastAPI Backend
 → AI Evaluation Pipeline
 → Scoring + Explainability
 → Coaching & Logging
 → Dashboard / Cloud
-
+```
 ---
 ## 🚀 Core Capabilities
 
