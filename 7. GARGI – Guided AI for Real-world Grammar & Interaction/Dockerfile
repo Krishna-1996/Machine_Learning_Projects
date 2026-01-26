@@ -15,6 +15,7 @@ COPY requirements-cloud.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # Copy source
+WORKDIR /a
 COPY . /app
 
 # Cloud Run listens on $PORT
