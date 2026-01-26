@@ -1,0 +1,57 @@
+# Byte-compiled / Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.env
+.venv/
+venv/
+env/
+
+# Distribution / build directories
+build/
+dist/
+*.egg-info/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / editor settings
+.idea/
+.vscode/
+*.iml
+
+# Git
+.git
+.github/
+
+# Logs
+*.log
+sessions/
+sessions/*.jsonl
+
+# Streamlit cache
+.streamlit/
+
+# Local artifacts / user files
+speech.wav
+transcription.txt
+transcription_annotated.txt
+GARGI_Documentation_Updated.docx
+
+# Machine learning models / binaries
+*.bin
+*.pt
+*.onnx
+*.safetensors
+LLM Models/
+**/all-mpnet-base-v2/
+
+# Mobile build artifacts
+Android/
+*.apk
+*.aab
+ios/build/
