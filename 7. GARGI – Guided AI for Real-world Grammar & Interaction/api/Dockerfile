@@ -1,25 +1,26 @@
-FROM python:3.10-slim
+FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# System deps (lightweight). libgomp helps some ML wheels; curl for health/debug.
+# System deps (keep minimal)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    curl \
-    libgomp1 \
+    ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
 # Install Python deps
 COPY requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Copy project
+# Copy source
 COPY . /app
 
-EXPOSE 8000
+# Cloud Run listens on $PORT
+ENV PORT=8080
+EXPOSE 8080
 
-# Start FastAPI
-CMD ["uvicorn", "api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+# IMPORTANT: match your FastAPI app object path
+# Based on your code: api/app.py defines `app = FastAPI(...)`
+CMD ["uvicorn", "api.app:app", "--host", "0.0.0.0", "--port", "8080"]
