@@ -4,20 +4,19 @@ Project: GARGI — Guided AI for Real-world General Interaction
 Author: Krishna
 
 Cloud upgrades:
-- Removes any hard dependency on sentence-transformers/torch for Cloud Run.
+- Removes hard dependency on sentence-transformers/torch/sklearn for Cloud Run.
 - Uses Vertex AI embeddings when EMBEDDINGS_PROVIDER=vertex (default recommended).
 - Keeps optional local provider for development (EMBEDDINGS_PROVIDER=local).
-- Removes sklearn dependency by using NumPy cosine similarity.
+- Uses NumPy cosine similarity (no sklearn).
 
-Required env vars (Cloud Run):
+Recommended env vars (Cloud Run):
 - EMBEDDINGS_PROVIDER=vertex
 - VERTEX_LOCATION=asia-south1
-- VERTEX_EMBED_MODEL=text-embedding-004 (or another embedding model)
-- GOOGLE_CLOUD_PROJECT is typically available in Cloud Run; set explicitly if needed.
+- VERTEX_EMBED_MODEL=text-embedding-004
 
-Local dev (optional):
-- EMBEDDINGS_PROVIDER=local
-- EMBEDDING_MODEL_PATH=<path to your all-mpnet-base-v2 folder>
+Project ID:
+- Prefer GOOGLE_CLOUD_PROJECT if provided
+- Otherwise auto-detect via google.auth.default() (ADC)
 """
 
 from __future__ import annotations
@@ -30,9 +29,6 @@ import numpy as np
 import yake
 
 
-# -------------------------------
-# Embeddings Provider (Vertex by default for cloud)
-# -------------------------------
 EMBEDDINGS_PROVIDER = (os.getenv("EMBEDDINGS_PROVIDER", "vertex") or "vertex").lower().strip()
 
 
@@ -60,8 +56,29 @@ def _cosine_sim_matrix(one: np.ndarray, many: np.ndarray) -> np.ndarray:
 
     one = one / (np.linalg.norm(one) + 1e-12)
     many = many / (np.linalg.norm(many, axis=1, keepdims=True) + 1e-12)
-
     return np.dot(many, one)  # (n,)
+
+
+def _get_project_id() -> str:
+    # 1) explicit env var (best for clarity)
+    pid = (os.getenv("GOOGLE_CLOUD_PROJECT", "") or "").strip()
+    if pid:
+        return pid
+
+    # 2) ADC auto-detection (works in Cloud Run with service account)
+    try:
+        import google.auth  # lazy import
+        _creds, pid2 = google.auth.default()
+        pid2 = (pid2 or "").strip()
+        if pid2:
+            return pid2
+    except Exception:
+        pass
+
+    raise RuntimeError(
+        "Could not determine GCP project id. Set GOOGLE_CLOUD_PROJECT env var "
+        "or ensure ADC works for the Cloud Run service account."
+    )
 
 
 def _embed_vertex(texts: List[str]) -> np.ndarray:
@@ -72,17 +89,13 @@ def _embed_vertex(texts: List[str]) -> np.ndarray:
     import vertexai  # lazy import
     from vertexai.language_models import TextEmbeddingModel  # lazy import
 
-    project_id = (os.getenv("GOOGLE_CLOUD_PROJECT", "") or "").strip()
+    project_id = _get_project_id()
     location = (os.getenv("VERTEX_LOCATION", "asia-south1") or "asia-south1").strip()
     model_name = (os.getenv("VERTEX_EMBED_MODEL", "text-embedding-004") or "text-embedding-004").strip()
-
-    if not project_id:
-        raise RuntimeError("Missing GOOGLE_CLOUD_PROJECT env var (needed for Vertex embeddings).")
 
     vertexai.init(project=project_id, location=location)
     model = TextEmbeddingModel.from_pretrained(model_name)
 
-    # Vertex SDK returns objects with .values
     embs = model.get_embeddings(texts)
     arr = np.array([e.values for e in embs], dtype=np.float32)
     return arr
@@ -91,7 +104,7 @@ def _embed_vertex(texts: List[str]) -> np.ndarray:
 def _embed_local(texts: List[str]) -> np.ndarray:
     """
     Local embeddings using SentenceTransformer.
-    This is optional and should NOT be used in Cloud Run.
+    Do NOT use this on Cloud Run.
     """
     from sentence_transformers import SentenceTransformer  # lazy import
 
@@ -113,13 +126,9 @@ def embed_texts(texts: List[str]) -> np.ndarray:
     if EMBEDDINGS_PROVIDER == "local":
         return _embed_local(texts)
 
-    # default: Vertex
     return _embed_vertex(texts)
 
 
-# -------------------------------
-# Text normalization
-# -------------------------------
 _INSTRUCTION_PREFIXES = [
     r"^describe\s+",
     r"^talk\s+about\s+",
@@ -133,17 +142,11 @@ _INSTRUCTION_PREFIXES = [
 
 
 def normalize_topic_focus(topic: str) -> str:
-    """
-    Convert instruction-like topics into a focus phrase.
-    Example:
-      "Describe an amazing scientific fact" -> "an amazing scientific fact"
-    """
     t = (topic or "").strip()
     if not t:
         return ""
 
     t_low = t.lower().strip()
-
     for pat in _INSTRUCTION_PREFIXES:
         t_low = re.sub(pat, "", t_low).strip()
 
@@ -155,9 +158,6 @@ def normalize_topic_focus(topic: str) -> str:
     return t_low
 
 
-# -------------------------------
-# YAKE keyphrases
-# -------------------------------
 def yake_keyphrases(text: str, top_k: int = 10) -> List[str]:
     text = (text or "").strip()
     if not text:
@@ -174,16 +174,7 @@ def yake_keyphrases(text: str, top_k: int = 10) -> List[str]:
     return out
 
 
-# -------------------------------
-# Sentence utilities
-# -------------------------------
 def split_sentences(text: str) -> List[str]:
-    """
-    Robust splitting:
-    1) punctuation-based
-    2) newline-based
-    3) chunk by ~24 words
-    """
     text = (text or "").strip()
     if not text:
         return []
@@ -241,22 +232,16 @@ def sentence_on_topic_ratio(topic_content: str, transcript: str, threshold: floa
     return round(on / len(sents), 2), per
 
 
-# -------------------------------
-# Coverage: topic phrases vs response phrases
-# -------------------------------
 def semantic_coverage(topic_phrases: List[str], response_phrases: List[str], match_threshold: float = 0.60):
     topic_phrases = [p for p in (topic_phrases or []) if p]
     response_phrases = [p for p in (response_phrases or []) if p]
     if not topic_phrases or not response_phrases:
         return 0.0, [], topic_phrases[:10]
 
-    # Embed all phrases in one call for efficiency
     embs = embed_texts(topic_phrases + response_phrases)
     te = embs[: len(topic_phrases)]
     re_ = embs[len(topic_phrases) :]
 
-    # cosine similarities: for each topic phrase, best match in response phrases
-    # te: (T,d), re_: (R,d)
     te = te / (np.linalg.norm(te, axis=1, keepdims=True) + 1e-12)
     re_ = re_ / (np.linalg.norm(re_, axis=1, keepdims=True) + 1e-12)
 
@@ -270,9 +255,6 @@ def semantic_coverage(topic_phrases: List[str], response_phrases: List[str], mat
     return round(cov, 2), matched[:10], missing[:10]
 
 
-# -------------------------------
-# Labeling
-# -------------------------------
 def relevance_label(score: float) -> str:
     if score >= 0.82:
         return "Highly relevant"
@@ -284,9 +266,6 @@ def relevance_label(score: float) -> str:
         return "Off-topic"
 
 
-# -------------------------------
-# Stage 5 Orchestrator
-# -------------------------------
 def run_stage5(topic_obj: Dict[str, Any], transcript: str) -> Dict[str, Any]:
     topic_raw = topic_obj.get("topic_raw", "") or ""
     topic_content = topic_obj.get("topic_content", topic_raw) or ""
@@ -295,25 +274,20 @@ def run_stage5(topic_obj: Dict[str, Any], transcript: str) -> Dict[str, Any]:
     topic_keyphrases = topic_obj.get("topic_keyphrases", [])
 
     transcript = (transcript or "").strip()
-
     topic_focus = normalize_topic_focus(topic_content)
 
-    # Response keyphrases (YAKE)
     resp_phrases = yake_keyphrases(transcript, top_k=12)
 
-    # Similarity blend
     sim_full = semantic_similarity(topic_content, transcript)
     sim_focus = semantic_similarity(topic_focus, transcript)
     sim = round((0.55 * sim_full + 0.45 * sim_focus), 4)
 
-    # Coverage phrases
     effective_topic_phrases = topic_keyphrases
     if not effective_topic_phrases or len(effective_topic_phrases) < 3:
         effective_topic_phrases = yake_keyphrases(topic_focus or topic_content, top_k=10)
 
     cov, matched, missing = semantic_coverage(effective_topic_phrases, resp_phrases, match_threshold=0.60)
 
-    # Dynamic sentence threshold
     topic_len = len((topic_focus or topic_content).split())
     if topic_type in ("general", "experience", "story"):
         base_th = 0.44
@@ -333,7 +307,6 @@ def run_stage5(topic_obj: Dict[str, Any], transcript: str) -> Dict[str, Any]:
     bonus = 0.0
 
     relevance = 0.62 * sim + 0.18 * cov + 0.20 * on_ratio + bonus
-
     if sim >= 0.60:
         relevance = max(relevance, 0.70)
 
