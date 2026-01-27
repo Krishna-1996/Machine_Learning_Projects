@@ -1,14 +1,10 @@
 fastapi
 uvicorn[standard]
-pydantic
 python-dotenv
+pydantic
 requests
 
-pandas
+yake
 numpy
 
-scikit-learn
-yake
-
 google-cloud-aiplatform
-google-auth

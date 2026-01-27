@@ -1,14 +1,23 @@
 """
-Stage 5: Topic Relevance & Semantic Alignment
+Stage 5: Topic Relevance & Semantic Alignment (Cloud-Run Ready)
 Project: GARGI — Guided AI for Real-world General Interaction
 Author: Krishna
 
-Upgrades in this version:
-- Topic focus normalization: strips instruction phrasing ("describe", "talk about", etc.)
-- Sentence splitting fallback for punctuation-poor transcripts (ASR-style text)
-- Dual similarity blend: topic_content + topic_focus (more robust for generic prompts)
-- Dynamic sentence threshold based on topic specificity
-- Slightly improved labeling thresholds for instruction-style prompts
+Cloud upgrades:
+- Removes any hard dependency on sentence-transformers/torch for Cloud Run.
+- Uses Vertex AI embeddings when EMBEDDINGS_PROVIDER=vertex (default recommended).
+- Keeps optional local provider for development (EMBEDDINGS_PROVIDER=local).
+- Removes sklearn dependency by using NumPy cosine similarity.
+
+Required env vars (Cloud Run):
+- EMBEDDINGS_PROVIDER=vertex
+- VERTEX_LOCATION=asia-south1
+- VERTEX_EMBED_MODEL=text-embedding-004 (or another embedding model)
+- GOOGLE_CLOUD_PROJECT is typically available in Cloud Run; set explicitly if needed.
+
+Local dev (optional):
+- EMBEDDINGS_PROVIDER=local
+- EMBEDDING_MODEL_PATH=<path to your all-mpnet-base-v2 folder>
 """
 
 from __future__ import annotations
@@ -17,14 +26,95 @@ import os
 import re
 from typing import Dict, Any, List, Tuple
 
+import numpy as np
 import yake
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
 
-DEFAULT_WINDOWS_MODEL_PATH = r"D:\LLM Models\all-mpnet-base-v2"
-MODEL_PATH = os.getenv("EMBEDDING_MODEL_PATH", DEFAULT_WINDOWS_MODEL_PATH)
 
-model = SentenceTransformer(MODEL_PATH)
+# -------------------------------
+# Embeddings Provider (Vertex by default for cloud)
+# -------------------------------
+EMBEDDINGS_PROVIDER = (os.getenv("EMBEDDINGS_PROVIDER", "vertex") or "vertex").lower().strip()
+
+
+def _l2_normalize(v: np.ndarray) -> np.ndarray:
+    n = np.linalg.norm(v)
+    if n == 0:
+        return v
+    return v / n
+
+
+def _cosine_sim_vec(a: np.ndarray, b: np.ndarray) -> float:
+    a = _l2_normalize(a.astype(np.float32))
+    b = _l2_normalize(b.astype(np.float32))
+    return float(np.dot(a, b))
+
+
+def _cosine_sim_matrix(one: np.ndarray, many: np.ndarray) -> np.ndarray:
+    """
+    one: (d,)
+    many: (n, d)
+    returns: (n,)
+    """
+    one = one.astype(np.float32)
+    many = many.astype(np.float32)
+
+    one = one / (np.linalg.norm(one) + 1e-12)
+    many = many / (np.linalg.norm(many, axis=1, keepdims=True) + 1e-12)
+
+    return np.dot(many, one)  # (n,)
+
+
+def _embed_vertex(texts: List[str]) -> np.ndarray:
+    """
+    Returns embeddings as np.ndarray shape (n, d)
+    Uses Cloud Run service account via ADC.
+    """
+    import vertexai  # lazy import
+    from vertexai.language_models import TextEmbeddingModel  # lazy import
+
+    project_id = (os.getenv("GOOGLE_CLOUD_PROJECT", "") or "").strip()
+    location = (os.getenv("VERTEX_LOCATION", "asia-south1") or "asia-south1").strip()
+    model_name = (os.getenv("VERTEX_EMBED_MODEL", "text-embedding-004") or "text-embedding-004").strip()
+
+    if not project_id:
+        raise RuntimeError("Missing GOOGLE_CLOUD_PROJECT env var (needed for Vertex embeddings).")
+
+    vertexai.init(project=project_id, location=location)
+    model = TextEmbeddingModel.from_pretrained(model_name)
+
+    # Vertex SDK returns objects with .values
+    embs = model.get_embeddings(texts)
+    arr = np.array([e.values for e in embs], dtype=np.float32)
+    return arr
+
+
+def _embed_local(texts: List[str]) -> np.ndarray:
+    """
+    Local embeddings using SentenceTransformer.
+    This is optional and should NOT be used in Cloud Run.
+    """
+    from sentence_transformers import SentenceTransformer  # lazy import
+
+    model_path = (os.getenv("EMBEDDING_MODEL_PATH", "") or "").strip()
+    if not model_path:
+        raise RuntimeError("EMBEDDING_MODEL_PATH is required when EMBEDDINGS_PROVIDER=local.")
+
+    model = SentenceTransformer(model_path)
+    vecs = model.encode(texts, normalize_embeddings=True)
+    return np.array(vecs, dtype=np.float32)
+
+
+def embed_texts(texts: List[str]) -> np.ndarray:
+    texts = [(t or "").strip() for t in (texts or [])]
+    texts = [t for t in texts if t]
+    if not texts:
+        return np.zeros((0, 1), dtype=np.float32)
+
+    if EMBEDDINGS_PROVIDER == "local":
+        return _embed_local(texts)
+
+    # default: Vertex
+    return _embed_vertex(texts)
 
 
 # -------------------------------
@@ -41,6 +131,7 @@ _INSTRUCTION_PREFIXES = [
     r"^why\s+is\s+",
 ]
 
+
 def normalize_topic_focus(topic: str) -> str:
     """
     Convert instruction-like topics into a focus phrase.
@@ -53,14 +144,11 @@ def normalize_topic_focus(topic: str) -> str:
 
     t_low = t.lower().strip()
 
-    # Remove common instruction prefixes
     for pat in _INSTRUCTION_PREFIXES:
         t_low = re.sub(pat, "", t_low).strip()
 
-    # Remove trailing punctuation
     t_low = re.sub(r"[.?!:;]+$", "", t_low).strip()
 
-    # If it becomes too short, fall back to original lowercased topic
     if len(t_low.split()) < 2:
         return (topic or "").lower().strip()
 
@@ -92,34 +180,30 @@ def yake_keyphrases(text: str, top_k: int = 10) -> List[str]:
 def split_sentences(text: str) -> List[str]:
     """
     Robust splitting:
-    1) If punctuation exists, split on sentence boundaries.
-    2) Else split on newlines.
-    3) Else chunk by length (~18-28 words).
+    1) punctuation-based
+    2) newline-based
+    3) chunk by ~24 words
     """
     text = (text or "").strip()
     if not text:
         return []
 
-    # 1) punctuation-based
     if re.search(r"[.!?]", text):
         parts = re.split(r"(?<=[.!?])\s+", text)
         sents = [p.strip() for p in parts if p.strip()]
     else:
-        # 2) newline-based
         parts = [p.strip() for p in text.splitlines() if p.strip()]
         if len(parts) >= 2:
             sents = parts
         else:
-            # 3) chunk by words
             words = text.split()
             sents = []
             i = 0
             while i < len(words):
-                chunk = words[i:i+24]
+                chunk = words[i : i + 24]
                 sents.append(" ".join(chunk).strip())
                 i += 24
 
-    # Keep sentences that have some substance
     return [s for s in sents if len(s.split()) >= 6]
 
 
@@ -128,9 +212,11 @@ def semantic_similarity(a: str, b: str) -> float:
     b = (b or "").strip()
     if not a or not b:
         return 0.0
-    ea = model.encode([a], normalize_embeddings=True)
-    eb = model.encode([b], normalize_embeddings=True)
-    return float(cosine_similarity(ea, eb)[0][0])
+
+    embs = embed_texts([a, b])
+    if embs.shape[0] < 2:
+        return 0.0
+    return _cosine_sim_vec(embs[0], embs[1])
 
 
 def sentence_on_topic_ratio(topic_content: str, transcript: str, threshold: float) -> Tuple[float, List[Dict[str, Any]]]:
@@ -138,9 +224,11 @@ def sentence_on_topic_ratio(topic_content: str, transcript: str, threshold: floa
     if not sents:
         return 0.0, []
 
-    te = model.encode([topic_content], normalize_embeddings=True)
-    se = model.encode(sents, normalize_embeddings=True)
-    sims = cosine_similarity(te, se)[0]
+    embs = embed_texts([topic_content] + sents)
+    topic_vec = embs[0]
+    sent_vecs = embs[1:]
+
+    sims = _cosine_sim_matrix(topic_vec, sent_vecs)
 
     per = []
     on = 0
@@ -162,10 +250,17 @@ def semantic_coverage(topic_phrases: List[str], response_phrases: List[str], mat
     if not topic_phrases or not response_phrases:
         return 0.0, [], topic_phrases[:10]
 
-    te = model.encode(topic_phrases, normalize_embeddings=True)
-    re_ = model.encode(response_phrases, normalize_embeddings=True)
+    # Embed all phrases in one call for efficiency
+    embs = embed_texts(topic_phrases + response_phrases)
+    te = embs[: len(topic_phrases)]
+    re_ = embs[len(topic_phrases) :]
 
-    sims = cosine_similarity(te, re_)
+    # cosine similarities: for each topic phrase, best match in response phrases
+    # te: (T,d), re_: (R,d)
+    te = te / (np.linalg.norm(te, axis=1, keepdims=True) + 1e-12)
+    re_ = re_ / (np.linalg.norm(re_, axis=1, keepdims=True) + 1e-12)
+
+    sims = np.matmul(te, re_.T)  # (T,R)
     best = sims.max(axis=1)
 
     matched = [p for p, s in zip(topic_phrases, best) if float(s) >= match_threshold]
@@ -179,7 +274,6 @@ def semantic_coverage(topic_phrases: List[str], response_phrases: List[str], mat
 # Labeling
 # -------------------------------
 def relevance_label(score: float) -> str:
-    # Slightly more forgiving for instruction-heavy prompts
     if score >= 0.82:
         return "Highly relevant"
     elif score >= 0.68:
@@ -202,25 +296,24 @@ def run_stage5(topic_obj: Dict[str, Any], transcript: str) -> Dict[str, Any]:
 
     transcript = (transcript or "").strip()
 
-    # Topic focus normalization (critical for prompts like "Describe ...")
     topic_focus = normalize_topic_focus(topic_content)
 
     # Response keyphrases (YAKE)
     resp_phrases = yake_keyphrases(transcript, top_k=12)
 
-    # Similarity: blend topic_content and topic_focus
+    # Similarity blend
     sim_full = semantic_similarity(topic_content, transcript)
     sim_focus = semantic_similarity(topic_focus, transcript)
     sim = round((0.55 * sim_full + 0.45 * sim_focus), 4)
 
-    # Coverage: fallback to YAKE on topic_focus if topic_keyphrases missing
+    # Coverage phrases
     effective_topic_phrases = topic_keyphrases
     if not effective_topic_phrases or len(effective_topic_phrases) < 3:
         effective_topic_phrases = yake_keyphrases(topic_focus or topic_content, top_k=10)
 
     cov, matched, missing = semantic_coverage(effective_topic_phrases, resp_phrases, match_threshold=0.60)
 
-    # Dynamic sentence threshold: less strict if topic is generic/short
+    # Dynamic sentence threshold
     topic_len = len((topic_focus or topic_content).split())
     if topic_type in ("general", "experience", "story"):
         base_th = 0.44
@@ -236,16 +329,13 @@ def run_stage5(topic_obj: Dict[str, Any], transcript: str) -> Dict[str, Any]:
 
     on_ratio, per_sentence = sentence_on_topic_ratio(topic_focus or topic_content, transcript, threshold=sent_th)
 
-    # Anchor rubric (kept for schema compatibility; if you use anchors later)
     anchors = {"score": None, "components": {}, "explanation": "No anchor rubric for this topic type."}
     bonus = 0.0
 
-    # Relevance score (weights tuned for instruction prompts)
     relevance = 0.62 * sim + 0.18 * cov + 0.20 * on_ratio + bonus
 
-    # Guardrail: if similarity is moderate-high, do not under-score
     if sim >= 0.60:
-        relevance = max(relevance, 0.70)  # pushes clear on-topic answers into "Mostly relevant"
+        relevance = max(relevance, 0.70)
 
     relevance = round(max(0.0, min(1.0, relevance)), 2)
     label = relevance_label(relevance)
@@ -261,31 +351,24 @@ def run_stage5(topic_obj: Dict[str, Any], transcript: str) -> Dict[str, Any]:
         "topic_type": topic_type,
         "expected_anchors": expected_anchors,
         "topic_keyphrases": effective_topic_phrases,
-
         "relevance_score": relevance,
         "semantic_similarity": round(float(sim), 2),
         "semantic_coverage": cov,
         "coverage_score": cov,
-
         "key_matches": matched,
         "missing_keywords": missing,
-
         "response_keyphrases": resp_phrases,
-
         "on_topic_sentence_ratio": on_ratio,
         "sentence_similarities": per_sentence,
-
         "anchor_rubric": anchors,
-
-        # Debug fields (helps you validate why a score happened)
         "debug": {
             "topic_focus": topic_focus,
             "sim_full": round(sim_full, 2),
             "sim_focus": round(sim_focus, 2),
             "sentence_threshold_used": sent_th,
             "topic_len_words": topic_len,
+            "embeddings_provider": EMBEDDINGS_PROVIDER,
         },
-
         "label": label,
         "explanation": explanation,
         "config": {
@@ -295,5 +378,5 @@ def run_stage5(topic_obj: Dict[str, Any], transcript: str) -> Dict[str, Any]:
             "topic_phrase_fallback": True,
             "similarity_guardrail": 0.60,
             "guardrail_min_relevance": 0.70,
-        }
+        },
     }
