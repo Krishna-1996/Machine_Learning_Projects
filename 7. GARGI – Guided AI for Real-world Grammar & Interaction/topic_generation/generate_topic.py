@@ -3,82 +3,119 @@ from __future__ import annotations
 import csv
 import os
 import random
+from functools import lru_cache
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-TOPICS_FILE = os.getenv("TOPICS_FILE", "topics_enriched.csv")
-_CACHE: Optional[List[Dict[str, Any]]] = None
+# This should be the enriched file produced by tools/enrich_topics.py
+TOPICS_FILE = "topics_enriched.csv"
 
 
-def _split_pipe(value: Any) -> List[str]:
-    if value is None:
-        return []
-    if isinstance(value, list):
-        return value
-    s = str(value).strip()
+def _project_root() -> Path:
+    return Path(__file__).resolve().parents[1]
+
+
+def _topics_path() -> Path:
+    # Prefer explicit env var if you ever want to mount topics elsewhere later
+    p = (os.getenv("TOPICS_FILE_PATH", "") or "").strip()
+    if p:
+        return Path(p)
+    return _project_root() / TOPICS_FILE
+
+
+def _split_pipe(s: str) -> List[str]:
+    s = (s or "").strip()
     if not s:
         return []
-    return [p.strip() for p in s.split("|") if p.strip()]
+    return [x.strip() for x in s.split("|") if x.strip()]
 
 
+def _normalize_row(row: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Output schema used across API/Android:
+    {
+      topic_id, category, topic_raw, instruction, topic_content, topic_type,
+      constraints, expected_anchors (list), topic_keyphrases (list)
+    }
+    """
+    out = dict(row or {})
+    out["topic_id"] = (out.get("topic_id") or "").strip()
+    out["category"] = (out.get("category") or "").strip()
+    out["topic_raw"] = (out.get("topic_raw") or "").strip()
+    out["instruction"] = (out.get("instruction") or "").strip()
+    out["topic_content"] = (out.get("topic_content") or out["topic_raw"]).strip()
+    out["topic_type"] = (out.get("topic_type") or "general").strip() or "general"
+    out["constraints"] = (out.get("constraints") or "").strip()
+
+    out["expected_anchors"] = _split_pipe(out.get("expected_anchors", ""))
+    out["topic_keyphrases"] = _split_pipe(out.get("topic_keyphrases", ""))
+
+    return out
+
+
+@lru_cache(maxsize=1)
 def _load_topics() -> List[Dict[str, Any]]:
-    global _CACHE
-    if _CACHE is not None:
-        return _CACHE
-
-    if not os.path.exists(TOPICS_FILE):
+    path = _topics_path()
+    if not path.exists():
         raise FileNotFoundError(
-            f"Missing {TOPICS_FILE}. Ensure it is included in the container build context "
-            f"(Docker COPY) or set TOPICS_FILE env var to its path."
+            f"Missing {path}. Ensure topics_enriched.csv exists in project root "
+            f"or set TOPICS_FILE_PATH env var."
         )
 
     rows: List[Dict[str, Any]] = []
-    with open(TOPICS_FILE, "r", encoding="utf-8") as f:
+    with path.open("r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f)
         for r in reader:
-            row = {k.strip(): (v.strip() if isinstance(v, str) else v) for k, v in r.items() if k}
-            if row:
-                rows.append(row)
-
+            rows.append(_normalize_row(r))
     if not rows:
-        raise RuntimeError(f"{TOPICS_FILE} loaded but contains 0 rows.")
-
-    _CACHE = rows
+        raise RuntimeError(f"{path} is empty or could not be parsed.")
     return rows
 
 
 def get_categories() -> List[str]:
     rows = _load_topics()
-    cats = sorted({(r.get("category") or "").strip() for r in rows if (r.get("category") or "").strip()})
+    cats = sorted({r.get("category", "").strip() for r in rows if r.get("category", "").strip()})
     return cats
 
 
 def get_random_topic(category: Optional[str] = None) -> Dict[str, Any]:
     rows = _load_topics()
-
-    if category:
-        category = category.strip()
-        filtered = [r for r in rows if (r.get("category") or "").strip() == category]
-        if not filtered:
-            raise ValueError(f"No topics found for category='{category}'")
-        row = random.choice(filtered)
+    if category and category.strip():
+        cat = category.strip().lower()
+        pool = [r for r in rows if (r.get("category", "").lower() == cat)]
+        if not pool:
+            pool = rows
     else:
-        row = random.choice(rows)
+        pool = rows
+    return random.choice(pool)
 
-    topic_raw = row.get("topic_raw") or row.get("topic") or ""
-    topic_content = row.get("topic_content") or topic_raw
-    topic_type = row.get("topic_type") or "general"
 
-    expected_anchors = _split_pipe(row.get("expected_anchors"))
-    topic_keyphrases = _split_pipe(row.get("topic_keyphrases"))
+def search_topics(query: str, category: Optional[str] = None, limit: int = 10) -> List[Dict[str, Any]]:
+    q = (query or "").strip().lower()
+    if len(q) < 2:
+        return []
 
-    return {
-        "topic_id": row.get("topic_id") or "",
-        "category": (row.get("category") or "").strip(),
-        "topic_raw": topic_raw,
-        "instruction": row.get("instruction") or "",
-        "topic_content": topic_content,
-        "topic_type": topic_type,
-        "constraints": row.get("constraints") or "",
-        "expected_anchors": expected_anchors,
-        "topic_keyphrases": topic_keyphrases,
-    }
+    rows = _load_topics()
+
+    if category and category.strip():
+        cat = category.strip().lower()
+        rows = [r for r in rows if r.get("category", "").lower() == cat]
+
+    hits = []
+    for r in rows:
+        hay = f"{r.get('topic_raw','')} {r.get('topic_content','')}".lower()
+        if q in hay:
+            hits.append(r)
+            if len(hits) >= int(limit):
+                break
+    return hits
+
+
+def get_topic_by_id(topic_id: int) -> Optional[Dict[str, Any]]:
+    tid = str(topic_id).strip()
+    if not tid:
+        return None
+    for r in _load_topics():
+        if str(r.get("topic_id", "")).strip() == tid:
+            return r
+    return None
