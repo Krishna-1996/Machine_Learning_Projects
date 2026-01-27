@@ -3,4 +3,8 @@ uvicorn[standard]
 python-dotenv
 pydantic
 requests
+
 yake
+scikit-learn
+
+google-cloud-aiplatform
