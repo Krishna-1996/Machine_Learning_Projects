@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
-
+*.pyc
 # Virtual environments
 .env
 .venv/
@@ -55,3 +55,6 @@ Android/
 *.apk
 *.aab
 ios/build/
+Android
+build
+*.bin
