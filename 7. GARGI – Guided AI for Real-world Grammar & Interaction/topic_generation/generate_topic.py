@@ -5,11 +5,19 @@ import os
 import random
 from typing import Any, Dict, List, Optional
 
-# If your CSV path is different, update here.
 TOPICS_FILE = os.getenv("TOPICS_FILE", "topics_enriched.csv")
-
-# In-memory cache (loaded once per container instance)
 _CACHE: Optional[List[Dict[str, Any]]] = None
+
+
+def _split_pipe(value: Any) -> List[str]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return value
+    s = str(value).strip()
+    if not s:
+        return []
+    return [p.strip() for p in s.split("|") if p.strip()]
 
 
 def _load_topics() -> List[Dict[str, Any]]:
@@ -19,15 +27,14 @@ def _load_topics() -> List[Dict[str, Any]]:
 
     if not os.path.exists(TOPICS_FILE):
         raise FileNotFoundError(
-            f"Missing {TOPICS_FILE}. Ensure it is copied into the container image "
-            f"or set TOPICS_FILE env var to its path."
+            f"Missing {TOPICS_FILE}. Ensure it is included in the container build context "
+            f"(Docker COPY) or set TOPICS_FILE env var to its path."
         )
 
     rows: List[Dict[str, Any]] = []
     with open(TOPICS_FILE, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for r in reader:
-            # Normalize keys/values
             row = {k.strip(): (v.strip() if isinstance(v, str) else v) for k, v in r.items() if k}
             if row:
                 rows.append(row)
@@ -40,30 +47,12 @@ def _load_topics() -> List[Dict[str, Any]]:
 
 
 def get_categories() -> List[str]:
-    """
-    Returns unique categories from the topics file.
-    Expects a 'category' column in topics_enriched.csv.
-    """
     rows = _load_topics()
     cats = sorted({(r.get("category") or "").strip() for r in rows if (r.get("category") or "").strip()})
     return cats
 
 
 def get_random_topic(category: Optional[str] = None) -> Dict[str, Any]:
-    """
-    Returns a random topic row (dict) from topics_enriched.csv.
-    If category is provided, samples only within that category.
-
-    Expected columns (flexible):
-      - category
-      - topic_raw or topic
-      - topic_content (optional)
-      - topic_type (optional)
-      - expected_anchors (optional)
-      - topic_keyphrases (optional)
-
-    Your API can post-process this dict as needed.
-    """
     rows = _load_topics()
 
     if category:
@@ -75,22 +64,21 @@ def get_random_topic(category: Optional[str] = None) -> Dict[str, Any]:
     else:
         row = random.choice(rows)
 
-    # Build a stable schema for downstream code
-    topic_raw = row.get("topic_raw") or row.get("topic") or row.get("topic_text") or ""
+    topic_raw = row.get("topic_raw") or row.get("topic") or ""
     topic_content = row.get("topic_content") or topic_raw
     topic_type = row.get("topic_type") or "general"
 
-    # Some CSVs store lists as strings; keep as raw and let API parse if needed.
-    expected_anchors = row.get("expected_anchors") or []
-    topic_keyphrases = row.get("topic_keyphrases") or []
+    expected_anchors = _split_pipe(row.get("expected_anchors"))
+    topic_keyphrases = _split_pipe(row.get("topic_keyphrases"))
 
     return {
-        "category": row.get("category") or "",
+        "topic_id": row.get("topic_id") or "",
+        "category": (row.get("category") or "").strip(),
         "topic_raw": topic_raw,
+        "instruction": row.get("instruction") or "",
         "topic_content": topic_content,
         "topic_type": topic_type,
+        "constraints": row.get("constraints") or "",
         "expected_anchors": expected_anchors,
         "topic_keyphrases": topic_keyphrases,
-        # Keep original row for debugging / future use
-        "_row": row,
     }
