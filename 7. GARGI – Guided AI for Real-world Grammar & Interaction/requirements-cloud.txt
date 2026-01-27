@@ -8,3 +8,4 @@ yake
 numpy
 
 google-cloud-aiplatform
+google-auth
