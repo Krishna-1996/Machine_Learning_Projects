@@ -1,0 +1,182 @@
+# api/routes/evaluate.py
+from __future__ import annotations
+
+import time
+import uuid
+from typing import Any, Dict, Optional
+
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+
+from api.schemas import EvaluateTextRequest, EvaluateTextResponse
+
+# Pipeline stages (your project modules)
+from scoring_feedback.stage4_scoring import run_stage4
+from topic_relevance.stage5_relevance import run_stage5
+from coaching.stage6_coaching import run_stage6
+
+
+router = APIRouter(prefix="", tags=["evaluate"])
+
+
+class EvaluateEnvelope(BaseModel):
+    """
+    Stable response contract for Android + PowerShell:
+
+    - result: multiline string for UI
+    - raw: JSON containing stage3-stage6 objects (Android can render)
+    """
+    ok: bool
+    request_id: str
+    result: str
+    raw: Dict[str, Any]
+
+
+def _mk_request_id() -> str:
+    return str(uuid.uuid4())
+
+
+def _topic_text_from_req(req: EvaluateTextRequest) -> str:
+    # Prefer explicit topic_text; else derive from topic_obj["topic_raw"].
+    if req.topic_text and req.topic_text.strip():
+        return req.topic_text.strip()
+
+    if req.topic_obj and isinstance(req.topic_obj, dict):
+        t = (req.topic_obj.get("topic_raw") or req.topic_obj.get("topic") or "").strip()
+        if t:
+            return t
+
+    # Defensive fallback so Stage5/6 can run deterministically
+    return "General speaking practice (no topic provided)"
+
+
+def _format_multiline_feedback(stage4: Dict[str, Any], stage5: Dict[str, Any], stage6: Dict[str, Any]) -> str:
+    """
+    Produce the 'result' multiline string shown in Android feedback screen.
+    Keep it deterministic and local (no extra AI cost).
+    """
+    scores = (stage4.get("scores") or {}) if isinstance(stage4, dict) else {}
+    overall = scores.get("overall", "N/A")
+    fluency = scores.get("fluency", "N/A")
+    grammar = scores.get("grammar", "N/A")
+    fillers = scores.get("fillers", "N/A")
+
+    relevance_score = stage5.get("relevance_score", "N/A")
+    relevance_label = stage5.get("label", "N/A")
+    on_topic_ratio = stage5.get("on_topic_sentence_ratio", "N/A")
+
+    conf = (stage6.get("confidence") or {}) if isinstance(stage6, dict) else {}
+    conf_score = conf.get("confidence_score", "N/A")
+    conf_label = conf.get("confidence_label", "N/A")
+
+    priorities = stage6.get("priorities") or []
+    coaching = stage6.get("coaching_feedback") or []
+    reflection = stage6.get("reflection_prompts") or []
+
+    lines = []
+    lines.append("GARGI Feedback (Text Evaluation)")
+    lines.append("-" * 28)
+    lines.append(f"Scores (0-10): Fluency={fluency} | Grammar={grammar} | Fillers={fillers}")
+    lines.append(f"Overall: {overall}")
+    lines.append(f"Relevance: {relevance_score} ({relevance_label})")
+    lines.append(f"On-topic sentence ratio: {on_topic_ratio}")
+    lines.append("")
+    lines.append(f"Confidence: {conf_score} ({conf_label})")
+
+    why = conf.get("why")
+    if why:
+        lines.append(f"Why: {why}")
+
+    # Priorities
+    if priorities:
+        lines.append("")
+        lines.append("Top priorities for your next attempt:")
+        for i, p in enumerate(priorities[:3], start=1):
+            title = p.get("title", "Priority")
+            level = p.get("level", "Medium")
+            reason = p.get("reason", "")
+            action = p.get("action", "")
+            lines.append(f"{i}) {title} [{level}]")
+            if reason:
+                lines.append(f"   Reason: {reason}")
+            if action:
+                lines.append(f"   Action: {action}")
+
+    # Coaching
+    if coaching:
+        lines.append("")
+        lines.append("Coaching feedback:")
+        for c in coaching[:6]:
+            lines.append(f"- {c}")
+
+    # Reflection prompts
+    if reflection:
+        lines.append("")
+        lines.append("Quick reflection prompts:")
+        for r in reflection[:6]:
+            lines.append(f"- {r}")
+
+    return "\n".join(lines).strip()
+
+
+@router.post("/evaluate/text", response_model=EvaluateEnvelope)
+def evaluate_text(req: EvaluateTextRequest) -> EvaluateEnvelope:
+    """
+    Critical requirement:
+    - If save_history=true => MUST append a session record to sessions/sessions.jsonl
+      so Streamlit Stage 7 updates for Android + PowerShell traffic.
+    """
+    start = time.time()
+    request_id = _mk_request_id()
+
+    transcript = (req.transcript or "").strip()
+    if len(transcript) < 3:
+        raise HTTPException(status_code=422, detail="Transcript too short.")
+
+    topic_text = _topic_text_from_req(req)
+    topic_obj = req.topic_obj if isinstance(req.topic_obj, dict) else {"topic_raw": topic_text}
+
+    try:
+        # Stage 3 is already handled in your Android speech pipeline; for text endpoint,
+        # stage4_scoring expects stage3_results produced by Stage 3 analysis.
+        #
+        # If your run_stage4 expects a stage3 structure, keep your existing adapter logic
+        # inside stage4_scoring.py. Here we call it directly as your project currently does.
+        stage4 = run_stage4(None) if False else run_stage4(req.model_dump())  # safe fallback if your stage4 accepts dict
+
+        # Stage 5
+        stage5 = run_stage5(topic_obj, transcript)
+
+        # Stage 6 (logging happens INSIDE run_stage6 when save_history=True)
+        stage6 = run_stage6(
+            topic_text=topic_text,
+            transcript=transcript,
+            stage4_results=stage4,
+            stage5_results=stage5,
+            save_history=bool(req.save_history),
+        )
+
+        result_text = _format_multiline_feedback(stage4, stage5, stage6)
+
+        raw = {
+            "topic_obj": topic_obj,
+            "topic_text": topic_text,
+            "transcript": transcript,
+            "stage3": {},  # text endpoint doesn't run audio stage3
+            "stage4": stage4,
+            "stage5": stage5,
+            "stage6": stage6,
+            "meta": {
+                "request_id": request_id,
+                "elapsed_ms": int((time.time() - start) * 1000),
+                "save_history": bool(req.save_history),
+                "user_id": req.user_id,
+            },
+        }
+
+        return EvaluateEnvelope(ok=True, request_id=request_id, result=result_text, raw=raw)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Evaluation failed: {e}")

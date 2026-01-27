@@ -1,0 +1,22 @@
+services:
+  languagetool:
+    image: silviof/docker-languagetool:latest
+    container_name: gargi-languagetool
+    ports:
+      - "8090:8010"
+    restart: unless-stopped
+
+  api:
+    build: .
+    container_name: gargi-api
+    depends_on:
+      - languagetool
+    ports:
+      - "8000:8000"
+    environment:
+      - EMBEDDING_MODEL_PATH=/models/all-mpnet-base-v2
+      - LANGUAGETOOL_URL=http://languagetool:8010/v2/check
+    volumes:
+      - ./sessions:/app/sessions
+      - "D:/LLM Models/all-mpnet-base-v2:/models/all-mpnet-base-v2:ro"
+    restart: unless-stopped
