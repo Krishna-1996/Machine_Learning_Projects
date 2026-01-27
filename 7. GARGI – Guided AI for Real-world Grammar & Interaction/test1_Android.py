@@ -60,7 +60,7 @@ def collect_project_files_and_save(directory, word_filename, excel_filename):
             # Add file path and content to Word document
             doc.add_paragraph(f"File Path: {file_path}")
             content = get_file_contents(file_path)
-            doc.add_paragraph(f"Content: {content[:100]}...")  # You can adjust how much content you want to display
+            doc.add_paragraph(f"Content: {content}...")  # You can adjust how much content you want to display
             doc.add_paragraph("=" * 40)  # Separator line for readability
 
     # Save Word document and Excel file
