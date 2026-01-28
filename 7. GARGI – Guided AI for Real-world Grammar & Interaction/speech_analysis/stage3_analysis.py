@@ -51,7 +51,7 @@ def calculate_wpm(text, duration):
     return round(words / (duration / 60), 1) if duration > 0 else 0
 
 # -------------------------------
-# Grammar
+# Grammarws
 # -------------------------------
 def analyze_grammar(text: str) -> dict:
     """
