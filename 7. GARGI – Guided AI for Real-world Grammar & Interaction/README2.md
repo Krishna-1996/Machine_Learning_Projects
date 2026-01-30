@@ -148,7 +148,11 @@ GARGI Platform
 │ ├── Evaluation orchestrator
 │ ├── Session logging
 │ └── Security layer
-│
+├── CI/CD (Stage 12 – Planned)
+│   ├── GitHub Actions
+│   ├── Automated tests
+│   ├── Docker builds
+│   └── Cloud Run deployment
 ├── Vertex AI
 │ ├── Text embeddings (live)
 │ └── Gemini LLMs (planned)
