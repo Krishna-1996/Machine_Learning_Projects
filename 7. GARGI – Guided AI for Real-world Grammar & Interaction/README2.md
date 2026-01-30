@@ -53,7 +53,7 @@ This is not a prototype — it is a **live, deployed system**.
 ## 📱 Android App (Live)
 
 **Architecture Flow**
-`
+```text
 Android App (Jetpack Compose)
         ↓ 
       HTTPS
@@ -61,7 +61,7 @@ Android App (Jetpack Compose)
 FastAPI Backend (Cloud Run)
         ↓
 Vertex AI (Embeddings + LLMs)
-`
+```
 
 ### Android Tech Stack
 - Kotlin
