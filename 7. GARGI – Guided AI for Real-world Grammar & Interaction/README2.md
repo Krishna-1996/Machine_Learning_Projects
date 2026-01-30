@@ -153,15 +153,23 @@ GARGI Platform
 │   ├── Automated tests
 │   ├── Docker builds
 │   └── Cloud Run deployment
-├── Vertex AI
-│ ├── Text embeddings (live)
-│ └── Gemini LLMs (planned)
 │
-└── Google Cloud
-├── Cloud Run
-├── Logging & monitoring
-├── Billing & quotas
-└── IAM / Secrets
+├── Google Cloud
+│   ├── Cloud Run
+│   ├── Logging & monitoring
+│   ├── Vertex AI
+│   │    ├── Text embeddings (live)
+│   │    └── Gemini LLMs (planned)
+│   ├── Billing & quotas
+│   └── IAM / Secrets
+│
+├── Advanced Android (Stage 13 – Planned)
+│   ├── Multi-user authentication
+│   ├── Offline caching
+│   ├── Cloud sync
+│   ├── Advanced UI/UX
+│   └── Personalized learning views
+
 ```
 ---
 
