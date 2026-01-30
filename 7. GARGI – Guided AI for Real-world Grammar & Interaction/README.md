@@ -1,111 +1,167 @@
 # GARGI — Guided AI for Real-world General Interaction
 
-🎯 **GARGI (User Perspective)** is a **local-first**, **explainable** AI coach that evaluates spoken or written responses and provides actionable feedback for **real-world communication** (not exam-only speaking).  
-It focuses on **fluency**, **grammar**, **filler usage**, **topic alignment**, and **guided improvement over time**.
+**GARGI** is an AI-powered speaking coach designed for **real-world communication — not exams**.
 
-🎯 **GARGI (Developer Perspective)** is a modular, end-to-end AI system that:
+It helps users practice speaking on realistic topics and receive **honest, explainable feedback** on fluency, grammar, fillers, pacing, and topic relevance.  
+GARGI works across **Android, Cloud, and API-based platforms**, with a live production backend on **Google Cloud Run + Vertex AI**.
+
+---
+
+## 🎯 What Problem GARGI Solves
+
+Most speaking apps:
+- Focus on time spoken, not *what was said*
+- Provide generic or black-box scores
+- Optimize for exams, not real conversations
+
+**GARGI is different.**
+
+It evaluates **meaning, clarity, relevance, and delivery**, and explains *why* a score was given — just like a human coach would.
+
+---
+
+## 🌍 What GARGI Does (User Perspective)
+
+Users can:
+
+- 🎤 Practice speaking on **real-world topics**
+- 🧠 Get AI feedback on **what they said**, not just duration
+- 📊 Understand fluency, grammar, fillers, pauses, and topic relevance
+- 🔁 Improve over time with **structured, actionable guidance**
+- 📱 Use it anywhere — **only an internet connection is required**
+
+---
+
+## 🛠️ What GARGI Is (Engineering Perspective)
+
+GARGI is a **production-grade, full-stack AI system** that:
+
 1. Generates realistic speaking topics  
-2. Captures speech and converts it to text  
-3. Analyzes fluency, grammar, and hesitation  
-4. Evaluates semantic topic relevance  
-5. Produces explainable scores and coaching  
-6. Logs learning sessions over time  
-7. Visualizes progress via a dashboard  
-8. Exposes functionality through a REST API  
-9. Runs fully containerized using Docker  
+2. Captures speech on Android devices  
+3. Converts speech → text (on device)  
+4. Analyzes fluency, grammar, fillers, and pauses  
+5. Measures semantic topic relevance using embeddings  
+6. Produces **explainable scores and coaching feedback**  
+7. Exposes functionality via a secure REST API  
+8. Runs globally on **Google Cloud Run**  
+9. Uses **Vertex AI** for scalable AI inference  
+
+This is not a prototype — it is a **live, deployed system**.
 
 ---
-## 🤖Android App
+
+## 📱 Android App (Live)
+
+**Architecture Flow**
 ```text
-→ FastAPI Backend
-→ AI Evaluation Pipeline
-→ Scoring + Explainability
-→ Coaching & Logging
-→ Dashboard / Cloud
-
+Android App (Jetpack Compose)
+        ↓ 
+      HTTPS
+        ↓
+FastAPI Backend (Cloud Run)
+        ↓
+Vertex AI (Embeddings + LLMs)
 ```
+
+### Android Tech Stack
+- Kotlin
+- Jetpack Compose
+- MVVM Architecture
+- Hilt (Dependency Injection)
+- Retrofit + OkHttp
+- On-device speech recognition
+
+### Current Capabilities
+- Topic selection via API
+- Speech capture
+- Transcript generation
+- AI evaluation via Cloud Run
+- Score and feedback visualization
+- Global usability (UK, India, anywhere)
+
 ---
+
+## ☁️ Cloud & AI Stack (Live)
+
+### Backend
+- FastAPI
+- Google Cloud Run
+- API-key protected endpoints
+- OpenAPI / Swagger enabled
+
+### AI
+- Vertex AI Embeddings  
+  (semantic relevance, topic alignment)
+- Explainable scoring logic  
+  (fluency, grammar, fillers, pacing)
+
+**Privacy-first design**
+- Audio is processed on device
+- Only text is sent to the cloud
+- No audio is stored remotely
+
+---
+
 ## 🚀 Core Capabilities
 
-- 🎤 Speech & Text Evaluation  
-- 🧠 Semantic Topic Relevance (Embeddings-based)  
-- ✍️ Grammar Analysis (LanguageTool)  
-- 📊 Learning Progress Dashboard  
-- 🌐 REST API (FastAPI)  
-- 🐳 Dockerized Deployment  
-- 🧩 Explainable AI Feedback (XAI)
+- 🎤 Speech evaluation (Android)
+- 🧠 Semantic topic relevance (Vertex AI embeddings)
+- ✍️ Grammar & fluency metrics
+- 📊 Explainable scoring (not black-box)
+- 🌐 REST API (FastAPI)
+- ☁️ Cloud-native deployment (Cloud Run)
+- 🔐 API security
+- 🌍 Global availability
 
 ---
 
-## Key Features
+## 🧩 Explainability First (XAI)
 
-- **Offline-first pipeline**: Runs locally on Windows (privacy-first and low-cost)
-- **Explainability (XAI)**: Transparent scoring trace (base score + penalties) with evidence (WPM, pause ratio, grammar rules, semantic similarity)
-- **Topic enrichment**: Separates prompt wording from topic meaning using metadata-aware topic datasets
-- **Semantic topic relevance**: Similarity, coverage, sentence-level on-topic ratio, and anchor-based rubric
-- **Coaching layer**: Prioritized feedback, concrete improvement actions, reflection prompts, and confidence estimation
-- **Progress tracking**: Streamlit dashboard powered by append-only session logs
-- **API layer (FastAPI)**: Product-ready interface for future web, mobile, or cloud deployment
+GARGI does **not** just return a score.
+
+Every evaluation includes:
+- Speaking rate (WPM)
+- Pause patterns
+- Grammar signals
+- Topic similarity ratios
+- Sentence-level relevance
+- Concrete improvement advice
+
+This makes feedback:
+- **Auditable**
+- **Trustworthy**
+- **Actionable**
 
 ---
 
-## System Architecture (Pipeline View)
-
+## 🧠 System Architecture (High-Level)
 ```text
-GARGI System
-├── AI / ML Pipeline (Stage 1 - 6 Completed)
-│   ├── Speech transcription (Whisper)
-│   ├── Fluency analysis (WPM, pauses)
-│   ├── Grammar analysis (LanguageTool)
-│   ├── Semantic relevance (embeddings)
-│   ├── Explainable scoring
-│   └── Coaching & confidence estimation
-│ 
-├── Backend (FastAPI) (Stage 7-8 Completed)
-│   ├── Tech Stack
-│   │   ├── Python
-│   │   ├── FastAPI
-│   │   └── Docker
-│   ├── Endpoints
-│   │   ├── `GET /topics`
-│   │   └── `POST /evaluate/text`
-│   ├── Security
-│   │   ├── API Key
-│   │   └── Optional Basic Auth
-│ 
-├── Android Application (Stage 9 Completed)
-│   ├── Tech Stack
-│   │   ├── Kotlin
-│   │   ├── Jetpack Compose
-│   │   ├── MVVM
-│   │   ├── Hilt
-│   │   └── Retrofit / OkHttp
-│   ├── Capabilities
-│   │   ├── On-device speech recording
-│   │   ├── Topic fetch via API
-│   │   ├── Text evaluation via API
-│   │   ├── Score visualization
-│   │   ├── Feedback rendering
-│   │   └── API key authentication
+GARGI Platform
+├── Android Client
+│ ├── Speech capture
+│ ├── Transcript buffer
+│ ├── Evaluation UI
+│ └── History (planned)
 │
-├── Google Cloud Platform Integration (Stage 10 – Upcoming)
-│   ├── Services Used
-│   │   ├── Vertex AI
-│   │   ├── Cloud Run
-│   │   ├── Cloud Storage
-│   │   ├── Secret Manager
-│   │   └── IAM
-│   ├── Goals
-│   │   ├── Scalable AI inference
-│   │   ├── Secure API access
-│   │   ├── Model lifecycle management
-│   │   └── Android-cloud connectivity
-│
+├── Backend API (FastAPI)
+│ ├── Topic service
+│ ├── Evaluation orchestrator
+│ ├── Session logging
+│ └── Security layer
 ├── CI/CD (Stage 12 – Planned)
 │   ├── GitHub Actions
 │   ├── Automated tests
 │   ├── Docker builds
 │   └── Cloud Run deployment
+│
+├── Google Cloud
+│   ├── Cloud Run
+│   ├── Logging & monitoring
+│   ├── Vertex AI
+│   │    ├── Text embeddings (live)
+│   │    └── Gemini LLMs (planned)
+│   ├── Billing & quotas
+│   └── IAM / Secrets
 │
 ├── Advanced Android (Stage 13 – Planned)
 │   ├── Multi-user authentication
@@ -113,81 +169,90 @@ GARGI System
 │   ├── Cloud sync
 │   ├── Advanced UI/UX
 │   └── Personalized learning views
-│
-└── Future Extensions
-    ├── Stage 14+: Personalization, AgenticAI coaching, IaC (Infrastructure as Code) via Terraform
-    └── Stage 15+: More AI integrations, UX enhancements
 
 ```
 ---
-## Why This Project Matters
+
+## 🧪 Live API (Public)
+
+**Swagger UI**  
+https://gargi-api-59813842911.asia-south1.run.app/docs
+
+**Endpoints**
+- `GET /health`
+- `GET /topics`
+- `POST /evaluate/text`
+
+---
+
+## 🧭 Roadmap (What’s Coming Next)
+
+### 🔹 Phase 1 — Android Speech UX
+- Continuous listening (no 60-second limit)
+- Pause / resume speaking
+- Auto-pause after inactivity
+- Transcript continuity across pauses
+
+### 🔹 Phase 2 — Smarter AI Evaluation
+- Integrate Vertex AI Gemini
+- Topic-aware reasoning
+- Honest, non-generic feedback
+- Improved fluency & grammar critique
+- Controlled cost within free credits
+
+### 🔹 Phase 3 — User System
+- Email + password authentication
+- Phone number login
+- Multi-user support on one device
+- Secure identity management
+
+### 🔹 Phase 4 — History & Dashboard
+- Speaking history
+- Topic history
+- Score trends over time
+- Personalized improvement insights
+
+### 🔹 Phase 5 — UI / UX Polish
+- Prime-grade design
+- Improved visual feedback
+- Accessibility improvements
+- Web application version
+
+---
+
+## 💡 Why This Project Matters
 
 GARGI demonstrates:
-- Full-stack AI engineering
-- Explainable ML design
-- Mobile + backend integration
-- Cloud-native thinking
-- Real-world product engineering
 
-This project is suitable for **AI/ML Engineer**, **Applied Scientist**, and **Data Engineer** roles.
+- Real-world AI product thinking
+- Cloud-native backend design
+- Android + backend integration
+- Explainable AI (XAI)
+- Responsible AI usage
+- Cost-aware AI deployment
+- End-to-end system ownership
+
+This project reflects skills relevant to:
+- **AI / ML Engineer**
+- **Applied Scientist**
+- **Mobile + Backend Engineer**
+- **Cloud Engineer**
 
 ---
 
-## Setup (Windows 11)
+## 🛡️ Cost & Safety
 
-### 1) Create a virtual environment
-Python 3.10 is recommended.
-```bash
-    python -m venv .venv
-    .venv\Scripts\activate
-```
-### 2) Install dependencies
-```bash
+- Uses Vertex AI embeddings (low cost)
+- Cloud Run free-tier friendly
+- Billing alerts enabled
+- No audio stored in the cloud
+- Secure API access
 
-pip install -r requirements.txt
-```
-### 3) (Optional) Start LanguageTool server
-```bash
+---
 
-java -jar languagetool-server.jar --port 8081
-```
-If LanguageTool is not running, **GARGI** continues in fallback grammar mode and reports this in the evidence.
+## 📄 License
 
-Run the CLI Pipeline
-```bash
-python main.py
-```
-Records audio
-Transcribes speech
-Evaluates Stages 3–6
-Appends a session entry to sessions/sessions.jsonl
-
-### 4) Run the Dashboard (Stage 7)
-```bash
-streamlit run dashboard/stage7_dashboard.py
-```
-
-### 5) Run the API (Stage 8.1)
-```bash
-uvicorn api.app:app --reload --port 8000
-Swagger UI: http://127.0.0.1:8000/docs
-
-OpenAPI spec: http://127.0.0.1:8000/openapi.json
-
-Recommended workflow:
-
-GET /topics
-
-POST /evaluate/text
-```
-
-
-## Notes on Trust & Correctness
-**GARGI** emphasizes transparent evidence, auditable scoring traces, and explainable metrics (WPM, pause ratio, grammar rules, semantic similarity and coverage).
-Future improvements include benchmarking against human ratings and automated regression tests to ensure scoring stability.
-
-## License
-This project is licensed under the MIT License.
+This project is licensed under the **MIT License**.
 
 You are free to use, modify, and distribute this software for personal or commercial purposes, provided that the original copyright
 and license notice are included.
