@@ -135,7 +135,7 @@ This makes feedback:
 ---
 
 ## 🧠 System Architecture (High-Level)
-`
+```text
 GARGI Platform
 ├── Android Client
 │ ├── Speech capture
@@ -158,8 +158,7 @@ GARGI Platform
 ├── Logging & monitoring
 ├── Billing & quotas
 └── IAM / Secrets
-`
-
+```
 ---
 
 ## 🧪 Live API (Public)
