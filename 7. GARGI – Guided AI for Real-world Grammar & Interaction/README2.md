@@ -1,4 +1,4 @@
-# GARGI — Guided AI for Real-World Speaking Practice
+# GARGI — Guided AI for Real-world General Interaction
 
 **GARGI** is an AI-powered speaking coach designed for **real-world communication — not exams**.
 
