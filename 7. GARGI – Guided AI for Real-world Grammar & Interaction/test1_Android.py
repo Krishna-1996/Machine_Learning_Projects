@@ -12,8 +12,8 @@ output_file_docx = "project_details_Android.docx"
 output_file_excel = "project_files_Android.xlsx"
 
 # Folder and file types to ignore
-ignore_folders = (".gradles", "build", ".idea", ".git", ".kotlin", "gradle")
-ignore_files = ()
+ignore_folders = (".gradle", "build", ".idea", ".git", ".kotlin", "gradle")
+ignore_files = (".iml", "LICENSE", "README.md", ".DS_Store")
 
 # Function to clean up file contents (remove non-XML characters)
 def clean_content(content):
