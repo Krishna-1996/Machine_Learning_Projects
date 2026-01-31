@@ -1,5 +1,7 @@
-from pydantic import BaseModel, Field
+from __future__ import annotations
+
 from typing import Optional, Dict, Any
+from pydantic import BaseModel, Field
 
 
 class ApiMeta(BaseModel):
@@ -20,8 +22,8 @@ class ApiResponse(BaseModel):
 
 
 class TopicResponse(BaseModel):
-    topic_obj: Dict[str, Any]
-    topic_text: str
+    topic_obj: Dict[str, Any] = Field(default_factory=dict)
+    topic_text: str = ""
 
 
 class EvaluateTextRequest(BaseModel):
@@ -34,11 +36,11 @@ class EvaluateTextRequest(BaseModel):
 
 
 class EvaluateTextResponse(BaseModel):
-    topic_obj: Dict[str, Any]
-    topic_text: str
-    transcript: str
-    stage3: Dict[str, Any]
-    stage4: Dict[str, Any]
-    stage5: Dict[str, Any]
-    stage6: Dict[str, Any]
+    topic_obj: Dict[str, Any] = Field(default_factory=dict)
+    topic_text: str = ""
+    transcript: str = ""
+    stage3: Dict[str, Any] = Field(default_factory=dict)
+    stage4: Dict[str, Any] = Field(default_factory=dict)
+    stage5: Dict[str, Any] = Field(default_factory=dict)
+    stage6: Dict[str, Any] = Field(default_factory=dict)
     user_id: Optional[str] = None
