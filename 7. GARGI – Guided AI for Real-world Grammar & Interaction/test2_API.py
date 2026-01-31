@@ -12,7 +12,7 @@ output_file_excel = "project_files_API.xlsx"
 
 # Folder and file types to ignore
 ignore_folders = ("build", ".git", ".idea", "__pycache__", ".vscode", "venv", "node_modules", ".gradle", ".settings", ".externalNativeBuild", ".cxx", "out")
-ignore_files = ("LICENSE", "README.md", "git", ".gitignore", ".dockerignore", "Dockerfile")
+ignore_files = ("LICENSE", "README.md", "git", ".gitignore", ".dockerignore", "Dockerfile", ".docx", ".xlsx")
 
 # Function to clean up file contents (remove non-XML characters)
 def clean_content(content):
