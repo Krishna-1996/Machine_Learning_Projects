@@ -3,18 +3,18 @@ from __future__ import annotations
 
 import time
 import uuid
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from api.schemas import EvaluateTextRequest, EvaluateTextResponse
-
-# Pipeline stages (your project modules)
+from api.schemas import EvaluateTextRequest
 from scoring_feedback.stage4_scoring import run_stage4
 from topic_relevance.stage5_relevance import run_stage5
 from coaching.stage6_coaching import run_stage6
 
+# ✅ NEW: text-only Stage 3 builder (no audio dependencies)
+from speech_analysis.stage3_text_analysis import run_stage3_text
 
 router = APIRouter(prefix="", tags=["evaluate"])
 
@@ -22,9 +22,8 @@ router = APIRouter(prefix="", tags=["evaluate"])
 class EvaluateEnvelope(BaseModel):
     """
     Stable response contract for Android + PowerShell:
-
-    - result: multiline string for UI
-    - raw: JSON containing stage3-stage6 objects (Android can render)
+     - result: multiline string for UI
+     - raw: JSON containing stage3-stage6 objects (Android can render)
     """
     ok: bool
     request_id: str
@@ -50,7 +49,12 @@ def _topic_text_from_req(req: EvaluateTextRequest) -> str:
     return "General speaking practice (no topic provided)"
 
 
-def _format_multiline_feedback(stage4: Dict[str, Any], stage5: Dict[str, Any], stage6: Dict[str, Any]) -> str:
+def _format_multiline_feedback(
+    stage3: Dict[str, Any],
+    stage4: Dict[str, Any],
+    stage5: Dict[str, Any],
+    stage6: Dict[str, Any],
+) -> str:
     """
     Produce the 'result' multiline string shown in Android feedback screen.
     Keep it deterministic and local (no extra AI cost).
@@ -60,6 +64,11 @@ def _format_multiline_feedback(stage4: Dict[str, Any], stage5: Dict[str, Any], s
     fluency = scores.get("fluency", "N/A")
     grammar = scores.get("grammar", "N/A")
     fillers = scores.get("fillers", "N/A")
+
+    # Evidence (Stage3)
+    flu = (stage3.get("fluency") or {}) if isinstance(stage3, dict) else {}
+    wpm = flu.get("wpm", "N/A")
+    duration_sec = flu.get("duration_sec", "N/A")
 
     relevance_score = stage5.get("relevance_score", "N/A")
     relevance_label = stage5.get("label", "N/A")
@@ -76,6 +85,7 @@ def _format_multiline_feedback(stage4: Dict[str, Any], stage5: Dict[str, Any], s
     lines = []
     lines.append("GARGI Feedback (Text Evaluation)")
     lines.append("-" * 28)
+    lines.append(f"Duration: {duration_sec}s | WPM: {wpm}")
     lines.append(f"Scores (0-10): Fluency={fluency} | Grammar={grammar} | Fillers={fillers}")
     lines.append(f"Overall: {overall}")
     lines.append(f"Relevance: {relevance_score} ({relevance_label})")
@@ -87,29 +97,26 @@ def _format_multiline_feedback(stage4: Dict[str, Any], stage5: Dict[str, Any], s
     if why:
         lines.append(f"Why: {why}")
 
-    # Priorities
     if priorities:
         lines.append("")
         lines.append("Top priorities for your next attempt:")
         for i, p in enumerate(priorities[:3], start=1):
-            title = p.get("title", "Priority")
-            level = p.get("level", "Medium")
+            area = p.get("area", "Priority")
+            severity = p.get("severity", "Medium")
             reason = p.get("reason", "")
             action = p.get("action", "")
-            lines.append(f"{i}) {title} [{level}]")
+            lines.append(f"{i}) {area} [{severity}]")
             if reason:
                 lines.append(f"   Reason: {reason}")
             if action:
                 lines.append(f"   Action: {action}")
 
-    # Coaching
     if coaching:
         lines.append("")
         lines.append("Coaching feedback:")
         for c in coaching[:6]:
             lines.append(f"- {c}")
 
-    # Reflection prompts
     if reflection:
         lines.append("")
         lines.append("Quick reflection prompts:")
@@ -137,12 +144,14 @@ def evaluate_text(req: EvaluateTextRequest) -> EvaluateEnvelope:
     topic_obj = req.topic_obj if isinstance(req.topic_obj, dict) else {"topic_raw": topic_text}
 
     try:
-        # Stage 3 is already handled in your Android speech pipeline; for text endpoint,
-        # stage4_scoring expects stage3_results produced by Stage 3 analysis.
-        #
-        # If your run_stage4 expects a stage3 structure, keep your existing adapter logic
-        # inside stage4_scoring.py. Here we call it directly as your project currently does.
-        stage4 = run_stage4(None) if False else run_stage4(req.model_dump())  # safe fallback if your stage4 accepts dict
+        # ✅ Stage 3 (Text-only): build metrics needed by Stage 4 scoring
+        stage3 = run_stage3_text(
+            transcript=transcript,
+            duration_sec=req.duration_sec,
+        )
+
+        # ✅ Stage 4 now gets the correct structure (same shape as CLI pipeline)
+        stage4 = run_stage4(stage3)
 
         # Stage 5
         stage5 = run_stage5(topic_obj, transcript)
@@ -156,13 +165,13 @@ def evaluate_text(req: EvaluateTextRequest) -> EvaluateEnvelope:
             save_history=bool(req.save_history),
         )
 
-        result_text = _format_multiline_feedback(stage4, stage5, stage6)
+        result_text = _format_multiline_feedback(stage3, stage4, stage5, stage6)
 
         raw = {
             "topic_obj": topic_obj,
             "topic_text": topic_text,
             "transcript": transcript,
-            "stage3": {},  # text endpoint doesn't run audio stage3
+            "stage3": stage3,
             "stage4": stage4,
             "stage5": stage5,
             "stage6": stage6,
