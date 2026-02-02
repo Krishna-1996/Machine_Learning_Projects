@@ -43,7 +43,7 @@ if (-not $repoCheck) {
 gcloud auth configure-docker "$REGION-docker.pkg.dev" --quiet | Out-Null
 
 # Build image locally
-$image = "$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/$SERVICE:$TAG"
+$image = "$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/$SERVICE`:$TAG"
 Write-Host "==> Building Docker image: $image"
 docker build -t $image .
 
