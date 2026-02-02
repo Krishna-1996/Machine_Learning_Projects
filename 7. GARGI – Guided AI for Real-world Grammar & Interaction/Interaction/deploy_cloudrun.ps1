@@ -13,6 +13,8 @@ param(
   # Image tag
   [string]$TAG = "v1"
 )
+# This will always aloow to run from the folder where this script exists (project root)
+Set-Location -Path $PSScriptRoot
 
 $ErrorActionPreference = "Stop"
 
