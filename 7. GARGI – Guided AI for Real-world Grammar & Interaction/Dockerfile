@@ -1,13 +1,27 @@
+# GARGI API Dockerfile (Cloud Run compatible)
 FROM python:3.13-slim
 
+# Environment variables 
 ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app
+# # Cloud Run default port
+ENV PORT=8080 
+# Prevents Python from writing .pyc files to disk
+ENV PYTHONDONTWRITEBYTECODE=1  
 
+# Working directory
 WORKDIR /app
 
-COPY requirements-cloud.txt /app/requirements.txt
+# Install system dependencies (curl, if needed)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+  && rm -rf /var/lib/apt/lists/*
+
+# Install python dependencies
+COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
+# Copy app files
 COPY . /app
 
-CMD exec uvicorn api.app:app --host 0.0.0.0 --port ${PORT:-8080}
+# Start the FastAPI app using Uvicorn
+CMD exec uvicorn api.app:app --host 0.0.0.0 --port ${PORT}
