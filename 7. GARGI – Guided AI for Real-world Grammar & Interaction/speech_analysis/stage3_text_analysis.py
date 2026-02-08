@@ -5,12 +5,13 @@ Author: Krishna
 
 Used by /evaluate/text where we do not have an audio file.
 
-Sprint-1 Fix:
+Sprint Fix:
 - Return BOTH:
   (A) Flat keys that Stage 4 can read (wpm, pause_ratio, filler_words, grammar_raw, etc.)
   (B) Nested keys for UI / future expansion (fluency, grammar)
 
-This prevents schema mismatch and makes scoring consistent.
+Fail-safe:
+- If duration is missing/too small, estimate duration from word count at baseline WPM
 """
 
 from __future__ import annotations
@@ -47,9 +48,23 @@ def count_words(text: str) -> int:
     return len(text.split())
 
 
+def estimate_duration_if_missing(word_count: int, baseline_wpm: float = 130.0) -> float:
+    """
+    Robust fallback if Android forgets to send duration or sends too-small duration.
+    Estimate duration from words assuming baseline_wpm (default ~130).
+    """
+    if word_count <= 0:
+        return 0.0
+    minutes = word_count / float(baseline_wpm)
+    return round(minutes * 60.0, 2)
+
+
 def calculate_wpm(word_count: int, duration_sec: float) -> float:
-    # Avoid nonsense for very short durations
-    if duration_sec is None or float(duration_sec) < 2.0:
+    """
+    Compute WPM. If duration is unrealistically small (< 2 sec),
+    caller should already have replaced duration with an estimate.
+    """
+    if duration_sec is None or float(duration_sec) <= 0.0:
         return 0.0
 
     minutes = float(duration_sec) / 60.0
@@ -127,31 +142,20 @@ def analyze_grammar(text: str) -> dict:
         return fallback
 
 
-def estimate_duration_if_missing(word_count: int, baseline_wpm: float = 130.0) -> float:
-    """
-    Robust fallback if Android forgets to send duration.
-    Estimate duration from words assuming baseline_wpm (default ~130).
-    """
-    if word_count <= 0:
-        return 0.0
-    minutes = word_count / float(baseline_wpm)
-    return round(minutes * 60.0, 2)
-
-
 def run_stage3_text(transcript: str, duration_sec: Optional[float]) -> Dict[str, Any]:
     transcript = (transcript or "").strip()
     wc = count_words(transcript)
 
-    # Duration handling
+    # Duration handling (fail-safe)
     dur = float(duration_sec or 0.0)
-    if dur <= 0.0:
+    if dur < 2.0:
+        # treat too-small duration as missing (this fixes your WPM=0.0 problem)
         dur = estimate_duration_if_missing(wc)
 
     dur = round(dur, 2)
 
     fillers = analyze_fillers(transcript)
     pause_ratio = round(estimate_pause_ratio_text_only(transcript), 2)
-
     wpm = calculate_wpm(wc, dur)
     grammar = analyze_grammar(transcript)
 
