@@ -1,4 +1,4 @@
-""" 
+"""
 Stage 3: Speech Analysis (Fluency + Grammar)
 Project: GARGI
 Author: Krishna
@@ -9,10 +9,10 @@ import re
 import requests
 import os
 
-AUDIO_FILE = "speech.wav"
-TRANSCRIPT_FILE = "transcription.txt"
-LANGUAGETOOL_URL = os.getenv("LANGUAGETOOL_URL", "http://localhost:8081/v2/check")
-
+LANGUAGETOOL_URL = os.getenv(
+    "LANGUAGETOOL_URL",
+    "http://localhost:8081/v2/check"
+)
 
 FILLER_WORDS = [
     "um", "uh", "ah", "like", "you know", "i mean", "so", "well",
@@ -22,8 +22,8 @@ FILLER_WORDS = [
 # -------------------------------
 # Audio
 # -------------------------------
-def load_audio():
-    y, sr = librosa.load(AUDIO_FILE, sr=16000)
+def load_audio(audio_path: str):
+    y, sr = librosa.load(audio_path, sr=16000)
     duration = len(y) / sr
     return y, sr, duration
 
@@ -36,7 +36,7 @@ def analyze_pauses(y, sr, duration):
 # -------------------------------
 # Text
 # -------------------------------
-def analyze_fillers(text):
+def analyze_fillers(text: str):
     text = text.lower()
     counts = {}
     for filler in FILLER_WORDS:
@@ -46,22 +46,14 @@ def analyze_fillers(text):
             counts[filler] = len(matches)
     return counts
 
-def calculate_wpm(text, duration):
+def calculate_wpm(text: str, duration: float):
     words = len(text.split())
-    return round(words / (duration / 60), 1) if duration > 0 else 0
+    return round(words / (duration / 60), 1) if duration > 0 else 0.0
 
 # -------------------------------
-# Grammarcc
+# Grammar
 # -------------------------------
 def analyze_grammar(text: str) -> dict:
-    """
-    Always returns a stable schema, even when LanguageTool is unavailable.
-    Required keys for downstream stages:
-      - total_errors
-      - error_density
-      - rules_count
-      - errors
-    """
     text = (text or "").strip()
     total_words = len(text.split()) if text else 0
 
@@ -92,7 +84,11 @@ def analyze_grammar(text: str) -> dict:
         for m in matches:
             rule_id = (m.get("rule") or {}).get("id", "UNKNOWN")
             msg = m.get("message", "")
-            suggestions = [r.get("value") for r in (m.get("replacements") or []) if "value" in r]
+            suggestions = [
+                r.get("value")
+                for r in (m.get("replacements") or [])
+                if "value" in r
+            ]
 
             rules_count[rule_id] = rules_count.get(rule_id, 0) + 1
             errors.append({
@@ -102,7 +98,10 @@ def analyze_grammar(text: str) -> dict:
             })
 
         total_errors = len(errors)
-        error_density = (total_errors / total_words) * 100 if total_words > 0 else 0.0
+        error_density = (
+            (total_errors / total_words) * 100
+            if total_words > 0 else 0.0
+        )
 
         return {
             "total_errors": total_errors,
@@ -115,24 +114,19 @@ def analyze_grammar(text: str) -> dict:
     except Exception as e:
         fallback["warning"] = f"LanguageTool unavailable: {e}"
         return fallback
+
 # -------------------------------
 # Orchestrator
 # -------------------------------
-def run_stage3():
-    if not os.path.exists(TRANSCRIPT_FILE):
-        raise FileNotFoundError("Transcript not found.")
-
-    with open(TRANSCRIPT_FILE, "r", encoding="utf-8") as f:
-        text = f.read()
-
-    y, sr, duration = load_audio()
+def analyze_speech(audio_path: str, transcript: str) -> dict:
+    y, sr, duration = load_audio(audio_path)
 
     return {
         "fluency": {
             "duration_sec": round(duration, 2),
-            "wpm": calculate_wpm(text, duration),
+            "wpm": calculate_wpm(transcript, duration),
             "pause_ratio": round(analyze_pauses(y, sr, duration), 2),
-            "filler_words": analyze_fillers(text)
+            "filler_words": analyze_fillers(transcript)
         },
-        "grammar": analyze_grammar(text)
+        "grammar": analyze_grammar(transcript)
     }
