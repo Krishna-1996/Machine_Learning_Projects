@@ -3,7 +3,6 @@ Stage 3: Speech Analysis (Fluency + Grammar)
 Project: GARGI
 Author: Krishna
 """
-
 import re
 import requests
 import os
@@ -14,133 +13,48 @@ LANGUAGETOOL_URL = os.getenv(
 )
 
 FILLER_WORDS = [
-    "um", "uh", "ah", "like", "you know", "i mean", "so", "well",
-    "actually", "basically", "right", "just", "hmm", "er"
+    "um", "uh", "ah", "like", "you know", "i mean", "so", "well"
 ]
 
-# -------------------------------
-# Audio
-# -------------------------------
-def estimate_pause_ratio(transcript: str):
-    if not transcript:
-        return 0.0
-
-    pauses = transcript.count("...") + transcript.count("--")
-    words = len(transcript.split())
-
-    return round(min(pauses / max(words, 1), 1.0), 2)
- 
-# -------------------------------
-# Text
-# -------------------------------
 def analyze_fillers(text: str):
     text = text.lower()
     counts = {}
     for filler in FILLER_WORDS:
-        pattern = r"\b" + re.escape(filler) + r"\b"
-        matches = re.findall(pattern, text)
-        if matches:
-            counts[filler] = len(matches)
-    return counts
+        counts[filler] = len(re.findall(rf"\b{filler}\b", text))
+    return {k: v for k, v in counts.items() if v > 0}
 
-def calculate_wpm(text: str, duration: float):
+def calculate_wpm(text: str, duration: float | None):
+    if not duration or duration <= 0:
+        return 0.0
     words = len(text.split())
-    return round(words / (duration / 60), 1) if duration > 0 else 0.0
+    return round(words / (duration / 60), 1)
 
-# -------------------------------
-# Grammar (FAIL-SAFE)
-# -------------------------------
-def analyze_grammar(text: str) -> dict:
-    text = (text or "").strip()
-    total_words = len(text.split()) if text else 0
-
-    fallback = {
-        "total_errors": 0,
-        "error_density": 0.0,
-        "rules_count": {},
-        "errors": [],
-        "warning": None
-    }
-
-    if not text:
-        return fallback
+def analyze_grammar(text: str):
+    if not text.strip():
+        return {"total_errors": 0, "error_density": 0.0}
 
     try:
-        resp = requests.post(
+        r = requests.post(
             LANGUAGETOOL_URL,
             data={"text": text, "language": "en-US"},
-            timeout=6
+            timeout=5
         )
-        resp.raise_for_status()
-        data = resp.json()
-
-        matches = data.get("matches", []) or []
-        errors = []
-        rules_count = {}
-
-        for m in matches:
-            rule_id = (m.get("rule") or {}).get("id", "UNKNOWN")
-            msg = m.get("message", "")
-            suggestions = [
-                r.get("value")
-                for r in (m.get("replacements") or [])
-                if "value" in r
-            ]
-
-            rules_count[rule_id] = rules_count.get(rule_id, 0) + 1
-            errors.append({
-                "rule": rule_id,
-                "message": msg,
-                "suggestions": suggestions[:5]
-            })
-
-        total_errors = len(errors)
-        error_density = (
-            (total_errors / total_words) * 100
-            if total_words > 0 else 0.0
-        )
-
+        data = r.json()
+        errors = data.get("matches", [])
+        density = (len(errors) / len(text.split())) * 100
         return {
-            "total_errors": total_errors,
-            "error_density": round(error_density, 2),
-            "rules_count": rules_count,
-            "errors": errors,
-            "warning": None
+            "total_errors": len(errors),
+            "error_density": round(density, 2)
         }
+    except Exception:
+        return {"total_errors": 0, "error_density": 0.0}
 
-    except Exception as e:
-        fallback["warning"] = f"LanguageTool unavailable: {e}"
-        return fallback
-
-# -------------------------------
-# Orchestrator (ENTRY POINT)
-# -------------------------------
-def analyze_speech(audio_path: str, transcript: str, duration: float) -> dict:
+def analyze_text_only(transcript: str, duration: float | None):
     return {
         "fluency": {
-            "duration_sec": round(duration, 2),
             "wpm": calculate_wpm(transcript, duration),
-            "pause_ratio": estimate_pause_ratio(transcript),
             "filler_words": analyze_fillers(transcript)
         },
-        "grammar": analyze_grammar(transcript)
+        "grammar": analyze_grammar(transcript),
+        "transcript": transcript
     }
-
-
-def run_stage3():
-    """
-    Sprint 4 adapter.
-    Keeps Sprint 3 logic untouched while exposing a stable entrypoint.
-    """
-    audio_path = "speech.wav"
-
-    # TEMP: transcript source
-    # In production this comes from /transcribe
-    transcript = ""
-
-    result = analyze_speech(audio_path, transcript)
-
-    # Attach transcript for downstream scoring (topic)
-    result["grammar"]["transcript"] = transcript
-
-    return result

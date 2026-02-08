@@ -6,7 +6,6 @@ Project: GARGI
 
 import sounddevice as sd
 from scipy.io.wavfile import write
-import whisper
 from langdetect import detect, LangDetectException
 import numpy as np
 import os
