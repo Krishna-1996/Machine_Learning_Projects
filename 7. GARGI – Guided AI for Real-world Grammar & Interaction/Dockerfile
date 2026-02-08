@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 # Python deps
-COPY requirements.txt /app/requirements.txt
+COPY requirements-cloud.txt /app/requirements.txt
 RUN pip install --upgrade pip \
  && pip install --no-cache-dir -r /app/requirements.txt
 
