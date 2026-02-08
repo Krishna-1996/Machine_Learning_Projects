@@ -1,13 +1,14 @@
 from fastapi import FastAPI
 from api.routes.evaluate import router as evaluate_router
+from api.routes.transcribe import router as transcribe_router
 
 app = FastAPI(
     title="GARGI Backend API",
-    version="0.1.0"
+    version="0.2.0"
 )
 
-# Register routes
 app.include_router(evaluate_router)
+app.include_router(transcribe_router)
 
 @app.get("/health")
 def health_check():
