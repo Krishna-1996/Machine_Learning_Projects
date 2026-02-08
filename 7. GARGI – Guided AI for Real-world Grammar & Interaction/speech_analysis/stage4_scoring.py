@@ -1,63 +1,35 @@
+# speech_analysis/stage4_scoring.py
+
 from __future__ import annotations
+from typing import Any, Dict, List, Tuple
 
-from typing import Any, Dict, List, Tuple, Optional
-
-
-# -------------------------------
-# Robust extractors (support old + new stage3 schemas)
-# -------------------------------
 
 def _extract_fluency(stage3: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Supports BOTH schemas:
-
-    NEW schema (flat):
-      stage3["wpm"], stage3["pause_ratio"], stage3["filler_words"], stage3["duration_sec"], stage3["word_count"]
-
-    OLD schema (nested):
-      stage3["fluency"]["wpm"], stage3["fluency"]["pause_ratio"], stage3["fluency"]["filler_words"]
-      OR stage3["fillers"] (dict of counts)
-      OR stage3["fluency"]["filler_count"] (int)
-      word_count may be in stage3["lexical"]["word_count"]
-    """
     flu = stage3.get("fluency") if isinstance(stage3.get("fluency"), dict) else {}
 
-    # WPM
-    wpm = stage3.get("wpm")
+    wpm = stage3.get("wpm", None)
     if wpm is None:
         wpm = flu.get("wpm", 0.0)
 
-    # Pause ratio
-    pause_ratio = stage3.get("pause_ratio")
+    pause_ratio = stage3.get("pause_ratio", None)
     if pause_ratio is None:
         pause_ratio = flu.get("pause_ratio", 0.0)
 
-    # Duration / word_count
-    duration_sec = stage3.get("duration_sec")
-       if duration_sec is None:
-        duration_sec = flu.get("duration_sec")
+    duration_sec = stage3.get("duration_sec", None)
+    if duration_sec is None:
+        duration_sec = flu.get("duration_sec", None)
 
-    word_count = stage3.get("word_count")
+    word_count = stage3.get("word_count", None)
     if word_count is None:
-        word_count = flu.get("word_count")
-    if word_count is None:
-        lex = stage3.get("lexical") if isinstance(stage3.get("lexical"), dict) else {}
-        word_count = lex.get("word_count")
+        word_count = flu.get("word_count", None)
 
-    # Filler words (dict)
-    filler_words = stage3.get("filler_words")
+    filler_words = stage3.get("filler_words", None)
     if not isinstance(filler_words, dict):
-        filler_words = flu.get("filler_words")
+        filler_words = flu.get("filler_words", None)
     if not isinstance(filler_words, dict):
-        filler_words = stage3.get("fillers")  # old schema
+        filler_words = stage3.get("fillers", None)
     if not isinstance(filler_words, dict):
         filler_words = {}
-
-    # If old schema only has filler_count, convert to a pseudo-dict so scoring still works
-    if not filler_words:
-        filler_count = flu.get("filler_count")
-        if isinstance(filler_count, (int, float)) and filler_count > 0:
-            filler_words = {"(fillers_total)": int(filler_count)}
 
     return {
         "wpm": float(wpm or 0.0),
@@ -69,18 +41,10 @@ def _extract_fluency(stage3: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _extract_grammar_raw(stage3: Dict[str, Any]) -> Any:
-    """
-    NEW schema: stage3["grammar_raw"]
-    OLD schema: stage3["grammar"]
-    """
     if "grammar_raw" in stage3:
         return stage3.get("grammar_raw")
     return stage3.get("grammar")
 
-
-# -------------------------------
-# Existing scoring functions (keep your current logic)
-# -------------------------------
 
 def score_fluency(wpm: float, pause_ratio: float):
     base = 10
@@ -116,6 +80,18 @@ def score_fillers(filler_words: Any):
     return base, penalties, final
 
 
+def _extract_grammar_parts(grammar_raw: Any):
+    # Expecting your grammar_raw schema: {total_errors, error_density, errors, warning}
+    if not isinstance(grammar_raw, dict):
+        return 0, 0.0, [], None
+
+    total_errors = int(grammar_raw.get("total_errors", 0) or 0)
+    error_density = float(grammar_raw.get("error_density", 0.0) or 0.0)
+    errors = grammar_raw.get("errors", []) or []
+    warning = grammar_raw.get("warning", None)
+    return total_errors, error_density, errors, warning
+
+
 def score_grammar(error_density: float):
     base = 10
     penalties: List[Tuple[str, int]] = []
@@ -131,16 +107,7 @@ def score_grammar(error_density: float):
     return base, penalties, final
 
 
-def _extract_grammar_parts(grammar_raw: Any):
-    # Keep your existing implementation as-is.
-    # (Use the one already in your file. Not duplicating here to avoid conflicts.)
-    raise NotImplementedError("KEEP YOUR EXISTING _extract_grammar_parts IMPLEMENTATION")
-
-
 def generate_feedback(stage3_data: Dict[str, Any]) -> List[str]:
-    """
-    Updated to use robust extractor so feedback never says WPM=0 unless it truly is.
-    """
     feedback: List[str] = []
 
     flu = _extract_fluency(stage3_data)
@@ -151,7 +118,6 @@ def generate_feedback(stage3_data: Dict[str, Any]) -> List[str]:
     grammar_raw = _extract_grammar_raw(stage3_data)
     total_errors, error_density, grammar_errors, warning = _extract_grammar_parts(grammar_raw)
 
-    # ---- Fluency feedback
     if wpm < 100:
         feedback.append("Your speaking pace was slow. Aim for a steady rhythm.")
     elif wpm > 160:
@@ -162,16 +128,14 @@ def generate_feedback(stage3_data: Dict[str, Any]) -> List[str]:
     if pause_ratio > 0.25:
         feedback.append("You paused frequently. Try reducing long silences.")
 
-    # ---- Filler feedback
     if isinstance(filler_words, dict) and filler_words:
         top_fillers = sorted(filler_words.items(), key=lambda x: x[1], reverse=True)[:3]
         for word, count in top_fillers:
-            if int(count) >= 2 and word != "(fillers_total)":
+            if int(count) >= 2:
                 feedback.append(
                     f"You used the filler word '{word}' {count} times. Consider replacing it with a silent pause."
                 )
 
-    # ---- Grammar feedback
     if warning:
         feedback.append("Grammar engine was unavailable; grammar feedback may be incomplete.")
 
@@ -199,12 +163,7 @@ def run_stage4(stage3_data: Dict[str, Any]) -> Dict[str, Any]:
     fl_base, fl_penalties, fl_final = score_fillers(filler_words)
     g_base, g_penalties, g_final = score_grammar(float(error_density or 0.0))
 
-    overall = round(
-        0.4 * f_final +
-        0.3 * g_final +
-        0.3 * fl_final,
-        1
-    )
+    overall = round(0.4 * f_final + 0.3 * g_final + 0.3 * fl_final, 1)
 
     return {
         "scores": {

@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from api.schemas import EvaluateTextRequest
 
 # ✅ Correct module locations (VERY IMPORTANT)
-from scoring_feedback.stage4_scoring import run_stage4
+from speech_analysis.stage4_scoring import run_stage4
 from topic_relevance.stage5_relevance import run_stage5
 from coaching.stage6_coaching import run_stage6
 

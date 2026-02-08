@@ -9,7 +9,7 @@ import time
 from topic_generation.generate_topic import get_random_topic
 from speech_input.stage1 import record_audio, transcribe_audio, detect_text_language
 from speech_analysis.stage3_analysis import run_stage3
-from scoring_feedback.stage4_scoring import run_stage4
+from speech_analysis.stage4_scoring import run_stage4
 from topic_relevance.stage5_relevance import run_stage5
 from coaching.stage6_coaching import run_stage6
 from services.languagetool_service import ensure_languagetool
