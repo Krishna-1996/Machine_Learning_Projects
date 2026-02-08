@@ -16,11 +16,3 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Python deps
 COPY requirements-cloud.txt /app/requirements.txt
-RUN pip install --upgrade pip \
- && pip install --no-cache-dir -r /app/requirements.txt
-
-# App code
-COPY . /app
-
-# Start FastAPI (ensure PORT expands)
-CMD ["sh", "-c", "uvicorn api.app:app --host 0.0.0.0 --port ${PORT}"]
