@@ -1,4 +1,3 @@
-import whisper
 from threading import Lock
 
 _model = None
@@ -9,11 +8,16 @@ def get_model():
     if _model is None:
         with _lock:
             if _model is None:
-                print("Loading Whisper model (once)...")
+                import whisper
+                print("Loading Whisper model (once per container)...")
                 _model = whisper.load_model("base")
     return _model
 
-def transcribe_audio(audio_path: str) -> str:
+
+def transcribe_audio(audio_path: str) -> dict:
     model = get_model()
     result = model.transcribe(audio_path)
-    return result.get("text", "").strip()
+
+    return {
+        "text": result.get("text", "").strip()
+    }
