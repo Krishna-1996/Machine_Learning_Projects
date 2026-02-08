@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routes.evaluate import router as evaluate_router
+from api.routes.evaluate import router as evaluate_router
 
 app = FastAPI(
     title="GARGI Backend API",
