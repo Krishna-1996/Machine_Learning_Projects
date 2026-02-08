@@ -142,45 +142,35 @@ def analyze_grammar(text: str) -> dict:
         return fallback
 
 
-def run_stage3_text(transcript: str, duration_sec: Optional[float]) -> Dict[str, Any]:
+def run_stage3_text(transcript: str, duration_sec: float | None) -> Dict[str, Any]:
     transcript = (transcript or "").strip()
-    wc = count_words(transcript)
+    duration_sec = float(duration_sec or 0.0)
 
-    # Duration handling (fail-safe)
-    dur = float(duration_sec or 0.0)
-    if dur < 2.0:
-        # treat too-small duration as missing (this fixes your WPM=0.0 problem)
-        dur = estimate_duration_if_missing(wc)
+    words = transcript.split()
+    word_count = len(words)
 
-    dur = round(dur, 2)
-
-    fillers = analyze_fillers(transcript)
+    wpm = calculate_wpm(transcript, duration_sec)
     pause_ratio = round(estimate_pause_ratio_text_only(transcript), 2)
-    wpm = calculate_wpm(wc, dur)
+    fillers = analyze_fillers(transcript)
     grammar = analyze_grammar(transcript)
 
-    # ---- Nested blocks (for UI / future expansion) ----
-    fluency = {
-        "duration_sec": dur,
-        "word_count": wc,
+    # ---- FLAT VALUES (for Stage4 + API) ----
+    flat = {
+        "duration_sec": round(duration_sec, 2),
+        "word_count": word_count,
         "wpm": wpm,
         "pause_ratio": pause_ratio,
         "filler_words": fillers,
     }
 
-    # ---- Flat keys (for Stage 4 scoring compatibility) ----
-    return {
-        # Flat / canonical
-        "transcript": transcript,
-        "duration_sec": dur,
-        "word_count": wc,
-        "wpm": wpm,
-        "pause_ratio": pause_ratio,
-        "filler_words": fillers,
-        "grammar_errors": grammar.get("total_errors", 0),
-        "grammar_raw": grammar,
+    # ---- NESTED VALUES (for compatibility) ----
+    nested = {
+        "fluency": flat,
+        "grammar": grammar
+    }
 
-        # Nested
-        "fluency": fluency,
-        "grammar": grammar,
+    # ---- MERGED OUTPUT ----
+    return {
+        **flat,
+        **nested
     }
