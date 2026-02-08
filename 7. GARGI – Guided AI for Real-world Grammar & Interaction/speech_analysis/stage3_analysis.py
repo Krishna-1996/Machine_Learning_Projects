@@ -31,7 +31,7 @@ def analyze_pauses(y, sr, duration):
     intervals = librosa.effects.split(y, top_db=25)
     speech_time = sum((end - start) / sr for start, end in intervals)
     pause_time = duration - speech_time
-    return pause_time / duration if duration > 0 else 0
+    return pause_time / duration if duration > 0 else 0.0
 
 # -------------------------------
 # Text
@@ -51,7 +51,7 @@ def calculate_wpm(text: str, duration: float):
     return round(words / (duration / 60), 1) if duration > 0 else 0.0
 
 # -------------------------------
-# Grammar
+# Grammar (FAIL-SAFE)
 # -------------------------------
 def analyze_grammar(text: str) -> dict:
     text = (text or "").strip()
@@ -116,7 +116,7 @@ def analyze_grammar(text: str) -> dict:
         return fallback
 
 # -------------------------------
-# Orchestrator
+# Orchestrator (ENTRY POINT)
 # -------------------------------
 def analyze_speech(audio_path: str, transcript: str) -> dict:
     y, sr, duration = load_audio(audio_path)
