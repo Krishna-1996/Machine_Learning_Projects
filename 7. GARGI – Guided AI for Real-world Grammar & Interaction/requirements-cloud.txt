@@ -8,8 +8,3 @@ python-multipart==0.0.9
 numpy
 yake
 
-openai-whisper
-
-torch==2.0.1+cpu
-torchaudio==2.0.2+cpu
---extra-index-url https://download.pytorch.org/whl/cpu
