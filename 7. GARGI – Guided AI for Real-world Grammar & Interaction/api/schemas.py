@@ -27,7 +27,8 @@ class TopicResponse(BaseModel):
 
 
 class EvaluateTextRequest(BaseModel):
-    transcript: str = Field(..., min_length=3)
+    transcript: str = Field(..., min_length=1)
+    duration_sec: Optional[float] = Field(default=None, ge=0)
     topic_obj: Optional[Dict[str, Any]] = None
     topic_text: Optional[str] = None
     duration_sec: Optional[float] = None
@@ -44,3 +45,9 @@ class EvaluateTextResponse(BaseModel):
     stage5: Dict[str, Any] = Field(default_factory=dict)
     stage6: Dict[str, Any] = Field(default_factory=dict)
     user_id: Optional[str] = None
+class EvaluateEnvelope(BaseModel):
+    # Keep it flexible if your pipeline changes
+    topic: Optional[str] = None
+    transcript: str
+    duration_sec: Optional[float] = None
+    meta: Dict[str, Any] = {}

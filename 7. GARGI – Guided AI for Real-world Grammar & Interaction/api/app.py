@@ -1,5 +1,16 @@
 # D:\Machine_Learning_Projects\7. GARGI – Guided AI for Real-world Grammar & Interaction\api\routes\evaluate.py
 from __future__ import annotations
+from fastapi import FastAPI
+from api.routes.evaluate import router as evaluate_router
+# import other routers similarly
+
+app = FastAPI(title="GARGI API")
+
+@app.get("/health")
+def health():
+    return {"ok": True}
+
+app.include_router(evaluate_router, prefix="/evaluate", tags=["evaluate"])
 
 import time
 import uuid
