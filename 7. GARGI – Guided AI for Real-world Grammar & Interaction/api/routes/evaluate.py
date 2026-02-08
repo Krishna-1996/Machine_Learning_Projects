@@ -8,12 +8,13 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 # Ensure project root imports resolve
-import api.deps  # noqa: F401
+from api.deps import EvaluateEnvelope, _format_multiline_feedback
 
 from speech_analysis.stage3_text_analysis import run_stage3_text
 from speech_analysis.stage4_scoring import run_stage4
 from topic_relevance.stage5_relevance import run_stage5
-from coaching.stage6_coaching import run_stage6
+from speech_analysis.stage6_feedback import run_stage6
+
 
 router = APIRouter(prefix="", tags=["evaluate"])
 
