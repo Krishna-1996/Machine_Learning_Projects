@@ -4,6 +4,9 @@ from __future__ import annotations
 import time
 import uuid
 from typing import Any, Dict
+from api.evaluate import router as evaluate_router
+
+from api.routes.topics import router as topics_router
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
