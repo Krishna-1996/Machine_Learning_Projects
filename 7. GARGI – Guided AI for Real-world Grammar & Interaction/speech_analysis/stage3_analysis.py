@@ -130,3 +130,21 @@ def analyze_speech(audio_path: str, transcript: str) -> dict:
         },
         "grammar": analyze_grammar(transcript)
     }
+
+def run_stage3():
+    """
+    Sprint 4 adapter.
+    Keeps Sprint 3 logic untouched while exposing a stable entrypoint.
+    """
+    audio_path = "speech.wav"
+
+    # TEMP: transcript source
+    # In production this comes from /transcribe
+    transcript = ""
+
+    result = analyze_speech(audio_path, transcript)
+
+    # Attach transcript for downstream scoring (topic)
+    result["grammar"]["transcript"] = transcript
+
+    return result
