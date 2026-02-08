@@ -4,15 +4,20 @@ Project: GARGI
 Author: Krishna
 
 Used by /evaluate/text where we do not have an audio file.
-This produces the same *shape* as the audio stage3_analysis.run_stage3()
-so Stage 4 scoring can work consistently.
+
+Sprint-1 Fix:
+- Return BOTH:
+  (A) Flat keys that Stage 4 can read (wpm, pause_ratio, filler_words, grammar_raw, etc.)
+  (B) Nested keys for UI / future expansion (fluency, grammar)
+
+This prevents schema mismatch and makes scoring consistent.
 """
 
 from __future__ import annotations
 
 import os
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import requests
 
@@ -35,10 +40,14 @@ def analyze_fillers(text: str) -> Dict[str, int]:
     return counts
 
 
-def calculate_wpm(text: str, duration_sec: float) -> float:
+def count_words(text: str) -> int:
     text = (text or "").strip()
-    words = len(text.split()) if text else 0
+    if not text:
+        return 0
+    return len(text.split())
 
+
+def calculate_wpm(word_count: int, duration_sec: float) -> float:
     # Avoid nonsense for very short durations
     if duration_sec is None or float(duration_sec) < 2.0:
         return 0.0
@@ -47,7 +56,7 @@ def calculate_wpm(text: str, duration_sec: float) -> float:
     if minutes <= 0:
         return 0.0
 
-    return round(words / minutes, 1)
+    return round(word_count / minutes, 1)
 
 
 def estimate_pause_ratio_text_only(_: str) -> float:
@@ -58,7 +67,6 @@ def estimate_pause_ratio_text_only(_: str) -> float:
 def analyze_grammar(text: str) -> dict:
     """
     Stable schema even if LanguageTool is unavailable.
-    Matches your existing stage3_analysis.py schema.
     """
     text = (text or "").strip()
     total_words = len(text.split()) if text else 0
@@ -119,20 +127,56 @@ def analyze_grammar(text: str) -> dict:
         return fallback
 
 
-def run_stage3_text(transcript: str, duration_sec: float | None) -> Dict[str, Any]:
+def estimate_duration_if_missing(word_count: int, baseline_wpm: float = 130.0) -> float:
+    """
+    Robust fallback if Android forgets to send duration.
+    Estimate duration from words assuming baseline_wpm (default ~130).
+    """
+    if word_count <= 0:
+        return 0.0
+    minutes = word_count / float(baseline_wpm)
+    return round(minutes * 60.0, 2)
+
+
+def run_stage3_text(transcript: str, duration_sec: Optional[float]) -> Dict[str, Any]:
     transcript = (transcript or "").strip()
-    duration_sec = float(duration_sec or 0.0)
+    wc = count_words(transcript)
 
-    fluency = {
-        "duration_sec": round(duration_sec, 2),
-        "wpm": calculate_wpm(transcript, duration_sec),
-        "pause_ratio": round(estimate_pause_ratio_text_only(transcript), 2),
-        "filler_words": analyze_fillers(transcript),
-    }
+    # Duration handling
+    dur = float(duration_sec or 0.0)
+    if dur <= 0.0:
+        dur = estimate_duration_if_missing(wc)
 
+    dur = round(dur, 2)
+
+    fillers = analyze_fillers(transcript)
+    pause_ratio = round(estimate_pause_ratio_text_only(transcript), 2)
+
+    wpm = calculate_wpm(wc, dur)
     grammar = analyze_grammar(transcript)
 
+    # ---- Nested blocks (for UI / future expansion) ----
+    fluency = {
+        "duration_sec": dur,
+        "word_count": wc,
+        "wpm": wpm,
+        "pause_ratio": pause_ratio,
+        "filler_words": fillers,
+    }
+
+    # ---- Flat keys (for Stage 4 scoring compatibility) ----
     return {
+        # Flat / canonical
+        "transcript": transcript,
+        "duration_sec": dur,
+        "word_count": wc,
+        "wpm": wpm,
+        "pause_ratio": pause_ratio,
+        "filler_words": fillers,
+        "grammar_errors": grammar.get("total_errors", 0),
+        "grammar_raw": grammar,
+
+        # Nested
         "fluency": fluency,
-        "grammar": grammar
+        "grammar": grammar,
     }
