@@ -1,111 +1,138 @@
 """
-Stage 3 (Text-only): Fluency, Grammar, Lexical Metrics
-Used by /evaluate/text when audio is not available
+Stage 3 (Text-only): Speech Analysis from transcript + duration
 Project: GARGI
 Author: Krishna
+
+Used by /evaluate/text where we do not have an audio file.
+This produces the same *shape* as the audio stage3_analysis.run_stage3()
+so Stage 4 scoring can work consistently.
 """
 
-from typing import Dict
+from __future__ import annotations
+
+import os
 import re
+from typing import Any, Dict, List
 
-# Optional grammar tool
-try:
-    import language_tool_python
-    _LANGUAGE_TOOL_OK = True
-except Exception:
-    _LANGUAGE_TOOL_OK = False
+import requests
 
+LANGUAGETOOL_URL = os.getenv("LANGUAGETOOL_URL", "http://localhost:8081/v2/check")
 
-FILLER_WORDS = [
-    "um", "uh", "ah", "erm", "like", "you know",
-    "so", "actually", "basically", "well", "okay", "ok"
+FILLER_WORDS: List[str] = [
+    "um", "uh", "ah", "like", "you know", "i mean", "so", "well",
+    "actually", "basically", "right", "just", "hmm", "er"
 ]
 
 
-def _tokenize(text: str):
-    return re.findall(r"\b\w+\b", text.lower())
-
-
-def _count_fillers(text: str) -> Dict[str, int]:
-    t = text.lower()
-    counts = {}
-    for f in FILLER_WORDS:
-        counts[f] = len(re.findall(r"\b" + re.escape(f) + r"\b", t))
+def analyze_fillers(text: str) -> Dict[str, int]:
+    text = (text or "").lower()
+    counts: Dict[str, int] = {}
+    for filler in FILLER_WORDS:
+        pattern = r"\b" + re.escape(filler) + r"\b"
+        matches = re.findall(pattern, text)
+        if matches:
+            counts[filler] = len(matches)
     return counts
 
 
-def run_stage3_text(transcript: str, duration_sec: float) -> Dict:
-    """
-    Build a COMPLETE Stage 3 object compatible with Stage 4 scoring.
-    """
+def calculate_wpm(text: str, duration_sec: float) -> float:
+    text = (text or "").strip()
+    words = len(text.split()) if text else 0
 
-    transcript = (transcript or "").strip()
+    # Avoid nonsense for very short durations
+    if duration_sec is None or float(duration_sec) < 2.0:
+        return 0.0
 
-    if not transcript or duration_sec <= 0:
+    minutes = float(duration_sec) / 60.0
+    if minutes <= 0:
+        return 0.0
+
+    return round(words / minutes, 1)
+
+
+def estimate_pause_ratio_text_only(_: str) -> float:
+    # No audio available; neutral default.
+    return 0.15
+
+
+def analyze_grammar(text: str) -> dict:
+    """
+    Stable schema even if LanguageTool is unavailable.
+    Matches your existing stage3_analysis.py schema.
+    """
+    text = (text or "").strip()
+    total_words = len(text.split()) if text else 0
+
+    fallback = {
+        "total_errors": 0,
+        "error_density": 0.0,
+        "rules_count": {},
+        "errors": [],
+        "warning": None
+    }
+
+    if not text:
+        return fallback
+
+    try:
+        resp = requests.post(
+            LANGUAGETOOL_URL,
+            data={"text": text, "language": "en-US"},
+            timeout=6
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+        matches = data.get("matches", []) or []
+        errors = []
+        rules_count = {}
+
+        for m in matches:
+            rule_id = (m.get("rule") or {}).get("id", "UNKNOWN")
+            msg = m.get("message", "")
+            suggestions = [
+                r.get("value")
+                for r in (m.get("replacements") or [])
+                if isinstance(r, dict) and "value" in r
+            ]
+
+            rules_count[rule_id] = rules_count.get(rule_id, 0) + 1
+            errors.append({
+                "rule": rule_id,
+                "message": msg,
+                "suggestions": suggestions[:5]
+            })
+
+        total_errors = len(errors)
+        error_density = (total_errors / total_words) * 100 if total_words > 0 else 0.0
+
         return {
-            "fluency": {
-                "wpm": 0.0,
-                "pause_ratio": 0.15,
-                "filler_count": 0,
-                "duration_sec": duration_sec,
-            },
-            "fillers": {},
-            "grammar": {
-                "error_count": 0,
-                "error_rate": 0.0,
-                "tool": "none",
-            },
-            "lexical": {
-                "word_count": 0,
-                "unique_word_ratio": 0.0,
-            },
+            "total_errors": total_errors,
+            "error_density": round(error_density, 2),
+            "rules_count": rules_count,
+            "errors": errors,
+            "warning": None
         }
 
-    words = _tokenize(transcript)
-    word_count = len(words)
+    except Exception as e:
+        fallback["warning"] = f"LanguageTool unavailable: {e}"
+        return fallback
 
-    # --- WPM ---
-    minutes = duration_sec / 60.0
-    wpm = round(word_count / minutes, 2) if minutes > 0 else 0.0
 
-    # --- Fillers ---
-    filler_counts = _count_fillers(transcript)
-    filler_total = sum(filler_counts.values())
+def run_stage3_text(transcript: str, duration_sec: float | None) -> Dict[str, Any]:
+    transcript = (transcript or "").strip()
+    duration_sec = float(duration_sec or 0.0)
 
-    # --- Grammar ---
-    grammar_errors = 0
-    grammar_tool = "none"
+    fluency = {
+        "duration_sec": round(duration_sec, 2),
+        "wpm": calculate_wpm(transcript, duration_sec),
+        "pause_ratio": round(estimate_pause_ratio_text_only(transcript), 2),
+        "filler_words": analyze_fillers(transcript),
+    }
 
-    if _LANGUAGE_TOOL_OK:
-        try:
-            tool = language_tool_python.LanguageTool("en-US")
-            matches = tool.check(transcript)
-            grammar_errors = len(matches)
-            grammar_tool = "languagetool"
-        except Exception:
-            grammar_errors = 0
-            grammar_tool = "languagetool_failed"
-
-    error_rate = round(grammar_errors / max(word_count, 1), 3)
-
-    # --- Lexical richness ---
-    unique_ratio = round(len(set(words)) / max(word_count, 1), 3)
+    grammar = analyze_grammar(transcript)
 
     return {
-        "fluency": {
-            "wpm": wpm,
-            "pause_ratio": 0.15,  # neutral default (no audio)
-            "filler_count": filler_total,
-            "duration_sec": duration_sec,
-        },
-        "fillers": filler_counts,
-        "grammar": {
-            "error_count": grammar_errors,
-            "error_rate": error_rate,
-            "tool": grammar_tool,
-        },
-        "lexical": {
-            "word_count": word_count,
-            "unique_word_ratio": unique_ratio,
-        },
+        "fluency": fluency,
+        "grammar": grammar
     }

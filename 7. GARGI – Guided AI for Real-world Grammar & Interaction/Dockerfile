@@ -22,5 +22,5 @@ RUN pip install --upgrade pip \
 # App code
 COPY . /app
 
-# Start FastAPI
-CMD exec uvicorn api.app:app --host 0.0.0.0 --port ${PORT}
+# Start FastAPI (ensure PORT expands)
+CMD ["sh", "-c", "uvicorn api.app:app --host 0.0.0.0 --port ${PORT}"]
