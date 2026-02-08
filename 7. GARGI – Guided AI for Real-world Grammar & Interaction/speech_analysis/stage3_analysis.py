@@ -4,7 +4,6 @@ Project: GARGI
 Author: Krishna
 """
 
-import librosa
 import re
 import requests
 import os
@@ -22,17 +21,15 @@ FILLER_WORDS = [
 # -------------------------------
 # Audio
 # -------------------------------
-def load_audio(audio_path: str):
-    y, sr = librosa.load(audio_path, sr=16000)
-    duration = len(y) / sr
-    return y, sr, duration
+def estimate_pause_ratio(transcript: str):
+    if not transcript:
+        return 0.0
 
-def analyze_pauses(y, sr, duration):
-    intervals = librosa.effects.split(y, top_db=25)
-    speech_time = sum((end - start) / sr for start, end in intervals)
-    pause_time = duration - speech_time
-    return pause_time / duration if duration > 0 else 0.0
+    pauses = transcript.count("...") + transcript.count("--")
+    words = len(transcript.split())
 
+    return round(min(pauses / max(words, 1), 1.0), 2)
+ 
 # -------------------------------
 # Text
 # -------------------------------
@@ -118,18 +115,17 @@ def analyze_grammar(text: str) -> dict:
 # -------------------------------
 # Orchestrator (ENTRY POINT)
 # -------------------------------
-def analyze_speech(audio_path: str, transcript: str) -> dict:
-    y, sr, duration = load_audio(audio_path)
-
+def analyze_speech(audio_path: str, transcript: str, duration: float) -> dict:
     return {
         "fluency": {
             "duration_sec": round(duration, 2),
             "wpm": calculate_wpm(transcript, duration),
-            "pause_ratio": round(analyze_pauses(y, sr, duration), 2),
+            "pause_ratio": estimate_pause_ratio(transcript),
             "filler_words": analyze_fillers(transcript)
         },
         "grammar": analyze_grammar(transcript)
     }
+
 
 def run_stage3():
     """
