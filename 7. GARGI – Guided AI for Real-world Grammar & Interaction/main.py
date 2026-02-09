@@ -1,36 +1,43 @@
 from fastapi import FastAPI
-from app.schemas import ScoreRequest, ScoreResponse
-from app.scoring import fluency, grammar, relevance
-from app.scoring.scoring_engine import calculate_total_score
-from app.feedback.generator import generate_feedback
+from pydantic import BaseModel
+from typing import Dict, Any
 
-app = FastAPI(title="GARGI Scoring API", version="1.0")
+from scoring.scoring_engine import compute_final_score
 
-@app.post("/score_text", response_model=ScoreResponse)
-def score_text(req: ScoreRequest):
-    f_score, f_exp = fluency.fluency_score(req.transcript, req.duration_seconds)
-    g_score, g_exp = grammar.grammar_score(req.transcript)
-    r_score, r_exp = relevance.relevance_score(req.transcript)
+app = FastAPI(title="GARGI Backend", version="1.0")
 
-    scores = {
-        "fluency": f_score,
-        "grammar": g_score,
-        "relevance": r_score
-    }
 
-    explainability = {
-        "fluency": f_exp,
-        "grammar": g_exp,
-        "relevance": r_exp
-    }
+# ---------- Request / Response Schemas ----------
 
-    total = calculate_total_score(scores, req.level)
-    feedback = generate_feedback(req.level, scores)
+class ScoreRequest(BaseModel):
+    level: str
+    transcript: str
+    analysis: Dict[str, Any]
+
+
+class ScoreResponse(BaseModel):
+    level: str
+    total_score: int
+    components: Dict[str, float]
+
+
+# ---------- Routes ----------
+
+@app.get("/")
+def health_check():
+    return {"status": "GARGI backend running"}
+
+
+@app.post("/score", response_model=ScoreResponse)
+def score_speech(req: ScoreRequest):
+    total, components = compute_final_score(
+        level=req.level,
+        transcript=req.transcript,
+        analysis=req.analysis
+    )
 
     return ScoreResponse(
         level=req.level,
-        scores=scores,
         total_score=total,
-        explainability=explainability,
-        feedback_tips=feedback
+        components=components
     )

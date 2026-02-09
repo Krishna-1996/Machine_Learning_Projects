@@ -55,7 +55,7 @@ class EvaluateEnvelope(BaseModel):
 class ScoreRequest(BaseModel):
     transcript: str = Field(..., min_length=3)
     duration_seconds: float = Field(..., gt=0)
-    level: str = Field(..., regex="^(Kids|Beginner|Intermediate|Advanced)$")
+    level: str = Field(..., pattern="^(Kids|Beginner|Intermediate|Advanced)$")
 
 class ScoreResponse(BaseModel):
     level: str

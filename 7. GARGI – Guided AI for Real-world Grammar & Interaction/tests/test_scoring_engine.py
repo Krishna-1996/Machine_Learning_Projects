@@ -30,3 +30,6 @@ def test_beginner_score():
     assert "fluency" in components
     assert "confidence" in components
     assert "topic" in components
+    
+if __name__ == "__main__":
+    test_beginner_score()
