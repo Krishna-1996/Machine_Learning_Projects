@@ -1,5 +1,4 @@
 from scoring.weights import LEVEL_WEIGHTS
-from .level_matrix import LEVEL_MATRIX
 
 def score_fluency(fluency):
     wpm = fluency["wpm"]
@@ -29,7 +28,6 @@ def score_confidence(fluency):
 
 
 def score_topic(transcript):
-    # simple placeholder (rule-based)
     return 70 if len(transcript.split()) > 30 else 50
 
 
@@ -49,24 +47,20 @@ def compute_final_score(level, transcript, analysis):
 
     for metric, weight in weights.items():
         if metric == "fluency":
-            val = score_fluency(fluency)
+            raw = score_fluency(fluency)
         elif metric == "grammar":
-            val = score_grammar(grammar)
+            raw = score_grammar(grammar)
         elif metric == "confidence":
-            val = score_confidence(fluency)
+            raw = score_confidence(fluency)
         elif metric == "topic":
-            val = score_topic(transcript)
+            raw = score_topic(transcript)
         elif metric == "interview":
-            val = score_interview(fluency, grammar)
+            raw = score_interview(fluency, grammar)
         else:
-            val = 0
+            raw = 0
 
-        components[metric] = round(val * weight, 1)
-        total += components[metric]
+        weighted = round(raw * weight, 1)
+        components[metric] = weighted
+        total += weighted
 
     return round(total), components
-
-def calculate_total_score(scores: dict, level: str) -> float:
-    weights = LEVEL_MATRIX[level]
-    total = sum(scores[m] * weights[m] for m in scores)
-    return round(total, 2)
