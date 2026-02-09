@@ -37,30 +37,24 @@ def score_interview(fluency, grammar):
     return max(base - penalty, 0)
 
 
-def compute_final_score(level, transcript, analysis):
+def compute_final_score(level: str, transcript: str, analysis: dict):
+    """
+    Sprint 9 rule:
+    - Missing analysis signals default to 0.0
+    - Never raise KeyError
+    - Deterministic scoring
+    """
+
     weights = LEVEL_WEIGHTS[level]
-    fluency = analysis["fluency"]
-    grammar = analysis["grammar"]
 
     components = {}
-    total = 0
+    total_score = 0.0
 
     for metric, weight in weights.items():
-        if metric == "fluency":
-            raw = score_fluency(fluency)
-        elif metric == "grammar":
-            raw = score_grammar(grammar)
-        elif metric == "confidence":
-            raw = score_confidence(fluency)
-        elif metric == "topic":
-            raw = score_topic(transcript)
-        elif metric == "interview":
-            raw = score_interview(fluency, grammar)
-        else:
-            raw = 0
+        raw_value = float(analysis.get(metric, 0.0))
+        weighted_score = raw_value * weight
 
-        weighted = round(raw * weight, 1)
-        components[metric] = weighted
-        total += weighted
+        components[metric] = weighted_score
+        total_score += weighted_score
 
-    return round(total), components
+    return int(round(total_score * 100)), components

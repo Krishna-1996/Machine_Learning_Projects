@@ -78,10 +78,11 @@ def score(req: ScoreRequest):
     tips = {}
     weights = LEVEL_WEIGHTS[req.level]
 
-    for metric, weighted_score in components.items():
-        raw_estimate = int(weighted_score / weights[metric])
+    for metric in weights:
+        raw_estimate = int(req.analysis.get(metric, 0.0))
         explanations[metric] = apply_tone(
-            explain(metric, raw_estimate), req.level
+            explain(metric, raw_estimate),
+            req.level
         )
         tips[metric] = get_tip(metric)
 
