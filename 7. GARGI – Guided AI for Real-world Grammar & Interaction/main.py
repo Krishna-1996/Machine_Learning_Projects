@@ -1,3 +1,6 @@
+from firebase.firebase_init import init_firebase
+from firebase.firestore_client import save_session
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Dict, Any
@@ -31,6 +34,10 @@ from auth.schemas import LoginRequest, TokenResponse
 from auth.auth import authenticate, create_access_token
 
 from dashboard.views import register_dashboard_routes
+
+@app.on_event("startup")
+def startup():
+    init_firebase()
 
 # Initialize FastAPI app
 app = FastAPI(title="GARGI Backend", version="1.2")
@@ -94,7 +101,10 @@ def score(req: ScoreRequest):
         tips=tips,
         trends=trends,
         summary=summary
+    
+    save_session(user_id, response)
     )
+
 
 @app.get("/dashboard/learners", response_model=list[LearnerOverview])
 def get_all_learners():
@@ -156,3 +166,6 @@ def login(data: LoginRequest):
 
 register_dashboard_routes(app)
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}

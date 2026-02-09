@@ -1,20 +1,7 @@
-from pathlib import Path
-import json
+from firebase.firestore_client import load_all_users
 from statistics import mean
-
-from progress.trends import compute_trends
 from progress.bands import score_band
-
-DATA_DIR = Path("progress_data")
-
-
-def load_all_users():
-    users = {}
-    for file in DATA_DIR.glob("*.json"):
-        user_id = file.stem
-        users[user_id] = json.loads(file.read_text())
-    return users
-
+from progress.trends import compute_trends
 
 def learner_overview(user_id, sessions):
     scores = [s["total_score"] for s in sessions]
@@ -28,7 +15,6 @@ def learner_overview(user_id, sessions):
         "avg_score": round(mean(scores), 1)
     }
 
-
 def learner_detail(user_id, sessions):
     scores = [s["total_score"] for s in sessions]
 
@@ -38,11 +24,10 @@ def learner_detail(user_id, sessions):
             components_history.setdefault(k, []).append(v)
 
     trends = compute_trends(sessions)
-
     return scores, components_history, trends
 
-
-def class_overview(users):
+def class_overview():
+    users = load_all_users()
     all_scores = []
     band_dist = {"A": 0, "B": 0, "C": 0, "D": 0}
 
@@ -53,6 +38,6 @@ def class_overview(users):
 
     return {
         "total_learners": len(users),
-        "average_score": round(mean(all_scores), 1) if all_scores else 0,
+        "average_score": round(mean(all_scores), 1),
         "band_distribution": band_dist
     }
