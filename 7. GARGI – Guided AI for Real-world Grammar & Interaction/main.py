@@ -12,7 +12,7 @@ from feedback.explainability import explain
 from feedback.tips import get_tip
 from feedback.tone import apply_tone
 
-from progress.storage import save_session, load_sessions
+from progress.storage import save_session as save_session_local, load_sessions
 from progress.trends import compute_trends
 from progress.bands import score_band
 from progress.summary import generate_summary
