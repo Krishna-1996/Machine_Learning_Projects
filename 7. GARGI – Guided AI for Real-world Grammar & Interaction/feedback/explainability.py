@@ -19,14 +19,14 @@ def explain(metric, weighted_score):
         if weighted_score >= 30:
             return "You sound confident while speaking."
         elif weighted_score >= 20:
-            return "Confidence is moderate."
+            return "Confidence is moderate with hesitation."
         else:
             return "Hesitation reduced confidence."
 
     if metric == "topic":
-        return "Response is reasonably on topic."
+        return "Response stayed mostly on topic."
 
     if metric == "interview":
-        return "Interview-style response evaluated."
+        return "Overall interview delivery evaluated."
 
     return "No explanation available."
