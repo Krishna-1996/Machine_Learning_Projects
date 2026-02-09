@@ -1,9 +1,9 @@
-from firebase.firebase_init import init_firebase
-from firebase.firestore_client import save_session
-
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any
+
+from firebase.firebase_init import init_firebase
+from firebase.firestore_client import save_session, load_sessions, load_all_users
 
 from scoring.scoring_engine import compute_final_score
 from scoring.weights import LEVEL_WEIGHTS
@@ -12,13 +12,11 @@ from feedback.explainability import explain
 from feedback.tips import get_tip
 from feedback.tone import apply_tone
 
-from progress.storage import save_session as save_session_local, load_sessions
 from progress.trends import compute_trends
 from progress.bands import score_band
 from progress.summary import generate_summary
 
 from dashboard.analytics import (
-    load_all_users,
     learner_overview,
     learner_detail,
     class_overview
@@ -35,13 +33,18 @@ from auth.auth import authenticate, create_access_token
 
 from dashboard.views import register_dashboard_routes
 
+
+# ✅ FastAPI app MUST be created first
+app = FastAPI(title="GARGI Backend", version="1.2")
+
+
+# ✅ Startup hook AFTER app exists
 @app.on_event("startup")
 def startup():
     init_firebase()
 
-# Initialize FastAPI app
-app = FastAPI(title="GARGI Backend", version="1.2")
 
+# -------------------- Schemas --------------------
 
 class ScoreRequest(BaseModel):
     user_id: str
@@ -60,6 +63,8 @@ class ScoreResponse(BaseModel):
     trends: Dict[str, float]
     summary: str
 
+
+# -------------------- API --------------------
 
 @app.post("/score", response_model=ScoreResponse)
 def score(req: ScoreRequest):
@@ -92,19 +97,16 @@ def score(req: ScoreRequest):
     band = score_band(total)
     summary = generate_summary(req.level, total, trends)
 
-    response = ScoreResponse(
-    level=req.level,
-    total_score=total,
-    band=band,
-    components=components,
-    explanations=explanations,
-    tips=tips,
-    trends=trends,
-    summary=summary
-)
-
-return response
-
+    return ScoreResponse(
+        level=req.level,
+        total_score=total,
+        band=band,
+        components=components,
+        explanations=explanations,
+        tips=tips,
+        trends=trends,
+        summary=summary
+    )
 
 
 @app.get("/dashboard/learners", response_model=list[LearnerOverview])
@@ -156,6 +158,7 @@ def get_class_overview():
     overview["at_risk_learners"] = at_risk
     return overview
 
+
 @app.post("/auth/login", response_model=TokenResponse)
 def login(data: LoginRequest):
     user = authenticate(data.username, data.password)
@@ -165,7 +168,9 @@ def login(data: LoginRequest):
     token = create_access_token(user)
     return {"access_token": token}
 
+
 register_dashboard_routes(app)
+
 
 @app.get("/health")
 def health():
