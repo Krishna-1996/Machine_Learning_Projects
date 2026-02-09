@@ -1,0 +1,9 @@
+<h2>Learner: {{ user_id }}</h2>
+
+<canvas id="scoreChart"></canvas>
+
+<script>
+const scores = {{ sessions | map(attribute='total_score') | list }};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/static/charts.js"></script>

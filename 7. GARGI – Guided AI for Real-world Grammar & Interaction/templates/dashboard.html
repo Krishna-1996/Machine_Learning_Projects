@@ -1,0 +1,9 @@
+<h1>Teacher Dashboard</h1>
+
+<ul>
+  {% for user_id in users %}
+    <li>
+      <a href="/dashboard/ui/{{ user_id }}">{{ user_id }}</a>
+    </li>
+  {% endfor %}
+</ul>

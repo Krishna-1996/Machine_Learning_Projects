@@ -14,6 +14,25 @@ from progress.trends import compute_trends
 from progress.bands import score_band
 from progress.summary import generate_summary
 
+from dashboard.analytics import (
+    load_all_users,
+    learner_overview,
+    learner_detail,
+    class_overview
+)
+from dashboard.risk_flags import compute_risk_flags
+from dashboard.schemas import (
+    LearnerOverview,
+    LearnerDetail,
+    ClassOverview
+)
+
+from auth.schemas import LoginRequest, TokenResponse
+from auth.auth import authenticate, create_access_token
+
+from dashboard.views import register_dashboard_routes
+
+# Initialize FastAPI app
 app = FastAPI(title="GARGI Backend", version="1.2")
 
 
@@ -76,3 +95,64 @@ def score(req: ScoreRequest):
         trends=trends,
         summary=summary
     )
+
+@app.get("/dashboard/learners", response_model=list[LearnerOverview])
+def get_all_learners():
+    users = load_all_users()
+    return [
+        learner_overview(uid, sessions)
+        for uid, sessions in users.items()
+    ]
+
+
+@app.get("/dashboard/learners/{user_id}", response_model=LearnerDetail)
+def get_learner_detail(user_id: str):
+    users = load_all_users()
+    sessions = users.get(user_id)
+
+    if not sessions:
+        return {
+            "user_id": user_id,
+            "scores": [],
+            "components_history": {},
+            "trends": {},
+            "risk_flags": ["No data available"]
+        }
+
+    scores, components, trends = learner_detail(user_id, sessions)
+    flags = compute_risk_flags(scores, trends)
+
+    return {
+        "user_id": user_id,
+        "scores": scores,
+        "components_history": components,
+        "trends": trends,
+        "risk_flags": flags
+    }
+
+
+@app.get("/dashboard/class", response_model=ClassOverview)
+def get_class_overview():
+    users = load_all_users()
+    overview = class_overview(users)
+
+    at_risk = []
+    for uid, sessions in users.items():
+        scores, _, trends = learner_detail(uid, sessions)
+        if compute_risk_flags(scores, trends):
+            at_risk.append(uid)
+
+    overview["at_risk_learners"] = at_risk
+    return overview
+
+@app.post("/auth/login", response_model=TokenResponse)
+def login(data: LoginRequest):
+    user = authenticate(data.username, data.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    token = create_access_token(user)
+    return {"access_token": token}
+
+register_dashboard_routes(app)
+
