@@ -51,3 +51,15 @@ class EvaluateEnvelope(BaseModel):
     transcript: str
     duration_sec: Optional[float] = None
     meta: Dict[str, Any] = {}
+
+class ScoreRequest(BaseModel):
+    transcript: str = Field(..., min_length=3)
+    duration_seconds: float = Field(..., gt=0)
+    level: str = Field(..., regex="^(Kids|Beginner|Intermediate|Advanced)$")
+
+class ScoreResponse(BaseModel):
+    level: str
+    scores: Dict[str, float]
+    total_score: float
+    explainability: Dict[str, str]
+    feedback_tips: Dict[str, str]
