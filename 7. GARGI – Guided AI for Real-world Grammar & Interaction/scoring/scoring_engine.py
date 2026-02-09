@@ -1,4 +1,5 @@
 from scoring.weights import LEVEL_WEIGHTS
+from .level_matrix import LEVEL_MATRIX
 
 def score_fluency(fluency):
     wpm = fluency["wpm"]
@@ -64,3 +65,8 @@ def compute_final_score(level, transcript, analysis):
         total += components[metric]
 
     return round(total), components
+
+def calculate_total_score(scores: dict, level: str) -> float:
+    weights = LEVEL_MATRIX[level]
+    total = sum(scores[m] * weights[m] for m in scores)
+    return round(total, 2)
