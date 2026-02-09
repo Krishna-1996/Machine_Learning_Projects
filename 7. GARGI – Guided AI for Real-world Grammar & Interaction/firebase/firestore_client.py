@@ -1,6 +1,7 @@
 from google.cloud import firestore
 
-db = firestore.Client()
+# 🔹 Explicitly connect to the named database
+db = firestore.Client(project="gargi-cloud", database="gargibackend")
 
 def save_session(user_id: str, data: dict):
     db.collection("users").document(user_id).collection("sessions").add(data)

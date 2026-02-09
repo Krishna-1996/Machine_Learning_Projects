@@ -6,3 +6,5 @@ requests
 numpy
 yake
 python-multipart==0.0.9
+Jinja2>=3.1.2
+
