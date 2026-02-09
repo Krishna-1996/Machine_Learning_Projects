@@ -1,23 +1,18 @@
 import firebase_admin
 from firebase_admin import credentials
-
-from pathlib import Path
-
-FIREBASE_KEY_PATH = Path("D:/Google_Cloud_INFo/firebase/serviceAccountKey.json")
-
-def init_firebase():
-    if not firebase_admin._apps:
-        cred = credentials.Certificate(FIREBASE_KEY_PATH)
-        firebase_admin.initialize_app(cred)
-import firebase_admin
-from firebase_admin import credentials
 import os
+import json
+from google.cloud import secretmanager
 
 def init_firebase():
-    if not firebase_admin._apps:
-        key_path = os.environ.get("FIREBASE_KEY_PATH")
-        if not key_path:
-            raise RuntimeError("FIREBASE_KEY_PATH not set")
+    if firebase_admin._apps:
+        return
 
-        cred = credentials.Certificate(key_path)
-        firebase_admin.initialize_app(cred)
+    client = secretmanager.SecretManagerServiceClient()
+    name = "projects/gargi-cloud/secrets/firebase-service-account/versions/latest"
+
+    response = client.access_secret_version(request={"name": name})
+    service_account_info = json.loads(response.payload.data.decode("UTF-8"))
+
+    cred = credentials.Certificate(service_account_info)
+    firebase_admin.initialize_app(cred)

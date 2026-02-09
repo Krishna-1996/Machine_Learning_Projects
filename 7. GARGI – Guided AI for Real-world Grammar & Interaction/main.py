@@ -92,18 +92,19 @@ def score(req: ScoreRequest):
     band = score_band(total)
     summary = generate_summary(req.level, total, trends)
 
-    return ScoreResponse(
-        level=req.level,
-        total_score=total,
-        band=band,
-        components=components,
-        explanations=explanations,
-        tips=tips,
-        trends=trends,
-        summary=summary
-    
-    save_session(user_id, response)
-    )
+    response = ScoreResponse(
+    level=req.level,
+    total_score=total,
+    band=band,
+    components=components,
+    explanations=explanations,
+    tips=tips,
+    trends=trends,
+    summary=summary
+)
+
+return response
+
 
 
 @app.get("/dashboard/learners", response_model=list[LearnerOverview])
