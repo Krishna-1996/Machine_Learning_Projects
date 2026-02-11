@@ -1,3 +1,8 @@
+from fastapi import Depends, Header
+from firebase_admin import auth as firebase_auth
+import jwt
+import os
+from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any
@@ -66,8 +71,8 @@ class ScoreResponse(BaseModel):
 
 # -------------------- API --------------------
 
-@app.post("/score", response_model=ScoreResponse)
-def score(req: ScoreRequest):
+@app.post("/v1/score", response_model=ScoreResponse)
+def score(req: ScoreRequest, user_id: str = Depends(verify_jwt)):
     total, components = compute_final_score(
         level=req.level,
         transcript=req.transcript,
@@ -110,7 +115,7 @@ def score(req: ScoreRequest):
     )
 
 
-@app.get("/dashboard/learners", response_model=list[LearnerOverview])
+@app.get("/v1/dashboard/learners", response_model=list[LearnerOverview])
 def get_all_learners():
     users = load_all_users()
     return [
@@ -119,8 +124,8 @@ def get_all_learners():
     ]
 
 
-@app.get("/dashboard/learners/{user_id}", response_model=LearnerDetail)
-def get_learner_detail(user_id: str):
+@app.get("/v1/dashboard/learners/{user_id}", response_model=LearnerDetail)
+def get_learner_detail(user_id: str = Depends(verify_jwt)):
     users = load_all_users()
     sessions = users.get(user_id)
 
@@ -145,7 +150,7 @@ def get_learner_detail(user_id: str):
     }
 
 
-@app.get("/dashboard/class", response_model=ClassOverview)
+@app.get("/v1/dashboard/class", response_model=ClassOverview)
 def get_class_overview():
     users = load_all_users()
     overview = class_overview(users)
@@ -176,3 +181,43 @@ register_dashboard_routes(app)
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+# JWT settings
+JWT_SECRET = os.getenv("JWT_SECRET", "CHANGE_THIS_IN_PROD")
+JWT_ALGORITHM = "HS256"
+JWT_EXP_MINUTES = 60
+
+class ExchangeRequest(BaseModel):
+    id_token: str
+
+
+@app.post("/v1/auth/exchange")
+def exchange_token(req: ExchangeRequest):
+    try:
+        decoded = firebase_auth.verify_id_token(req.id_token)
+        uid = decoded["uid"]
+
+        payload = {
+            "sub": uid,
+            "exp": datetime.utcnow() + timedelta(minutes=JWT_EXP_MINUTES)
+        }
+
+        backend_token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+        return {"access_token": backend_token}
+
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid Firebase token")
+
+def verify_jwt(authorization: str = Header(...)):
+    try:
+        scheme, token = authorization.split()
+        if scheme.lower() != "bearer":
+            raise Exception()
+
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        return payload["sub"]
+
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid JWT")
