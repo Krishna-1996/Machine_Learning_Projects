@@ -59,3 +59,49 @@ Android
 build
 
 serviceAccountKey.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile*
+docker-compose*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Android
+android/
+.gradle/
+build/
+*.apk
+*.aab
+
+# Node / frontend (if any)
+node_modules/
+
+# ML / data
+*.h5
+*.pt
+*.onnx
+*.pkl
+data/
+datasets/
+
+# Firebase / secrets
+serviceAccountKey.json
+*.json
+
+# Logs
+*.log
