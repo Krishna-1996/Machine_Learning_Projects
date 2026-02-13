@@ -11,9 +11,9 @@ output_file_docx = "project_details_API.docx"
 output_file_excel = "project_files_API.xlsx"
 
 # Folder and file types to ignore
-ignore_folders = ()
-ignore_files = ("LICENSE", "README.md", "git", ".gitignore", ".docx",
-                 ".xlsx", "test1_Android.py", "test2_API.py")
+ignore_folders = (".git", "venv", "__pycache__", "data", "output", "logs", "models")
+ignore_files = ("LICENSE", "README.md", "git", ".gitignore", ".docx", ".pyc", "__init__.py",
+                 ".xlsx", "test1_Android.py", "test2_API.py", )
 
 # Function to clean up file contents (remove non-XML characters)``
 def clean_content(content):
